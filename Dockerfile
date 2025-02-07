@@ -38,6 +38,6 @@ COPY pg_exporter.yml /etc/pg_exporter.yml
 COPY config /etc/config
 
 ENV PG_EXPORTER_EXCLUDE_DATABASE=postgres,template0,template1
-ENV PG_EXPORTER_CONFIG=/etc/collector_custom
+ENV PG_EXPORTER_CONFIG=/etc/config/collector_custom
 EXPOSE 9630/tcp
 ENTRYPOINT ["/bin/pg_exporter"]

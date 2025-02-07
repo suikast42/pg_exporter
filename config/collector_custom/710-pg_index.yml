@@ -43,7 +43,7 @@ pg_index:
   name: pg_index
   desc: PostgreSQL index metrics
   query: |
-    SELECT CURRENT_CATALOG AS datname, schemaname || '.' || indexrelname AS idxname, schemaname || '.' || relname AS relname ,indexrelid AS relid,
+    SELECT CURRENT_CATALOG AS datname, schemaname || '.' || indexrelname AS idxname, schemaname as schema , relname as table ,indexrelid AS relid,
         relpages, reltuples, idx_scan, idx_tup_read, idx_tup_fetch, idx_blks_read, idx_blks_hit
     FROM pg_stat_user_indexes psui, LATERAL (SELECT idx_blks_read, idx_blks_hit FROM pg_statio_user_indexes psio WHERE psio.indexrelid = psui.indexrelid LIMIT 1) p2,
         LATERAL (SELECT relpages,reltuples FROM pg_class c WHERE c.oid = psui.indexrelid LIMIT 1) p3
@@ -61,9 +61,12 @@ pg_index:
     - idxname:
         usage: LABEL
         description: Name of this index (full-qualifed schema name)
-    - relname:
+    - schema:
         usage: LABEL
-        description: Name of the table for this index (full-qualifed schema name)
+        description: Name of the schema for this index
+    - table:
+        usage: LABEL
+        description: Name of the table for this index
     - relid:
         usage: LABEL
         description: Relation oid of this index
