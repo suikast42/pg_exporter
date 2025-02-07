@@ -1,0 +1,101 @@
+##
+# SYNOPSIS
+#       pg_table_size_*
+#
+# DESCRIPTION
+#       PostgreSQL table size metrics, quite slow
+#
+# OPTIONS
+#       Tags       []
+#       TTL        300
+#       Priority   0
+#       Timeout    2s
+#       Fatal      false
+#       Version    100000 ~ higher
+#       Source     810-pg_table_size.yml
+#
+# METRICS
+#       datname (LABEL)
+#           Database name of this table
+#       relname (LABEL)
+#           Schema qualified table name
+#       bytes (GAUGE)
+#           Total bytes of this table (including toast, index, toast index)
+#       relsize (GAUGE)
+#           Bytes of this table itself (main, vm, fsm)
+#       indexsize (GAUGE)
+#           Bytes of all related indexes of this table
+#       toastsize (GAUGE)
+#           Bytes of toast tables of this table
+#
+pg_table_chunk_size:
+  desc: Table sizes of hyper tables an normal tables. Only for the the connection schema
+  query: |
+    SELECT
+    (SELECT current_database()) as datname,
+    c.hypertable_schema AS relname,
+    c.hypertable_name AS table,
+    -- c.range_start,
+    -- c.range_end,
+    c.chunk_name,
+    -- pg_size_pretty(pg_total_relation_size(c.chunk_schema || '.' || c.chunk_name)) AS "chunk_size pretty",
+    pg_total_relation_size(c.chunk_schema || '.' || c.chunk_name) AS "chunk_size_bytes"
+    FROM
+    timescaledb_information.chunks c
+    WHERE
+    to_regclass(c.chunk_schema || '.' || c.chunk_name) IS NOT NULL
+    
+    UNION ALL
+    
+    -- Query for regular tables
+    SELECT
+    (SELECT current_database()) as datname,
+    n.nspname AS relname,
+    c.relname AS table,
+    --  NULL AS range_start,
+    -- NULL AS range_end,
+    NULL AS chunk_name,
+    -- pg_size_pretty(pg_total_relation_size(c.oid)) AS "chunk_size pretty",
+    pg_total_relation_size(c.oid) AS "chunk_size_bytes"
+    
+    FROM
+    pg_class c
+    JOIN
+    pg_namespace n ON c.relnamespace = n.oid
+    WHERE
+    c.relkind = 'r' -- Only regular tables
+    AND n.nspname NOT IN ('pg_catalog', 'information_schema', 'timescaledb_internal') -- Exclude system schemas
+    AND NOT EXISTS (
+    SELECT 1
+    FROM _timescaledb_catalog.hypertable ht
+    WHERE ht.schema_name = n.nspname AND ht.table_name = c.relname
+    ) -- Exclude hypertables (already handled above)
+    
+    ORDER BY
+    relname,
+    "chunk_size_bytes" DESC;
+
+  ttl: 300
+  timeout: 10
+  tags:
+    - cluster
+    - primary
+  min_version: 140000
+
+  metrics:
+    - datname:
+        usage: LABEL
+        description: Database name of this table
+    - relname:
+        usage: LABEL
+        description: Schema qualified table name
+    - table:
+        usage: LABEL
+        description: Qualified table name
+    - chunk_name:
+        usage: LABEL
+        description: Qualified chunk_name name
+    - chunk_size_bytes:
+        usage: GAUGE
+        default: 0
+        description: Bytes of this table itself (main, vm, fsm)

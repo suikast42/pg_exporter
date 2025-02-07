@@ -23,6 +23,7 @@ RUN \
   --mount=type=cache,target=/root/.cache/go-build \
   CGO_ENABLED=0 GOOS=linux go build -a -o /pg_exporter .
 
+#FROM alpine:3.21.2
 FROM scratch
 LABEL org.opencontainers.image.authors="Vonng <rh@vonng.com>, Craig Ringer <craig.ringer@enterprisedb.com>" \
       org.opencontainers.image.url="https://github.com/Vonng/pg_exporter" \
@@ -34,5 +35,9 @@ LABEL org.opencontainers.image.authors="Vonng <rh@vonng.com>, Craig Ringer <crai
 WORKDIR /bin
 COPY --from=builder-env /pg_exporter /bin/pg_exporter
 COPY pg_exporter.yml /etc/pg_exporter.yml
+COPY config /etc/config
+
+ENV PG_EXPORTER_EXCLUDE_DATABASE=postgres,template0,template1
+ENV PG_EXPORTER_CONFIG=/etc/collector_custom
 EXPOSE 9630/tcp
 ENTRYPOINT ["/bin/pg_exporter"]

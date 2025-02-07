@@ -1,6 +1,4 @@
-*
-!go.mod
-!go.sum
-!main.go
-!exporter
-!pg_exporter.yml
+.idea
+.envrc
+.run
+**/*.iml

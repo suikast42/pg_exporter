@@ -1,0 +1,32 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="go build github.com/Vonng/pg_exporter" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+    <module name="pg_exporter" />
+    <working_directory value="$PROJECT_DIR$" />
+    <envs>
+      <env name="PG_EXPORTER_CONFIG" value="./config/collector_custom" />
+      <env name="PG_EXPORTER_URL" value="postgresql://bi:bimaster@172.21.1.20:30002/bi?sslmode=disable" />
+      <env name="PG_EXPORTER_EXCLUDE_DATABASE" value="postgres,template0,template1" />
+    </envs>
+    <EXTENSION ID="com.fapiko.jetbrains.plugins.better_direnv.runconfigs.GolandRunConfigurationExtension">
+      <option name="DIRENV_ENABLED" value="false" />
+      <option name="DIRENV_TRUSTED" value="true" />
+    </EXTENSION>
+    <EXTENSION ID="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="true" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="true" />
+      <option name="IS_IGNORE_MISSING_FILES" value="true" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+        <ENTRY IS_ENABLED="false" PARSER="env" IS_EXECUTABLE="true" PATH=".envrc" />
+        <ENTRY IS_ENABLED="false" PARSER="env" IS_EXECUTABLE="true" PATH=".testenvrc" />
+      </ENTRIES>
+    </EXTENSION>
+    <kind value="PACKAGE" />
+    <package value="github.com/Vonng/pg_exporter" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/main.go" />
+    <method v="2" />
+  </configuration>
+</component>
