@@ -1,6 +1,6 @@
 module github.com/Vonng/pg_exporter
 
-go 1.22.4
+go 1.24.0
 
 require (
 	github.com/alecthomas/kingpin/v2 v2.4.0

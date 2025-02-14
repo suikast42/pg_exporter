@@ -270,3 +270,5 @@ pg_replica_only:
         name: is_wal_replay_paused
         description: 1 if wal play paused
         usage: GAUGE
+
+
