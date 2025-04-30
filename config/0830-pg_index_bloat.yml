@@ -1,0 +1,19 @@
+#==============================================================#
+# 0830 pg_index_bloat
+#==============================================================#
+# pg_index_bloat require auxiliary view to work. Disable it or create auxiliary view before use:
+pg_index_bloat:
+  name: pg_index_bloat
+  desc: PostgreSQL index bloat metrics (btree only), require pg_index_bloat
+  query: SELECT datname, nspname || '.' || relname AS relname, size, ratio FROM pg_index_bloat ORDER BY size DESC LIMIT 64;
+  ttl: 300
+  timeout: 2
+  min_version: 090400
+  skip: true
+  metrics:
+    - datname:             { usage: LABEL    ,description: Database name of this index }
+    - relname:             { usage: LABEL    ,description: Schema qualified index name }
+    - size:                { usage: GAUGE    ,description: Total bytes of this index }
+    - ratio:               { usage: GAUGE    ,description: Estimated bloat ratio of this index, 0~1 }
+
+
