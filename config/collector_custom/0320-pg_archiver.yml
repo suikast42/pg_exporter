@@ -1,0 +1,24 @@
+#==============================================================#
+# 0320 pg_archiver
+#==============================================================#
+pg_archiver:
+  name: pg_archiver
+  desc: PostgreSQL archiver process statistics
+  query: |-
+    SELECT archived_count AS finish_count,failed_count,
+      extract(epoch FROM last_archived_time) AS finish_time,
+      extract(epoch FROM last_failed_time) AS failed_time,
+      extract(epoch FROM stats_reset) AS reset_time
+    FROM pg_stat_archiver;
+
+  ttl: 60
+  min_version: 090400
+  tags: [ cluster ]
+  metrics:
+    - finish_count:        { usage: COUNTER ,description: Number of WAL files that have been successfully archived }
+    - failed_count:        { usage: COUNTER ,description: Number of failed attempts for archiving WAL files }
+    - finish_time:         { usage: GAUGE   ,description: Time of the last successful archive operation }
+    - failed_time:         { usage: GAUGE   ,description: Time of the last failed archival operation }
+    - reset_time:          { usage: GAUGE   ,description: Time at which archive statistics were last reset }
+
+
