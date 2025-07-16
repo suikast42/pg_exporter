@@ -3,6 +3,16 @@
 
 ------
 
+## 1.0.1
+
+Bump go dependencies to the latest version, build with go 1.24.5
+
+Disable pg_tsdb_hypertable collector by default, since `timescaledb` catalog is changed.
+
+https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1
+
+------
+
 ## 1.0.0
 
 Add PostgreSQL 18 metrics support

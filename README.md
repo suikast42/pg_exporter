@@ -4,8 +4,8 @@
 
 # PG EXPORTER
 
-[![Webite: pigsty](https://img.shields.io/badge/website-pigsty.io-slategray?style=flat&logo=cilium&logoColor=white)](https://pigsty.io)
-[![Version: 1.0.0](https://img.shields.io/badge/version-1.0.0-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.0)
+[![Webite: pgsty](https://img.shields.io/badge/website-pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://doc.pigsty.com)
+[![Version: 1.0.1](https://img.shields.io/badge/version-1.0.1-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pgsty/pg_exporter)](https://goreportcard.com/report/github.com/pgsty/pg_exporter)
@@ -15,7 +15,7 @@
 PG Exporter brings ultimate monitoring experience to your PostgreSQL with **declarative config**, **dynamic planning**, and **customizable collectors**. 
 It provides **600+** metrics and ~3K time series per instance, covers everything you'll need for PostgreSQL observability.
 
-Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which is build upon this exporter by [**Pigsty**](https://pigsty.io).
+Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
 
 <div align="center">
     <a href="#quick-start">Quick Start</a> •
@@ -27,7 +27,7 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
     <a href="https://demo.pigsty.cc">Demo</a>
 </div><br>
 
-[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.cc)
+[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.io)
 
 
 --------
@@ -38,7 +38,7 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
 - **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.24+) in single exporter
 - **Fine-grained Control**: Configure timeout, caching, skip conditions, and fatality per collector
 - **Dynamic Planning**: Define multiple query branches based on different conditions
-- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.cc/d/pgsql-exporter) for complete observability
+- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.io/d/pgsql-exporter) for complete observability
 - **Production-Ready**: Battle-tested in real-world environments across 12K+ cores for 6+ years
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
@@ -62,9 +62,9 @@ There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_export
 
 **All other metrics are defined in the [`pg_exporter.yml`](pg_exporter.yml) config file**.
 
-There are two monitoring dashboard in the [`monitor/`](monitor/) directory.
+There are two monitoring dashboards in the [`monitor/`](monitor/) directory.
 
-You can just use [**Pigsty**](https://pigsty.io) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
+You can use [**Pigsty**](https://doc.pgsty.com) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
 
 
 --------
@@ -213,7 +213,7 @@ Redhat rpm and Debian/Ubuntu deb packages are made with `nfpm` for `x86/arm64`:
 * [`/etc/default/pg_exporter`](package/pg_exporter.default): systemd service envs & options
 
 
-Which is also available on Pigsty's Infra [YUM](https://pigsty.io/ext/repo/yum/)/[APT](https://pigsty.io/ext/repo/apt/) [repo](https://pigsty.io/ext/repo/).
+Which is also available on Pigsty's [Infra Repo](https://ext.pgsty.com/repo/infra).
 
 
 ------
@@ -223,7 +223,7 @@ Which is also available on Pigsty's Infra [YUM](https://pigsty.io/ext/repo/yum/)
 Configs lie in the core of `pg_exporter`. Actually, this project contains more lines of YAML than go.
 
 * A monolith battery-included config file: [`pg_exporter.yml`](pg_exporter.yml)
-* Separated metrics definition in [`config/collector`](config/collector)
+* Separated metrics definition in [`config/collector`](config/)
 * Example of how to write a config file:  [`doc.yml`](config/0000-doc.yml)
 
 Current `pg_exporter` is shipped with the following metrics collector definition files
