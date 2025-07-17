@@ -293,7 +293,7 @@ Current `pg_exporter` is shipped with the following metrics collector definition
 `pg_exporter` will generate approximately 600 metrics for a completely new database cluster.
 For a real-world database with 10 ~ 100 tables, it may generate several 1k ~ 10k metrics. 
 
-You may need to modify or disable some database-level metrics on a database with several thousand or more tables in order to complete the scrape in time.
+You may need to modify or disable some database-level metrics on a database with several thousand or more tables to complete the scrape in time.
 
 Config files are using YAML format, there are lots of examples in the [conf](https://github.com/pgsty/pg_exporter/tree/main/config/collector) dir. and here is a [sample](config/0000-doc.yml) config.
 
@@ -302,7 +302,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 # 1. Config File
 #==============================================================#
 # The configuration file for pg_exporter is a YAML file.
-# Default configuration are retrieved via following precedence:
+# Default configurations are retrieved via following precedence:
 #     1. command line args:      --config=<config path>
 #     2. environment variables:  PG_EXPORTER_CONFIG=<config path>
 #     3. pg_exporter.yml        (Current directory)
@@ -313,7 +313,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 # 2. Config Format
 #==============================================================#
 # pg_exporter config could be a single YAML file, or a directory containing a series of separated YAML files.
-# each YAML config file is consist of one or more metrics Collector definition. Which are top-level objects
+# Each YAML config file consists of one or more metrics Collector definition, which are top-level objects.
 # If a directory is provided, all YAML in that directory will be merged in alphabetic order.
 # Collector definition examples are shown below.
 
@@ -341,7 +341,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #
 #                             # [OPTIONAL] metadata fields, control collector behavior
 #    ttl: 10                  # Cache TTL: in seconds, how long will pg_exporter cache this collector`s query result.
-#    timeout: 0.1             # Query Timeout: in seconds, query that exceed this limit will be canceled.
+#    timeout: 0.1             # Query Timeout: in seconds, queries that exceed this limit will be canceled.
 #    min_version: 100000      # minimal supported version, boundary IS included. In server version number format,
 #    max_version: 130000      # maximal supported version, boundary NOT included, In server version number format
 #    fatal: false             # Collector marked `fatal` fails, the entire scrape will abort immediately and marked as failed
@@ -368,9 +368,9 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #    # boolean true result, the main metric query is executed. If any of them
 #    # return false or return zero rows, the main query is skipped. If any
 #    # predicate query returns more than one row, a non-boolean result, or fails
-#    # with an error the whole query is marked failed. Predicate queries can be
+#    # with an error, the whole query is marked failed. Predicate queries can be
 #    # used to check for the presence of specific functions, tables, extensions,
-#    # settings, vendor-specific postgres features etc before running the main query.
+#    # settings, and vendor-specific pg features before running the main query.
 #
 #    predicate_queries:
 #      - name: predicate query name
@@ -453,23 +453,23 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #==============================================================#
 # 6. Query Timeout
 #==============================================================#
-# Collectors can be configured with an optional Timeout. If the collector`s query executes more than that
+# Collectors can be configured with an optional Timeout. If the collector's query executes more than that
 # timeout, it will be canceled immediately. Setting the `timeout` to 0 or leaving blank will reset it to
 # default timeout 0.1 (100ms). Setting it to any negative number will disable the query timeout feature.
 # All queries have a default timeout of 100ms, if exceeded, the query will be canceled immediately to avoid
 # avalanche. You can explicitly overwrite that option. but beware: in some extreme cases, if all your
-# timeout sum up greater your scrape/cache interval (usually 15s), the queries may still be jammed.
+# timeouts sum up greater your scrape/cache interval (usually 15s), the queries may still be jammed.
 # or, you can just disable potential slow queries.
 
 #==============================================================#
 # 7. Version Compatibility
 #==============================================================#
 # Each collector has two optional version compatibility parameters: `min_version` and `max_version`.
-# These two parameters specify the version compatibility of the collector. If target postgres/pgbouncer
+# These two parameters specify the version compatibility of the collector. If target postgres/pgbouncer's
 # version is less than `min_version`, or higher than `max_version`, the collector will not be installed.
 # These two parameters are using PostgreSQL server version number format, which is a 6-digit integer
 # format as <major:2 digit><minor:2 digit>:<release: 2 digit>.
-# For example, 090600 stands for 9.6 and 120100 stands for 12.1
+# For example, 090600 stands for 9.6, and 120100 stands for 12.1
 # And beware that version compatibility range is left-inclusive right exclusive: [min, max), set to zero or
 # leaving blank will affect as -inf or +inf
 
@@ -512,6 +512,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #  pg_exporter will trigger the Planning procedure after connecting to the target. It will gather database facts
 #  and match them with tags and other metadata (such as supported version range). Collector will only
 #  be installed if and only if it is compatible with the target server.
+
 ```
 
 

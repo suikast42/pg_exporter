@@ -13,4 +13,8 @@ dist/
 .vscode/
 .idea/
 .code/
+.claude
 pg_exporter.iml
+CLAUDE.md
+
+
