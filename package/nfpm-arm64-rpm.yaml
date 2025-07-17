@@ -8,7 +8,7 @@ description: |
   Prometheus exporter for PostgreSQL / Pgbouncer server metrics.
   Supported version: Postgres9.4 - 17+ & Pgbouncer 1.8 - 1.24+
   Part of Project Pigsty -- Battery Included PostgreSQL Distribution
-  with ultimate observability support: https://pigsty.io
+  with ultimate observability support: https://doc.pgsty.com
 
 vendor: "Vonng"
 homepage: "https://github.com/pgsty/pg_exporter"
