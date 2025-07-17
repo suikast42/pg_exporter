@@ -5,9 +5,9 @@
 
 ## 1.0.1
 
-Bump go dependencies to the latest version, build with go 1.24.5
-
-Disable pg_tsdb_hypertable collector by default, since `timescaledb` catalog is changed.
+- Add dockerhub images: [pgsty/pg_exporter](https://hub.docker.com/r/pgsty/pg_exporter)
+- Bump go dependencies to the latest version, build with go 1.24.5
+- Disable `pg_tsdb_hypertable` collector by default, since `timescaledb` catalog is changed.
 
 https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1
 

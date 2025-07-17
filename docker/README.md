@@ -46,7 +46,7 @@ PLATFORMS=linux/amd64,linux/arm64,linux/arm/v7 ./docker/release.sh
 
 **Features:**
 - Builds for multiple architectures (amd64, arm64 by default)
-- Creates manifest list for automatic architecture selection
+- Creates the manifest list for automatic architecture selection
 - Pushes to Docker registry
 - Creates tags: `<repo>:<version>`, `<repo>:latest`
 - Requires pre-built Linux binaries (`make release-linux`)

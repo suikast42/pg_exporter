@@ -4,7 +4,9 @@
 
 # PG EXPORTER
 
-[![Webite: pgsty](https://img.shields.io/badge/website-pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://doc.pigsty.com)
+[![DockerHub: pgsty/pg_exporter](https://img.shields.io/badge/docker-pgsty/pg_exporter-slategray?style=flat&logo=docker&logoColor=white)](https://hub.docker.com/r/pgsty/pg_exporter)
+[![GitHub: pgsty/pg_exporter](https://img.shields.io/badge/github-pgsty/pg_exporter-slategray?style=flat&logo=github&logoColor=white)](https://github.com/pgsty/pg_exporter)
+[![Webite: pgsty.com](https://img.shields.io/badge/website-pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://doc.pigsty.com)
 [![Version: 1.0.1](https://img.shields.io/badge/version-1.0.1-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
@@ -178,12 +180,6 @@ curl localhost:9630/read
 
 ## Build
 
-Build on your local machine:
-
-```bash
-go build
-```
-
 To build a static stand-alone binary for docker scratch
 
 ```bash
@@ -196,9 +192,16 @@ To build a docker image, use:
 make docker
 ```
 
-Or [download](https://github.com/pgsty/pg_exporter/releases) the latest prebuilt binaries, rpms, debs from release pages.
+Or [download](https://github.com/pgsty/pg_exporter/releases) the latest prebuilt binaries from release pages.
+
+We also have pre-packaged RPM / DEB packages in the [Pigsty Infra Repo](https://ext.pgsty.com/repo/infra/)
 
 
+--------
+
+## Docker
+
+You can find pre-built amd64/arm64 docker images here: [pgsty/pg_exporter](https://hub.docker.com/r/pgsty/pg_exporter)
 
 
 --------
