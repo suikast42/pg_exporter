@@ -4,8 +4,10 @@
 
 # PG EXPORTER
 
-[![Webite: pigsty](https://img.shields.io/badge/website-pigsty.io-slategray?style=flat&logo=cilium&logoColor=white)](https://pigsty.io)
-[![Version: 0.9.0](https://img.shields.io/badge/version-0.9.0-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v0.9.0)
+[![DockerHub: pgsty/pg_exporter](https://img.shields.io/badge/docker-pgsty/pg_exporter-slategray?style=flat&logo=docker&logoColor=white)](https://hub.docker.com/r/pgsty/pg_exporter)
+[![GitHub: pgsty/pg_exporter](https://img.shields.io/badge/github-pgsty/pg_exporter-slategray?style=flat&logo=github&logoColor=white)](https://github.com/pgsty/pg_exporter)
+[![Webite: pgsty.com](https://img.shields.io/badge/website-pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://doc.pigsty.com)
+[![Version: 1.0.1](https://img.shields.io/badge/version-1.0.1-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pgsty/pg_exporter)](https://goreportcard.com/report/github.com/pgsty/pg_exporter)
@@ -15,7 +17,7 @@
 PG Exporter brings ultimate monitoring experience to your PostgreSQL with **declarative config**, **dynamic planning**, and **customizable collectors**. 
 It provides **600+** metrics and ~3K time series per instance, covers everything you'll need for PostgreSQL observability.
 
-Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which is build upon this exporter by [**Pigsty**](https://pigsty.io).
+Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
 
 <div align="center">
     <a href="#quick-start">Quick Start</a> •
@@ -27,7 +29,7 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
     <a href="https://demo.pigsty.cc">Demo</a>
 </div><br>
 
-[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.cc)
+[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.io)
 
 
 --------
@@ -35,10 +37,10 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
 ## Features
 
 - **Highly Customizable**: Define almost all metrics through declarative YAML configs
-- **Full Coverage**: Monitor both PostgreSQL (10-17+) and pgBouncer (1.8-1.24+) in single exporter
+- **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.24+) in single exporter
 - **Fine-grained Control**: Configure timeout, caching, skip conditions, and fatality per collector
 - **Dynamic Planning**: Define multiple query branches based on different conditions
-- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.cc/d/pgsql-exporter) for complete observability
+- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.io/d/pgsql-exporter) for complete observability
 - **Production-Ready**: Battle-tested in real-world environments across 12K+ cores for 6+ years
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
@@ -62,9 +64,9 @@ There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_export
 
 **All other metrics are defined in the [`pg_exporter.yml`](pg_exporter.yml) config file**.
 
-There are two monitoring dashboard in the [`monitor/`](monitor/) directory.
+There are two monitoring dashboards in the [`monitor/`](monitor/) directory.
 
-You can just use [**Pigsty**](https://pigsty.io) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
+You can use [**Pigsty**](https://doc.pgsty.com) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
 
 
 --------
@@ -178,12 +180,6 @@ curl localhost:9630/read
 
 ## Build
 
-Build on your local machine:
-
-```bash
-go build
-```
-
 To build a static stand-alone binary for docker scratch
 
 ```bash
@@ -196,9 +192,16 @@ To build a docker image, use:
 make docker
 ```
 
-Or [download](https://github.com/pgsty/pg_exporter/releases) the latest prebuilt binaries, rpms, debs from release pages.
+Or [download](https://github.com/pgsty/pg_exporter/releases) the latest prebuilt binaries from release pages.
+
+We also have pre-packaged RPM / DEB packages in the [Pigsty Infra Repo](https://ext.pgsty.com/repo/infra/)
 
 
+--------
+
+## Docker
+
+You can find pre-built amd64/arm64 docker images here: [pgsty/pg_exporter](https://hub.docker.com/r/pgsty/pg_exporter)
 
 
 --------
@@ -213,7 +216,7 @@ Redhat rpm and Debian/Ubuntu deb packages are made with `nfpm` for `x86/arm64`:
 * [`/etc/default/pg_exporter`](package/pg_exporter.default): systemd service envs & options
 
 
-Which is also available on Pigsty's Infra [YUM](https://pigsty.io/ext/repo/yum/)/[APT](https://pigsty.io/ext/repo/apt/) [repo](https://pigsty.io/ext/repo/).
+Which is also available on Pigsty's [Infra Repo](https://ext.pgsty.com/repo/infra).
 
 
 ------
@@ -223,7 +226,7 @@ Which is also available on Pigsty's Infra [YUM](https://pigsty.io/ext/repo/yum/)
 Configs lie in the core of `pg_exporter`. Actually, this project contains more lines of YAML than go.
 
 * A monolith battery-included config file: [`pg_exporter.yml`](pg_exporter.yml)
-* Separated metrics definition in [`config/collector`](config/collector)
+* Separated metrics definition in [`config/collector`](config/)
 * Example of how to write a config file:  [`doc.yml`](config/0000-doc.yml)
 
 Current `pg_exporter` is shipped with the following metrics collector definition files
@@ -293,7 +296,7 @@ Current `pg_exporter` is shipped with the following metrics collector definition
 `pg_exporter` will generate approximately 600 metrics for a completely new database cluster.
 For a real-world database with 10 ~ 100 tables, it may generate several 1k ~ 10k metrics. 
 
-You may need to modify or disable some database-level metrics on a database with several thousand or more tables in order to complete the scrape in time.
+You may need to modify or disable some database-level metrics on a database with several thousand or more tables to complete the scrape in time.
 
 Config files are using YAML format, there are lots of examples in the [conf](https://github.com/pgsty/pg_exporter/tree/main/config/collector) dir. and here is a [sample](config/0000-doc.yml) config.
 
@@ -302,7 +305,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 # 1. Config File
 #==============================================================#
 # The configuration file for pg_exporter is a YAML file.
-# Default configuration are retrieved via following precedence:
+# Default configurations are retrieved via following precedence:
 #     1. command line args:      --config=<config path>
 #     2. environment variables:  PG_EXPORTER_CONFIG=<config path>
 #     3. pg_exporter.yml        (Current directory)
@@ -313,7 +316,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 # 2. Config Format
 #==============================================================#
 # pg_exporter config could be a single YAML file, or a directory containing a series of separated YAML files.
-# each YAML config file is consist of one or more metrics Collector definition. Which are top-level objects
+# Each YAML config file consists of one or more metrics Collector definition, which are top-level objects.
 # If a directory is provided, all YAML in that directory will be merged in alphabetic order.
 # Collector definition examples are shown below.
 
@@ -341,7 +344,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #
 #                             # [OPTIONAL] metadata fields, control collector behavior
 #    ttl: 10                  # Cache TTL: in seconds, how long will pg_exporter cache this collector`s query result.
-#    timeout: 0.1             # Query Timeout: in seconds, query that exceed this limit will be canceled.
+#    timeout: 0.1             # Query Timeout: in seconds, queries that exceed this limit will be canceled.
 #    min_version: 100000      # minimal supported version, boundary IS included. In server version number format,
 #    max_version: 130000      # maximal supported version, boundary NOT included, In server version number format
 #    fatal: false             # Collector marked `fatal` fails, the entire scrape will abort immediately and marked as failed
@@ -368,9 +371,9 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #    # boolean true result, the main metric query is executed. If any of them
 #    # return false or return zero rows, the main query is skipped. If any
 #    # predicate query returns more than one row, a non-boolean result, or fails
-#    # with an error the whole query is marked failed. Predicate queries can be
+#    # with an error, the whole query is marked failed. Predicate queries can be
 #    # used to check for the presence of specific functions, tables, extensions,
-#    # settings, vendor-specific postgres features etc before running the main query.
+#    # settings, and vendor-specific pg features before running the main query.
 #
 #    predicate_queries:
 #      - name: predicate query name
@@ -453,23 +456,23 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #==============================================================#
 # 6. Query Timeout
 #==============================================================#
-# Collectors can be configured with an optional Timeout. If the collector`s query executes more than that
+# Collectors can be configured with an optional Timeout. If the collector's query executes more than that
 # timeout, it will be canceled immediately. Setting the `timeout` to 0 or leaving blank will reset it to
 # default timeout 0.1 (100ms). Setting it to any negative number will disable the query timeout feature.
 # All queries have a default timeout of 100ms, if exceeded, the query will be canceled immediately to avoid
 # avalanche. You can explicitly overwrite that option. but beware: in some extreme cases, if all your
-# timeout sum up greater your scrape/cache interval (usually 15s), the queries may still be jammed.
+# timeouts sum up greater your scrape/cache interval (usually 15s), the queries may still be jammed.
 # or, you can just disable potential slow queries.
 
 #==============================================================#
 # 7. Version Compatibility
 #==============================================================#
 # Each collector has two optional version compatibility parameters: `min_version` and `max_version`.
-# These two parameters specify the version compatibility of the collector. If target postgres/pgbouncer
+# These two parameters specify the version compatibility of the collector. If target postgres/pgbouncer's
 # version is less than `min_version`, or higher than `max_version`, the collector will not be installed.
 # These two parameters are using PostgreSQL server version number format, which is a 6-digit integer
 # format as <major:2 digit><minor:2 digit>:<release: 2 digit>.
-# For example, 090600 stands for 9.6 and 120100 stands for 12.1
+# For example, 090600 stands for 9.6, and 120100 stands for 12.1
 # And beware that version compatibility range is left-inclusive right exclusive: [min, max), set to zero or
 # leaving blank will affect as -inf or +inf
 
@@ -512,6 +515,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #  pg_exporter will trigger the Planning procedure after connecting to the target. It will gather database facts
 #  and match them with tags and other metadata (such as supported version range). Collector will only
 #  be installed if and only if it is compatible with the target server.
+
 ```
 
 
