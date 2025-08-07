@@ -17,4 +17,7 @@ dist/
 pg_exporter.iml
 CLAUDE.md
 
-
+.hugo_build.lock
+public/
+resources/
+tmp/

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="PG Exporter Logo" height="128" align="middle">
+  <img src="static/logo.png" alt="PG Exporter Logo" height="128" align="middle">
 </p>
 
 # PG EXPORTER
@@ -532,5 +532,5 @@ License: [Apache-2.0](LICENSE)
 Copyright: 2018-2025 rh@vonng.com
 
 <p align="center">
-  <img src="logo.png" alt="PG Exporter Logo" height="128" align="middle">
+  <img src="static/logo.png" alt="PG Exporter Logo" height="128" align="middle">
 </p>

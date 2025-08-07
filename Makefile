@@ -129,6 +129,10 @@ curl:
 upload:
 	./upload.sh
 
+d: dev
+dev:
+	hugo serve
+
 .PHONY: build clean build-darwin build-linux\
  release release-darwin release-linux release-windows docker docker-build docker-release \
  install uninstall debug curl upload
