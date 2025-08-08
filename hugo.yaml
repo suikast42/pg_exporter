@@ -10,7 +10,7 @@ hasCJKLanguage: true
 
 services:
   googleAnalytics:
-    ID: G-5HDLR6CMB4
+    ID: G-Y7HMTRQ6P7
 
 contentDir: docs
 
@@ -32,15 +32,18 @@ languages:
     title: PG Exporter
     menu:
       main:
-        - name: Search
+        - name: Pigsty
           weight: 1
-          params:
-            type: search
+          url: "https://pgsty.com"
         - name: GitHub
           weight: 2
           url: "https://github.com/pgsty/pg_exporter"
           params:
             icon: github
+        - name: Search
+          weight: 3
+          params:
+            type: search
       sidebar:
         - identifier: more
           name: Links

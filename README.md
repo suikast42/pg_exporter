@@ -16,7 +16,7 @@
 PG Exporter brings ultimate monitoring experience to your PostgreSQL with **declarative config**, **dynamic planning**, and **customizable collectors**. 
 It provides **600+** metrics and ~3K time series per instance, covers everything you'll need for PostgreSQL observability.
 
-Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which is built upon this exporter by [**Pigsty**](https://doc.pgsty.com).
+Check [**https://g.pgsty.com**](https://g.pgsty.com) for live demo, which is built upon this exporter by [**Pigsty**](https://pgsty.com).
 
 <div align="center">
     <a href="https://exp.pgsty.com">Docs</a> •    
@@ -26,10 +26,10 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
     <a href="#api">API</a> •
     <a href="#deployment">Deployment</a> •
     <a href="#collectors">Collectors</a> •
-    <a href="https://demo.pigsty.cc">Demo</a>
+    <a href="https://g.pgsty.com">Demo</a>
 </div><br>
 
-[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.io)
+[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://g.pgsty.com)
 
 
 --------
@@ -40,7 +40,7 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
 - **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.24+) in single exporter
 - **Fine-grained Control**: Configure timeout, caching, skip conditions, and fatality per collector
 - **Dynamic Planning**: Define multiple query branches based on different conditions
-- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.io/d/pgsql-exporter) for complete observability
+- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://g.pigsty.com/d/pgsql-exporter) for complete observability
 - **Production-Ready**: Battle-tested in real-world environments across 12K+ cores for 6+ years
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
@@ -66,7 +66,7 @@ There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_export
 
 There are two monitoring dashboards in the [`monitor/`](monitor/) directory.
 
-You can use [**Pigsty**](https://doc.pgsty.com) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
+You can use [**Pigsty**](https://pgsty.com) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
 
 
 --------
