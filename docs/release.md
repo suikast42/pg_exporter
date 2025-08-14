@@ -5,7 +5,7 @@ breadcrumbs: false
 comments: false
 ---
 
-The latest stable version of `pg_exporter` is [v1.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1)
+The latest stable version of `pg_exporter` is [v1.0.2](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2)
 
 |     Version     |    Date    | Summary                                                 |                               GitHub                               |
 |:---------------:|:----------:|---------------------------------------------------------|:------------------------------------------------------------------:|
@@ -33,6 +33,18 @@ The latest stable version of `pg_exporter` is [v1.0.1](https://github.com/pgsty/
 | [v0.0.1](#v001) | 2019-12-06 | Initial release with PgBouncer mode                     | [v0.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.0.1) |
 
 
+
+## v1.0.2
+
+- Build with Go 1.25.0 and latest dependencies
+- Dedicate website and homepage: https://exp.pgsty.com
+
+**Checksums**
+
+```bash
+```
+
+https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2
 
 
 

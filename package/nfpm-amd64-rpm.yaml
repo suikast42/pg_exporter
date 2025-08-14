@@ -1,7 +1,7 @@
 name: "pg_exporter"
 arch: "amd64"
 platform: "linux"
-version: "v1.0.1"
+version: "v1.0.2"
 release: "1"
 version_schema: semver
 maintainer: Ruohang Feng <rh@vonng.com>
@@ -11,8 +11,8 @@ description: |
   Part of Project Pigsty -- Battery Included PostgreSQL Distribution
   with ultimate observability support: https://doc.pgsty.com
 
-vendor: "Vonng"
-homepage: "https://github.com/pgsty/pg_exporter"
+vendor: "PGSTY"
+homepage: "https://exp.pgsty.com"
 license: "Apache-2.0 License"
 
 rpm:
