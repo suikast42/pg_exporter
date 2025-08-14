@@ -9,6 +9,7 @@ The latest stable version of `pg_exporter` is [v1.0.2](https://github.com/pgsty/
 
 |     Version     |    Date    | Summary                                                 |                               GitHub                               |
 |:---------------:|:----------:|---------------------------------------------------------|:------------------------------------------------------------------:|
+| [v1.0.2](#v102) | 2023-08-14 | Build for more os arch with goreleaser                  | [v1.0.2](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2) |
 | [v1.0.1](#v101) | 2023-07-17 | DockerHub images, Go 1.24.5, disable pg_tsdb_hypertable | [v1.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1) |
 | [v1.0.0](#v100) | 2023-05-06 | PostgreSQL 18 support, new WAL/checkpointer/I/O metrics | [v1.0.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.0) |
 | [v0.9.0](#v090) | 2023-04-26 | TimescaleDB, Citus, pg_wait_sampling collectors         | [v0.9.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.9.0) |
@@ -38,6 +39,9 @@ The latest stable version of `pg_exporter` is [v1.0.2](https://github.com/pgsty/
 
 - Build with Go 1.25.0 and latest dependencies
 - Dedicate website and homepage: https://exp.pgsty.com
+- Release with goreleaser for more os/arch:
+  - add windows amd64 support
+  - add linux ppc64le support
 
 **Checksums**
 

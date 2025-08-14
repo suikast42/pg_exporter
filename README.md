@@ -186,12 +186,6 @@ To build a static stand-alone binary for docker scratch
 CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o pg_exporter
 ```
 
-To build a docker image, use:
-
-```bash
-make docker
-```
-
 Or [download](https://github.com/pgsty/pg_exporter/releases) the latest prebuilt binaries from release pages.
 
 We also have pre-packaged RPM / DEB packages in the [Pigsty Infra Repo](https://ext.pgsty.com/repo/infra/)

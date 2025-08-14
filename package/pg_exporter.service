@@ -1,8 +1,6 @@
-# -*- mode: conf -*-
-
 [Unit]
 Description=Prometheus exporter for PostgreSQL/Pgbouncer server metrics
-Documentation=https://github.com/pgsty/pg_exporter
+Documentation=https://exp.pgsty.com
 After=network.target
 
 [Service]

@@ -1,0 +1,244 @@
+version: 2
+
+env:
+  - CGO_ENABLED=0
+
+before:
+  hooks:
+    - go mod download
+    - go mod tidy
+
+builds:
+  - id: pg_exporter
+    main: ./main.go
+    binary: pg_exporter
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - ppc64le
+    goarm:
+      - 6
+      - 7
+    goamd64:
+      - v1
+    ignore:
+      # Darwin only supports amd64 and arm64
+      - goos: darwin
+        goarch: ppc64le
+      # Windows only supports amd64 and 386
+      - goos: windows
+        goarch: arm64
+      - goos: windows
+        goarch: arm
+      - goos: windows
+        goarch: ppc64le
+    ldflags:
+      - -s -w
+      - -extldflags "-static"
+      - -X 'pg_exporter/exporter.Version={{.Version}}'
+      - -X 'pg_exporter/exporter.Branch={{.Branch}}'
+      - -X 'pg_exporter/exporter.Revision={{.ShortCommit}}'
+      - -X 'pg_exporter/exporter.BuildDate={{.Date}}'
+    flags:
+      - -a
+
+archives:
+  - id: pg_exporter
+    name_template: >-
+      {{ .ProjectName }}-{{ .Version }}.{{ .Os }}-
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "386" }}386
+      {{- else if eq .Arch "arm64" }}arm64
+      {{- else if eq .Arch "arm" }}armv{{ .Arm }}
+      {{- else if eq .Arch "ppc64le" }}ppc64le
+      {{- else }}{{ .Arch }}{{ end }}
+    files:
+      - pg_exporter.yml
+      - LICENSE
+      - package/pg_exporter.default
+      - package/pg_exporter.service
+
+nfpms:
+  - id: pg_exporter_rpm
+    package_name: pg_exporter
+    file_name_template: >-
+      {{ .PackageName }}-{{ .Version }}-{{ .Release }}.
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "arm64" }}aarch64
+      {{- else }}{{ .Arch }}{{ end }}
+    vendor: PGSTY
+    homepage: https://exp.pgsty.com
+    maintainer: Ruohang Feng <rh@vonng.com>
+    description: |
+      Prometheus exporter for PostgreSQL / Pgbouncer server metrics.
+      Supported version: Postgres9.4 - 17+ & Pgbouncer 1.8 - 1.24+
+      Part of Project Pigsty -- Battery Included PostgreSQL Distribution
+      with ultimate observability support: https://doc.pgsty.com
+    license: Apache-2.0
+    formats:
+      - rpm
+    bindir: /usr/bin
+    release: "1"
+    section: database
+    priority: optional
+    contents:
+      - src: pg_exporter.yml
+        dst: /etc/pg_exporter.yml
+        type: config|noreplace
+        file_info:
+          mode: 0700
+          owner: prometheus
+          group: prometheus
+      - src: package/pg_exporter.default
+        dst: /etc/default/pg_exporter
+        type: config|noreplace
+        file_info:
+          mode: 0700
+          owner: prometheus
+          group: prometheus
+      - src: package/pg_exporter.service
+        dst: /usr/lib/systemd/system/pg_exporter.service
+        type: config
+      - src: LICENSE
+        dst: /usr/share/doc/pg_exporter/LICENSE
+        file_info:
+          mode: 0644
+    scripts:
+      preinstall: package/preinstall.sh
+    rpm:
+      compression: gzip
+      prefixes:
+        - /usr/bin
+
+  - id: pg_exporter_deb
+    package_name: pg-exporter
+    file_name_template: >-
+      {{ .PackageName }}_{{ .Version }}-{{ .Release }}_
+      {{- if eq .Arch "amd64" }}amd64
+      {{- else if eq .Arch "arm64" }}arm64
+      {{- else }}{{ .Arch }}{{ end }}
+    vendor: PGSTY
+    homepage: https://exp.pgsty.com
+    maintainer: Ruohang Feng <rh@vonng.com>
+    description: |
+      Prometheus exporter for PostgreSQL / Pgbouncer server metrics.
+      Supported version: Postgres9.4 - 17+ & Pgbouncer 1.8 - 1.24+
+      Part of Project Pigsty -- Battery Included PostgreSQL Distribution
+      with ultimate observability support: https://doc.pgsty.com
+    license: Apache-2.0
+    formats:
+      - deb
+    bindir: /usr/bin
+    release: "1"
+    section: database
+    priority: optional
+    contents:
+      - src: pg_exporter.yml
+        dst: /etc/pg_exporter.yml
+        type: config|noreplace
+        file_info:
+          mode: 0700
+          owner: prometheus
+          group: prometheus
+      - src: package/pg_exporter.default
+        dst: /etc/default/pg_exporter
+        type: config|noreplace
+        file_info:
+          mode: 0700
+          owner: prometheus
+          group: prometheus
+      - src: package/pg_exporter.service
+        dst: /lib/systemd/system/pg_exporter.service
+        type: config
+      - src: LICENSE
+        dst: /usr/share/doc/pg_exporter/LICENSE
+        file_info:
+          mode: 0644
+    scripts:
+      preinstall: package/preinstall.sh
+
+checksum:
+  name_template: 'checksums.txt'
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - 'Merge pull request'
+      - 'Merge branch'
+
+release:
+  github:
+    owner: pgsty
+    name: pg_exporter
+  draft: false
+  prerelease: false
+  mode: replace     # Replace existing release with same tag
+  replace_existing_artifacts: true  # Replace existing artifacts
+  name_template: "{{.ProjectName}}-v{{.Version}}"
+  disable: false
+  discussion_category_name: ""  # Skip discussion creation
+
+announce:
+  skip: true  # Skip all announcements
+
+# Docker configuration for multi-arch images
+dockers:
+  - id: pg_exporter_amd64
+    ids: 
+      - pg_exporter
+    goos: linux
+    goarch: amd64
+    image_templates:
+      - "pgsty/pg_exporter:{{ .Version }}-amd64"
+      - "pgsty/pg_exporter:latest-amd64"
+    dockerfile: Dockerfile.goreleaser
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+    extra_files:
+      - pg_exporter.yml
+      - LICENSE
+
+  - id: pg_exporter_arm64
+    ids:
+      - pg_exporter
+    goos: linux
+    goarch: arm64
+    image_templates:
+      - "pgsty/pg_exporter:{{ .Version }}-arm64"
+      - "pgsty/pg_exporter:latest-arm64"
+    dockerfile: Dockerfile.goreleaser
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+    extra_files:
+      - pg_exporter.yml
+      - LICENSE
+
+docker_manifests:
+  - name_template: "pgsty/pg_exporter:{{ .Version }}"
+    image_templates:
+      - "pgsty/pg_exporter:{{ .Version }}-amd64"
+      - "pgsty/pg_exporter:{{ .Version }}-arm64"
+  - name_template: "pgsty/pg_exporter:latest"
+    image_templates:
+      - "pgsty/pg_exporter:latest-amd64"
+      - "pgsty/pg_exporter:latest-arm64"

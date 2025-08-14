@@ -1,6 +1,6 @@
 #==============================================================#
 # File      :   Makefile
-# Mtime     :   2025-07-17
+# Mtime     :   2025-08-14
 # License   :   Apache-2.0 @ https://github.com/pgsty/pg_exporter
 # Copyright :   2018-2025  Ruohang Feng / Vonng (rh@vonng.com)
 #==============================================================#
@@ -46,9 +46,9 @@ linux-amd64: clean build-linux-amd64
 	rm -rf $(LINUX_AMD_DIR) && mkdir -p $(LINUX_AMD_DIR)
 	nfpm package --packager rpm --config package/nfpm-amd64-rpm.yaml --target dist/$(VERSION)
 	nfpm package --packager deb --config package/nfpm-amd64-deb.yaml --target dist/$(VERSION)
-	cp -r pg_exporter $(LINUX_AMD_DIR)/pg_exporter
-	cp -f pg_exporter.yml $(LINUX_AMD_DIR)/pg_exporter.yml
-	cp -f LICENSE $(LINUX_AMD_DIR)/LICENSE
+	cp pg_exporter $(LINUX_AMD_DIR)/pg_exporter
+	cp pg_exporter.yml $(LINUX_AMD_DIR)/pg_exporter.yml
+	cp LICENSE $(LINUX_AMD_DIR)/LICENSE
 	tar -czf dist/$(VERSION)/pg_exporter-$(VERSION).linux-amd64.tar.gz -C dist/$(VERSION) pg_exporter-$(VERSION).linux-amd64
 	rm -rf $(LINUX_AMD_DIR)
 
@@ -56,26 +56,26 @@ linux-arm64: clean build-linux-arm64
 	rm -rf $(LINUX_ARM_DIR) && mkdir -p $(LINUX_ARM_DIR)
 	nfpm package --packager rpm --config package/nfpm-arm64-rpm.yaml --target dist/$(VERSION)
 	nfpm package --packager deb --config package/nfpm-arm64-deb.yaml --target dist/$(VERSION)
-	cp -r pg_exporter $(LINUX_ARM_DIR)/pg_exporter
-	cp -f pg_exporter.yml $(LINUX_ARM_DIR)/pg_exporter.yml
-	cp -f LICENSE $(LINUX_ARM_DIR)/LICENSE
+	cp pg_exporter $(LINUX_ARM_DIR)/pg_exporter
+	cp pg_exporter.yml $(LINUX_ARM_DIR)/pg_exporter.yml
+	cp LICENSE $(LINUX_ARM_DIR)/LICENSE
 	tar -czf dist/$(VERSION)/pg_exporter-$(VERSION).linux-arm64.tar.gz -C dist/$(VERSION) pg_exporter-$(VERSION).linux-arm64
 	rm -rf $(LINUX_ARM_DIR)
 
 release-darwin: darwin-amd64 darwin-arm64
 darwin-amd64: clean build-darwin-amd64
 	rm -rf $(DARWIN_AMD_DIR) && mkdir -p $(DARWIN_AMD_DIR)
-	cp -r pg_exporter $(DARWIN_AMD_DIR)/pg_exporter
-	cp -f pg_exporter.yml $(DARWIN_AMD_DIR)/pg_exporter.yml
-	cp -f LICENSE $(DARWIN_AMD_DIR)/LICENSE
+	cp pg_exporter $(DARWIN_AMD_DIR)/pg_exporter
+	cp pg_exporter.yml $(DARWIN_AMD_DIR)/pg_exporter.yml
+	cp LICENSE $(DARWIN_AMD_DIR)/LICENSE
 	tar -czf dist/$(VERSION)/pg_exporter-$(VERSION).darwin-amd64.tar.gz -C dist/$(VERSION) pg_exporter-$(VERSION).darwin-amd64
 	rm -rf $(DARWIN_AMD_DIR)
 
 darwin-arm64: clean build-darwin-arm64
 	rm -rf $(DARWIN_ARM_DIR) && mkdir -p $(DARWIN_ARM_DIR)
-	cp -r pg_exporter $(DARWIN_ARM_DIR)/pg_exporter
-	cp -f pg_exporter.yml $(DARWIN_ARM_DIR)/pg_exporter.yml
-	cp -f LICENSE $(DARWIN_ARM_DIR)/LICENSE
+	cp pg_exporter $(DARWIN_ARM_DIR)/pg_exporter
+	cp pg_exporter.yml $(DARWIN_ARM_DIR)/pg_exporter.yml
+	cp LICENSE $(DARWIN_ARM_DIR)/LICENSE
 	tar -czf dist/$(VERSION)/pg_exporter-$(VERSION).darwin-arm64.tar.gz -C dist/$(VERSION) pg_exporter-$(VERSION).darwin-arm64
 	rm -rf $(DARWIN_ARM_DIR)
 
@@ -98,6 +98,47 @@ release-dir:
 
 release-clean:
 	rm -rf dist/$(VERSION)
+
+###############################################################
+#                      GoReleaser                            #
+###############################################################
+# Install goreleaser if not present
+goreleaser-install:
+	@which goreleaser > /dev/null || (echo "Installing goreleaser..." && go install github.com/goreleaser/goreleaser/v2@latest)
+
+# Build snapshot release (without publishing)
+goreleaser-snapshot: goreleaser-install
+	goreleaser release --snapshot --clean --skip=publish
+
+# Build release locally (without git tag)
+goreleaser-build: goreleaser-install
+	goreleaser build --snapshot --clean
+
+# Build release locally without snapshot suffix (requires clean git)
+goreleaser-local: goreleaser-install
+	goreleaser release --clean --skip=publish
+
+# Release with goreleaser (requires git tag)
+goreleaser-release: goreleaser-install
+	goreleaser release --clean
+
+# Test release (creates prerelease, no notifications)
+goreleaser-test-release: goreleaser-install
+	@echo "Creating test release (prerelease mode, no notifications)..."
+	goreleaser release --clean
+
+# Production release (set prerelease to false in config first)
+goreleaser-prod-release: goreleaser-install
+	@echo "Creating production release (will notify subscribers if announce.skip is false)..."
+	goreleaser release --clean
+
+# Check goreleaser configuration
+goreleaser-check: goreleaser-install
+	goreleaser check
+
+# New main release task using goreleaser
+release-new: goreleaser-release
+
 
 # build docker image
 docker: docker-build
@@ -135,4 +176,6 @@ dev:
 
 .PHONY: build clean build-darwin build-linux\
  release release-darwin release-linux release-windows docker docker-build docker-release \
- install uninstall debug curl upload
+ install uninstall debug curl upload \
+ goreleaser-install goreleaser-snapshot goreleaser-build goreleaser-release goreleaser-test-release \
+ goreleaser-check release-new goreleaser-local

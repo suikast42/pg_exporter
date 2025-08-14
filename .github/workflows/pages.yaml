@@ -29,6 +29,10 @@ defaults:
 jobs:
   # Build job
   build:
+    # Only run on commits starting with "docs:" or manual workflow dispatch
+    if: |
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'docs:'))
     runs-on: ubuntu-latest
     env:
       HUGO_VERSION: 0.147.7
