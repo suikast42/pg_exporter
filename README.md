@@ -1,13 +1,12 @@
 <p align="center">
-  <img src="logo.png" alt="PG Exporter Logo" height="128" align="middle">
+  <img src="static/logo.png" alt="PG Exporter Logo" height="128" align="middle">
 </p>
 
 # PG EXPORTER
 
+[![Webite: exp.pgsty.com](https://img.shields.io/badge/website-exp.pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://exp.pigsty.com)
 [![DockerHub: pgsty/pg_exporter](https://img.shields.io/badge/docker-pgsty/pg_exporter-slategray?style=flat&logo=docker&logoColor=white)](https://hub.docker.com/r/pgsty/pg_exporter)
-[![GitHub: pgsty/pg_exporter](https://img.shields.io/badge/github-pgsty/pg_exporter-slategray?style=flat&logo=github&logoColor=white)](https://github.com/pgsty/pg_exporter)
-[![Webite: pgsty.com](https://img.shields.io/badge/website-pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://doc.pigsty.com)
-[![Version: 1.0.1](https://img.shields.io/badge/version-1.0.1-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1)
+[![Version: 1.0.2](https://img.shields.io/badge/version-1.0.2-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pgsty/pg_exporter)](https://goreportcard.com/report/github.com/pgsty/pg_exporter)
@@ -17,19 +16,20 @@
 PG Exporter brings ultimate monitoring experience to your PostgreSQL with **declarative config**, **dynamic planning**, and **customizable collectors**. 
 It provides **600+** metrics and ~3K time series per instance, covers everything you'll need for PostgreSQL observability.
 
-Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
+Check [**https://g.pgsty.com**](https://g.pgsty.com) for live demo, which is built upon this exporter by [**Pigsty**](https://pgsty.com).
 
 <div align="center">
+    <a href="https://exp.pgsty.com">Docs</a> •    
     <a href="#quick-start">Quick Start</a> •
     <a href="#features">Features</a> •
     <a href="#usage">Usage</a> •
     <a href="#api">API</a> •
     <a href="#deployment">Deployment</a> •
     <a href="#collectors">Collectors</a> •
-    <a href="https://demo.pigsty.cc">Demo</a>
+    <a href="https://g.pgsty.com">Demo</a>
 </div><br>
 
-[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.io)
+[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://g.pgsty.com)
 
 
 --------
@@ -40,7 +40,7 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
 - **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.24+) in single exporter
 - **Fine-grained Control**: Configure timeout, caching, skip conditions, and fatality per collector
 - **Dynamic Planning**: Define multiple query branches based on different conditions
-- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.io/d/pgsql-exporter) for complete observability
+- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://g.pigsty.com/d/pgsql-exporter) for complete observability
 - **Production-Ready**: Battle-tested in real-world environments across 12K+ cores for 6+ years
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
@@ -51,7 +51,7 @@ Check [**https://demo.pigsty.cc**](https://demo.pigsty.cc) for live demo, which 
 
 ## Quick Start
 
-RPM / DEB / Tarball available in the GitHub [release page](https://github.com/pgsty/pg_exporter/releases), and Pigsty's [YUM](https://pigsty.io/ext/repo/yum/) / [APT](https://pigsty.io/ext/repo/apt/) [repo](https://pigsty.io/ext/repo/).
+RPM / DEB / Tarball available in the GitHub [release page](https://github.com/pgsty/pg_exporter/releases), and Pigsty's YUM / APT [Infra Repo](https://ext.pigsty.io/repo/infra).
 
 To run this exporter, you need to pass the postgres/pgbouncer URL via env or arg:
 
@@ -66,7 +66,7 @@ There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_export
 
 There are two monitoring dashboards in the [`monitor/`](monitor/) directory.
 
-You can use [**Pigsty**](https://doc.pgsty.com) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
+You can use [**Pigsty**](https://pgsty.com) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
 
 
 --------
@@ -186,12 +186,6 @@ To build a static stand-alone binary for docker scratch
 CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o pg_exporter
 ```
 
-To build a docker image, use:
-
-```bash
-make docker
-```
-
 Or [download](https://github.com/pgsty/pg_exporter/releases) the latest prebuilt binaries from release pages.
 
 We also have pre-packaged RPM / DEB packages in the [Pigsty Infra Repo](https://ext.pgsty.com/repo/infra/)
@@ -232,58 +226,58 @@ Configs lie in the core of `pg_exporter`. Actually, this project contains more l
 Current `pg_exporter` is shipped with the following metrics collector definition files
 
 - [0000-doc.yml](config/0000-doc.yml)
-- [0110-pg.yml](config/collector_custom/0110-pg.yml)
-- [0120-pg_meta.yml](config/collector_custom/0120-pg_meta.yml)
-- [0130-pg_setting.yml](config/collector_custom/0130-pg_setting.yml)
-- [0210-pg_repl.yml](config/collector_custom/0210-pg_repl.yml)
-- [0220-pg_sync_standby.yml](config/collector_custom/0220-pg_sync_standby.yml)
-- [0230-pg_downstream.yml](config/collector_custom/0230-pg_downstream.yml)
-- [0240-pg_slot.yml](config/collector_custom/0240-pg_slot.yml)
-- [0250-pg_recv.yml](config/collector_custom/0250-pg_recv.yml)
-- [0260-pg_sub.yml](config/collector_custom/0260-pg_sub.yml)
-- [0270-pg_origin.yml](config/collector_custom/0270-pg_origin.yml)
-- [0300-pg_io.yml](config/collector_custom/0300-pg_io.yml)
-- [0310-pg_size.yml](config/collector_custom/0310-pg_size.yml)
-- [0320-pg_archiver.yml](config/collector_custom/0320-pg_archiver.yml)
-- [0330-pg_bgwriter.yml](config/collector_custom/0330-pg_bgwriter.yml)
-- [0331-pg_checkpointer.yml](config/collector_custom/0331-pg_checkpointer.yml)
-- [0340-pg_ssl.yml](config/collector_custom/0340-pg_ssl.yml)
-- [0350-pg_checkpoint.yml](config/collector_custom/0350-pg_checkpoint.yml)
-- [0360-pg_recovery.yml](config/collector_custom/0360-pg_recovery.yml)
-- [0370-pg_slru.yml](config/collector_custom/0370-pg_slru.yml)
-- [0380-pg_shmem.yml](config/collector_custom/0380-pg_shmem.yml)
-- [0390-pg_wal.yml](config/collector_custom/0390-pg_wal.yml)
-- [0410-pg_activity.yml](config/collector_custom/0410-pg_activity.yml)
-- [0420-pg_wait.yml](config/collector_custom/0420-pg_wait.yml)
-- [0430-pg_backend.yml](config/collector_custom/0430-pg_backend.yml)
-- [0440-pg_xact.yml](config/collector_custom/0440-pg_xact.yml)
-- [0450-pg_lock.yml](config/collector_custom/0450-pg_lock.yml)
-- [0460-pg_query.yml](config/collector_custom/0460-pg_query.yml)
-- [0510-pg_vacuuming.yml](config/collector_custom/0510-pg_vacuuming.yml)
-- [0520-pg_indexing.yml](config/collector_custom/0520-pg_indexing.yml)
-- [0530-pg_clustering.yml](config/collector_custom/0530-pg_clustering.yml)
-- [0540-pg_backup.yml](config/collector_custom/0540-pg_backup.yml)
-- [0610-pg_db.yml](config/collector_custom/0610-pg_db.yml)
-- [0620-pg_db_confl.yml](config/collector_custom/0620-pg_db_confl.yml)
-- [0640-pg_pubrel.yml](config/collector_custom/0640-pg_pubrel.yml)
-- [0650-pg_subrel.yml](config/collector_custom/0650-pg_subrel.yml)
-- [0700-pg_table.yml](config/collector_custom/0700-pg_table.yml)
-- [0710-pg_index.yml](config/collector_custom/0710-pg_index.yml)
-- [0720-pg_func.yml](config/collector_custom/0720-pg_func.yml)
-- [0730-pg_seq.yml](config/collector_custom/0730-pg_seq.yml)
-- [0740-pg_relkind.yml](config/collector_custom/0740-pg_relkind.yml)
-- [0750-pg_defpart.yml](config/collector_custom/0750-pg_defpart.yml)
-- [0810-pg_table_size.yml](config/collector_custom/0810-pg_table_size.yml)
-- [0820-pg_table_bloat.yml](config/collector_custom/0820-pg_table_bloat.yml)
-- [0830-pg_index_bloat.yml](config/collector_custom/0830-pg_index_bloat.yml)
-- [0910-pgbouncer_list.yml](config/collector_custom/0910-pgbouncer_list.yml)
-- [0920-pgbouncer_database.yml](config/collector_custom/0920-pgbouncer_database.yml)
-- [0930-pgbouncer_stat.yml](config/collector_custom/0930-pgbouncer_stat.yml)
-- [0940-pgbouncer_pool.yml](config/collector_custom/0940-pgbouncer_pool.yml)
-- [1000-pg_wait_event.yml](config/collector_custom/1000-pg_wait_event.yml)
-- [1800-pg_tsdb_hypertable.yml](config/collector_custom/1800-pg_tsdb_hypertable.yml)
-- [1900-pg_citus.yml](config/collector_custom/1900-pg_citus.yml)
-- [2000-pg_heartbeat.yml](config/collector_custom/2000-pg_heartbeat.yml)
+- [0110-pg.yml](config/0110-pg.yml)
+- [0120-pg_meta.yml](config/0120-pg_meta.yml)
+- [0130-pg_setting.yml](config/0130-pg_setting.yml)
+- [0210-pg_repl.yml](config/0210-pg_repl.yml)
+- [0220-pg_sync_standby.yml](config/0220-pg_sync_standby.yml)
+- [0230-pg_downstream.yml](config/0230-pg_downstream.yml)
+- [0240-pg_slot.yml](config/0240-pg_slot.yml)
+- [0250-pg_recv.yml](config/0250-pg_recv.yml)
+- [0260-pg_sub.yml](config/0260-pg_sub.yml)
+- [0270-pg_origin.yml](config/0270-pg_origin.yml)
+- [0300-pg_io.yml](config/0300-pg_io.yml)
+- [0310-pg_size.yml](config/0310-pg_size.yml)
+- [0320-pg_archiver.yml](config/0320-pg_archiver.yml)
+- [0330-pg_bgwriter.yml](config/0330-pg_bgwriter.yml)
+- [0331-pg_checkpointer.yml](config/0331-pg_checkpointer.yml)
+- [0340-pg_ssl.yml](config/0340-pg_ssl.yml)
+- [0350-pg_checkpoint.yml](config/0350-pg_checkpoint.yml)
+- [0360-pg_recovery.yml](config/0360-pg_recovery.yml)
+- [0370-pg_slru.yml](config/0370-pg_slru.yml)
+- [0380-pg_shmem.yml](config/0380-pg_shmem.yml)
+- [0390-pg_wal.yml](config/0390-pg_wal.yml)
+- [0410-pg_activity.yml](config/0410-pg_activity.yml)
+- [0420-pg_wait.yml](config/0420-pg_wait.yml)
+- [0430-pg_backend.yml](config/0430-pg_backend.yml)
+- [0440-pg_xact.yml](config/0440-pg_xact.yml)
+- [0450-pg_lock.yml](config/0450-pg_lock.yml)
+- [0460-pg_query.yml](config/0460-pg_query.yml)
+- [0510-pg_vacuuming.yml](config/0510-pg_vacuuming.yml)
+- [0520-pg_indexing.yml](config/0520-pg_indexing.yml)
+- [0530-pg_clustering.yml](config/0530-pg_clustering.yml)
+- [0540-pg_backup.yml](config/0540-pg_backup.yml)
+- [0610-pg_db.yml](config/0610-pg_db.yml)
+- [0620-pg_db_confl.yml](config/0620-pg_db_confl.yml)
+- [0640-pg_pubrel.yml](config/0640-pg_pubrel.yml)
+- [0650-pg_subrel.yml](config/0650-pg_subrel.yml)
+- [0700-pg_table.yml](config/0700-pg_table.yml)
+- [0710-pg_index.yml](config/0710-pg_index.yml)
+- [0720-pg_func.yml](config/0720-pg_func.yml)
+- [0730-pg_seq.yml](config/0730-pg_seq.yml)
+- [0740-pg_relkind.yml](config/0740-pg_relkind.yml)
+- [0750-pg_defpart.yml](config/0750-pg_defpart.yml)
+- [0810-pg_table_size.yml](config/0810-pg_table_size.yml)
+- [0820-pg_table_bloat.yml](config/0820-pg_table_bloat.yml)
+- [0830-pg_index_bloat.yml](config/0830-pg_index_bloat.yml)
+- [0910-pgbouncer_list.yml](config/0910-pgbouncer_list.yml)
+- [0920-pgbouncer_database.yml](config/0920-pgbouncer_database.yml)
+- [0930-pgbouncer_stat.yml](config/0930-pgbouncer_stat.yml)
+- [0940-pgbouncer_pool.yml](config/0940-pgbouncer_pool.yml)
+- [1000-pg_wait_event.yml](config/1000-pg_wait_event.yml)
+- [1800-pg_tsdb_hypertable.yml](config/1800-pg_tsdb_hypertable.yml)
+- [1900-pg_citus.yml](config/1900-pg_citus.yml)
+- [2000-pg_heartbeat.yml](config/2000-pg_heartbeat.yml)
 
 
 > #### Note
@@ -533,5 +527,5 @@ License: [Apache-2.0](LICENSE)
 Copyright: 2018-2025 rh@vonng.com
 
 <p align="center">
-  <img src="logo.png" alt="PG Exporter Logo" height="128" align="middle">
+  <img src="static/logo.png" alt="PG Exporter Logo" height="128" align="middle">
 </p>

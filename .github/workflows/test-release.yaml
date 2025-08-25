@@ -1,0 +1,55 @@
+name: Test Release
+
+on:
+  workflow_dispatch:  # 允许手动触发
+  pull_request:
+    paths:
+      - '.goreleaser.yml'
+      - '.github/workflows/release.yaml'
+      - '.github/workflows/test-release.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test GoReleaser config
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: check
+
+      - name: Build snapshot
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --snapshot --clean --skip=publish,docker
+
+      - name: List artifacts
+        run: |
+          echo "Generated artifacts:"
+          ls -lh dist/*.tar.gz || true
+          echo ""
+          echo "Checksums:"
+          cat dist/checksums.txt || true
