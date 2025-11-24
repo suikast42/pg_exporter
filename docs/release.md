@@ -14,11 +14,11 @@ The latest stable version of `pg_exporter` is [v1.0.3](https://github.com/pgsty/
 | [v1.0.1](#v101) | 2025-07-17 | DockerHub images, Go 1.24.5, disable pg_tsdb_hypertable | [v1.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1) |
 | [v1.0.0](#v100) | 2025-05-06 | PostgreSQL 18 support, new WAL/checkpointer/I/O metrics | [v1.0.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.0) |
 | [v0.9.0](#v090) | 2025-04-26 | TimescaleDB, Citus, pg_wait_sampling collectors         | [v0.9.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.9.0) |
-| [v0.8.1](#v081) | 2024-02-14 | Dependencies update, docker image tags                  | [v0.8.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.1) |
-| [v0.8.0](#v080) | 2024-02-14 | PgBouncer 1.24 support, Go 1.24, logging refactor       | [v0.8.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.0) |
-| [v0.7.1](#v071) | 2022-08-13 | Routine update, configuration as Reader support         | [v0.7.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.1) |
-| [v0.7.0](#v070) | 2022-08-13 | PostgreSQL 17 support, predicate queries feature        | [v0.7.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.0) |
-| [v0.6.0](#v060) | 2022-10-18 | PostgreSQL 16 support, ARM64 packages, security fixes   | [v0.6.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.6.0) |
+| [v0.8.1](#v081) | 2025-02-14 | Dependencies update, docker image tags                  | [v0.8.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.1) |
+| [v0.8.0](#v080) | 2025-02-14 | PgBouncer 1.24 support, Go 1.24, logging refactor       | [v0.8.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.0) |
+| [v0.7.1](#v071) | 2024-12-29 | Routine update, configuration as Reader support         | [v0.7.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.1) |
+| [v0.7.0](#v070) | 2024-08-13 | PostgreSQL 17 support, predicate queries feature        | [v0.7.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.0) |
+| [v0.6.0](#v060) | 2023-10-18 | PostgreSQL 16 support, ARM64 packages, security fixes   | [v0.6.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.6.0) |
 | [v0.5.0](#v050) | 2022-04-27 | RPM/DEB builds, column scaling, metrics enhancements    | [v0.5.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.5.0) |
 | [v0.4.1](#v041) | 2022-03-08 | Collector updates, connect-timeout parameter            | [v0.4.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.4.1) |
 | [v0.4.0](#v040) | 2021-07-12 | PostgreSQL 14 support, auto-discovery feature           | [v0.4.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.4.0) |
