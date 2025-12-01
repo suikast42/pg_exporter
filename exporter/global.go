@@ -9,13 +9,13 @@ import (
 /* ================ Parameters ================ */
 
 // Version is read by make build procedure
-var Version = "1.0.2"
+var Version = "1.0.3"
 
 // Build information. Populated at build-time.
 var (
 	Branch    = "main"
 	Revision  = "HEAD"
-	BuildDate = "20250421212100"
+	BuildDate = "20250421212100" // will be overwritten during release
 	GoVersion = runtime.Version()
 	GOOS      = runtime.GOOS
 	GOARCH    = runtime.GOARCH

@@ -145,6 +145,25 @@ func DummyServer() (s *http.Server, exit <-chan bool) {
 func Run() {
 	ParseArgs()
 
+	// Clean up unsupported libpq environment variables that would cause panic
+	// lib/pq driver does not support these PostgreSQL environment variables
+	// and will panic if they are set. We clear them to ensure stable operation.
+	// See: https://github.com/lib/pq/blob/master/conn.go#L2019
+	unsupportedEnvs := []string{
+		"PGSYSCONFDIR",   // PostgreSQL system configuration directory
+		"PGSERVICEFILE",  // PostgreSQL connection service file
+		"PGSERVICE",      // PostgreSQL service name
+		"PGLOCALEDIR",    // PostgreSQL locale directory
+		"PGREALM",        // Kerberos realm
+	}
+
+	for _, env := range unsupportedEnvs {
+		if val := os.Getenv(env); val != "" {
+			logWarnf("clearing unsupported environment variable %s=%s (lib/pq limitation)", env, val)
+			os.Unsetenv(env)
+		}
+	}
+
 	// explain config only
 	if *dryRun {
 		DryRun()
