@@ -17,8 +17,8 @@ pg_index:
   min_version: 090400
   metrics:
     - datname:             { usage: LABEL    ,description: Database name of this index }
-    - idxname:             { usage: LABEL    ,description: Name of this index (full-qualifed schema name) }
-    - relname:             { usage: LABEL    ,description: Name of the table for this index (full-qualifed schema name) }
+    - idxname:             { usage: LABEL    ,description: Name of this index (full-qualified schema name) }
+    - relname:             { usage: LABEL    ,description: Name of the table for this index (full-qualified schema name) }
     - relid:               { usage: LABEL    ,description: Relation oid of this index }
     - relpages:            { usage: GAUGE    ,description: Size of the on-disk representation of this index in pages }
     - reltuples:           { usage: GAUGE    ,description: Estimate relation tuples }

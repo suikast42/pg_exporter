@@ -16,14 +16,14 @@ pg_db_18:
   min_version: 180000
   tags: [ cluster ]
   metrics:
-    - datname:             { usage: LABEL  ,description: Name of the database }
-    - datid:               { usage: GAUGE  ,description: OID of the database }
-    - age:                 { usage: GAUGE  ,description: Age of database calculated from datfrozenxid }
-    - is_template:         { usage: GAUGE  ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
-    - allow_conn:          { usage: GAUGE  ,description: If false(0) then no one can connect to this database. }
-    - conn_limit:          { usage: GAUGE  ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
-    - frozen_xid:          { usage: GAUGE  ,description: All transaction IDs before this one have been frozened }
-    - numbackends:         { usage: GAUGE  ,description: Number of backends currently connected to this database }
+    - datname:             { usage: LABEL   ,description: Name of the database }
+    - datid:               { usage: GAUGE   ,description: OID of the database }
+    - age:                 { usage: GAUGE   ,description: Age of database calculated from datfrozenxid }
+    - is_template:         { usage: GAUGE   ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
+    - allow_conn:          { usage: GAUGE   ,description: If false(0) then no one can connect to this database. }
+    - conn_limit:          { usage: GAUGE   ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
+    - frozen_xid:          { usage: GAUGE   ,description: All transaction IDs before this one have been frozen }
+    - numbackends:         { usage: GAUGE   ,description: Number of backends currently connected to this database }
     - xact_commit:         { usage: COUNTER ,description: Number of transactions in this database that have been committed }
     - xact_rollback:       { usage: COUNTER ,description: Number of transactions in this database that have been rolled back }
     - xact_total:          { usage: COUNTER ,description: Number of transactions in this database }
@@ -41,7 +41,7 @@ pg_db_18:
     - temp_bytes:          { usage: COUNTER ,description: Total amount of data written to temporary files by queries in this database. }
     - deadlocks:           { usage: COUNTER ,description: Number of deadlocks detected in this database }
     - cks_fails:           { usage: COUNTER ,description: Number of data page checksum failures detected in this database, -1 for not enabled }
-    - cks_fail_time:       { usage: GAUGE  ,description: Time at which the last data page checksum failure was detected in this database }
+    - cks_fail_time:       { usage: GAUGE   ,description: Time at which the last data page checksum failure was detected in this database }
     - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds }
     - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds }
     - session_time:        { usage: COUNTER ,scale: 1e-3 ,description: Time spent by database sessions in this database, in seconds }
@@ -70,14 +70,14 @@ pg_db_14:
   max_version: 180000
   tags: [ cluster ]
   metrics:
-    - datname:             { usage: LABEL  ,description: Name of the database }
-    - datid:               { usage: GAUGE  ,description: OID of the database }
-    - age:                 { usage: GAUGE  ,description: Age of database calculated from datfrozenxid }
-    - is_template:         { usage: GAUGE  ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
-    - allow_conn:          { usage: GAUGE  ,description: If false(0) then no one can connect to this database. }
-    - conn_limit:          { usage: GAUGE  ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
-    - frozen_xid:          { usage: GAUGE  ,description: All transaction IDs before this one have been frozened }
-    - numbackends:         { usage: GAUGE  ,description: Number of backends currently connected to this database }
+    - datname:             { usage: LABEL   ,description: Name of the database }
+    - datid:               { usage: GAUGE   ,description: OID of the database }
+    - age:                 { usage: GAUGE   ,description: Age of database calculated from datfrozenxid }
+    - is_template:         { usage: GAUGE   ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
+    - allow_conn:          { usage: GAUGE   ,description: If false(0) then no one can connect to this database. }
+    - conn_limit:          { usage: GAUGE   ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
+    - frozen_xid:          { usage: GAUGE   ,description: All transaction IDs before this one have been frozen }
+    - numbackends:         { usage: GAUGE   ,description: Number of backends currently connected to this database }
     - xact_commit:         { usage: COUNTER ,description: Number of transactions in this database that have been committed }
     - xact_rollback:       { usage: COUNTER ,description: Number of transactions in this database that have been rolled back }
     - xact_total:          { usage: COUNTER ,description: Number of transactions in this database }
@@ -95,7 +95,7 @@ pg_db_14:
     - temp_bytes:          { usage: COUNTER ,description: Total amount of data written to temporary files by queries in this database. }
     - deadlocks:           { usage: COUNTER ,description: Number of deadlocks detected in this database }
     - cks_fails:           { usage: COUNTER ,description: Number of data page checksum failures detected in this database, -1 for not enabled }
-    - cks_fail_time:       { usage: GAUGE  ,description: Time at which the last data page checksum failure was detected in this database }
+    - cks_fail_time:       { usage: GAUGE   ,description: Time at which the last data page checksum failure was detected in this database }
     - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds }
     - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds }
     - session_time:        { usage: COUNTER ,scale: 1e-3 ,description: Time spent by database sessions in this database, in seconds }
@@ -122,14 +122,14 @@ pg_db_12:
   max_version: 140000
   tags: [ cluster ]
   metrics:
-    - datname:             { usage: LABEL  ,description: Name of the database }
-    - datid:               { usage: GAUGE  ,description: OID of the database }
-    - age:                 { usage: GAUGE  ,description: Age of database calculated from datfrozenxid }
-    - is_template:         { usage: GAUGE  ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
-    - allow_conn:          { usage: GAUGE  ,description: If false(0) then no one can connect to this database. }
-    - conn_limit:          { usage: GAUGE  ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
-    - frozen_xid:          { usage: GAUGE  ,description: All transaction IDs before this one have been frozened }
-    - numbackends:         { usage: GAUGE  ,description: Number of backends currently connected to this database }
+    - datname:             { usage: LABEL   ,description: Name of the database }
+    - datid:               { usage: GAUGE   ,description: OID of the database }
+    - age:                 { usage: GAUGE   ,description: Age of database calculated from datfrozenxid }
+    - is_template:         { usage: GAUGE   ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
+    - allow_conn:          { usage: GAUGE   ,description: If false(0) then no one can connect to this database. }
+    - conn_limit:          { usage: GAUGE   ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
+    - frozen_xid:          { usage: GAUGE   ,description: All transaction IDs before this one have been frozen }
+    - numbackends:         { usage: GAUGE   ,description: Number of backends currently connected to this database }
     - xact_commit:         { usage: COUNTER ,description: Number of transactions in this database that have been committed }
     - xact_rollback:       { usage: COUNTER ,description: Number of transactions in this database that have been rolled back }
     - xact_total:          { usage: COUNTER ,description: Number of transactions in this database }
@@ -147,7 +147,7 @@ pg_db_12:
     - temp_bytes:          { usage: COUNTER ,description: Total amount of data written to temporary files by queries in this database. }
     - deadlocks:           { usage: COUNTER ,description: Number of deadlocks detected in this database }
     - cks_fails:           { usage: COUNTER ,description: Number of data page checksum failures detected in this database, -1 for not enabled }
-    - cks_fail_time:       { usage: GAUGE  ,description: Time at which the last data page checksum failure was detected in this database }
+    - cks_fail_time:       { usage: GAUGE   ,description: Time at which the last data page checksum failure was detected in this database }
     - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds }
     - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds }
     - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset }
@@ -164,14 +164,14 @@ pg_db_10:
   max_version: 120000
   tags: [ cluster ]
   metrics:
-    - datname:             { usage: LABEL  ,description: Name of the database }
-    - datid:               { usage: GAUGE  ,description: OID of the database }
-    - age:                 { usage: GAUGE  ,description: Age of database calculated from datfrozenxid }
-    - is_template:         { usage: GAUGE  ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
-    - allow_conn:          { usage: GAUGE  ,description: If false(0) then no one can connect to this database. }
-    - conn_limit:          { usage: GAUGE  ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
-    - frozen_xid:          { usage: GAUGE  ,description: All transaction IDs before this one have been frozened }
-    - numbackends:         { usage: GAUGE  ,description: Number of backends currently connected to this database }
+    - datname:             { usage: LABEL   ,description: Name of the database }
+    - datid:               { usage: GAUGE   ,description: OID of the database }
+    - age:                 { usage: GAUGE   ,description: Age of database calculated from datfrozenxid }
+    - is_template:         { usage: GAUGE   ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
+    - allow_conn:          { usage: GAUGE   ,description: If false(0) then no one can connect to this database. }
+    - conn_limit:          { usage: GAUGE   ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
+    - frozen_xid:          { usage: GAUGE   ,description: All transaction IDs before this one have been frozen }
+    - numbackends:         { usage: GAUGE   ,description: Number of backends currently connected to this database }
     - xact_commit:         { usage: COUNTER ,description: Number of transactions in this database that have been committed }
     - xact_rollback:       { usage: COUNTER ,description: Number of transactions in this database that have been rolled back }
     - xact_total:          { usage: COUNTER ,description: Number of transactions in this database }

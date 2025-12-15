@@ -10,7 +10,7 @@ pg_func:
     - datname:             { usage: LABEL    ,description: Name of belonged database }
     - funcname:            { usage: LABEL    ,description: Name of this function, may have multiple override }
     - calls:               { usage: COUNTER  ,description: Number of times this function has been called }
-    - total_time:          { usage: COUNTER  ,description: Total time spent in this function and all other functions called by it, in ms }
-    - self_time:           { usage: COUNTER  ,description: Total time spent in this function itself, not including other functions called by it, in ms }
+    - total_time:          { usage: COUNTER  ,scale: 1e-3 ,description: Total time spent in this function and all other functions called by it, in seconds }
+    - self_time:           { usage: COUNTER  ,scale: 1e-3 ,description: Total time spent in this function itself, not including other functions called by it, in seconds }
 
 

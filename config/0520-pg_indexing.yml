@@ -11,17 +11,17 @@ pg_indexing:
       (CASE WHEN partitions_total > 0 THEN 1.0 * partitions_done / partitions_total ELSE NULL END) AS partitions,
       (CASE WHEN lockers_total > 0 THEN 1.0 * lockers_done / lockers_total ELSE NULL END) AS lockers
     FROM pg_stat_progress_create_index pspci;
-  
+
   ttl: 10
   min_version: 120000
   tags: [ cluster, primary ]
   metrics:
-    - datname:     { usage: LABEL, description: Name of the database }
-    - pid:         { usage: LABEL, description: Process id of indexing table }
-    - relname:     { usage: LABEL, description: Relation name of indexed table }
-    - blocks:      { usage: GAUGE, description: Percent of blocks been proceeded }
-    - tuples:      { usage: GAUGE, description: Percent of tuples been proceeded }
-    - partitions:  { usage: GAUGE, description: Percent of partitions been proceeded }
-    - lockers:     { usage: GAUGE, description: Percent of lockers been proceeded }
+    - datname:     { usage: LABEL ,description: Name of the database }
+    - pid:         { usage: LABEL ,description: Process id of indexing table }
+    - relname:     { usage: LABEL ,description: Relation name of indexed table }
+    - blocks:      { usage: GAUGE ,description: Percent of blocks been proceeded }
+    - tuples:      { usage: GAUGE ,description: Percent of tuples been proceeded }
+    - partitions:  { usage: GAUGE ,description: Percent of partitions been proceeded }
+    - lockers:     { usage: GAUGE ,description: Percent of lockers been proceeded }
 
 

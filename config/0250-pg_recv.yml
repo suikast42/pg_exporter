@@ -76,7 +76,7 @@ pg_recv_10:
 
   ttl: 10
   tags: [ cluster, replica ]
-  min_version: 090600
+  min_version: 100000
   max_version: 110000
   metrics:
     - sender_host:         { usage: LABEL   ,description: Host of the PostgreSQL instance this WAL receiver is connected to }
