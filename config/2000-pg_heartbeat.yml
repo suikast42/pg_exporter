@@ -1,5 +1,5 @@
 #==============================================================#
-# 1000 heartbeat
+# 2000 heartbeat
 #==============================================================#
 # this is a example of application monitoring and predicate queries
 pg_heartbeat:
@@ -17,9 +17,9 @@ pg_heartbeat:
   tags: [ "dbname:postgres", "schema:monitor" ]
   skip: true
   metrics:
-    - cluster_name:     { usage: LABEL, description: cluster_name param of this database cluster }
-    - ts:               { usage: GAUGE, description: unix timestamp of the heartbeat }
-    - lsn:              { usage: GAUGE, description: lsn of the heartbeat }
-    - txid:             { usage: GAUGE, description: txid of the heartbeat }
+    - cluster_name:     { usage: LABEL   ,description: cluster_name param of this database cluster }
+    - ts:               { usage: GAUGE   ,description: unix timestamp of the heartbeat }
+    - lsn:              { usage: COUNTER ,description: lsn of the heartbeat }
+    - txid:             { usage: GAUGE   ,description: txid of the heartbeat }
 
 
