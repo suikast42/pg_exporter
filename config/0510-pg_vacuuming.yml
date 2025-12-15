@@ -5,40 +5,65 @@ pg_vacuuming_18:
   name: pg_vacuuming
   desc: PostgreSQL vacuum progress 18+
   query: |-
-    SELECT  datname, pid, relid::RegClass AS relname,
+    SELECT datname, pid, relid::RegClass AS relname,
       CASE phase WHEN 'scanning heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE 0.0 END)
-      WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE 0 END) ELSE NULL END AS progress, delay_time 
-    FROM pg_stat_progress_vacuum pspv;
-  
+        WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE 0 END) ELSE NULL END AS progress,
+      indexes_total, indexes_processed, dead_tuple_bytes, delay_time
+    FROM pg_stat_progress_vacuum;
+
   ttl: 10
   min_version: 180000
   tags: [ cluster, primary ]
   metrics:
-    - datname:     { usage: LABEL   ,description: database name }
-    - pid:         { usage: LABEL   ,description: process id of indexing table }
-    - relname:     { usage: LABEL   ,description: relation name of indexed table }
-    - progress:    { usage: GAUGE   ,description: the actual progress }
-    - delay_time:  { usage: COUNTER ,scale: 1e-3 ,description: Total time spent sleeping due to cost-based delay }
+    - datname:           { usage: LABEL   ,description: database name }
+    - pid:               { usage: LABEL   ,description: process id of vacuum worker }
+    - relname:           { usage: LABEL   ,description: relation name of vacuuming table }
+    - progress:          { usage: GAUGE   ,description: vacuum progress ratio (0-1) based on heap blocks scanned/vacuumed }
+    - indexes_total:     { usage: GAUGE   ,description: total number of indexes that will be vacuumed or cleaned up }
+    - indexes_processed: { usage: GAUGE   ,description: number of indexes that have been vacuumed or cleaned up }
+    - dead_tuple_bytes:  { usage: GAUGE   ,description: total size of dead tuples collected since the beginning of vacuum in bytes }
+    - delay_time:        { usage: COUNTER ,scale: 1e-3 ,description: total time spent sleeping due to cost-based delay in seconds }
 
-
-pg_vacuuming_12:
+pg_vacuuming_17:
   name: pg_vacuuming
-  desc: PostgreSQL vacuum progress since 12
+  desc: PostgreSQL vacuum progress 17 (with index progress tracking)
   query: |-
-    SELECT 
-      datname, pid, relid::RegClass AS relname,
+    SELECT datname, pid, relid::RegClass AS relname,
       CASE phase WHEN 'scanning heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE 0.0 END)
-      WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE 0 END)
-      ELSE NULL END AS progress FROM pg_stat_progress_vacuum pspv;
+        WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE 0 END) ELSE NULL END AS progress,
+      indexes_total, indexes_processed, dead_tuple_bytes
+    FROM pg_stat_progress_vacuum;
 
   ttl: 10
-  min_version: 120000
+  min_version: 170000
   max_version: 180000
   tags: [ cluster, primary ]
   metrics:
-    - datname:     { usage: LABEL, description: database name }
-    - pid:         { usage: LABEL, description: process id of indexing table }
-    - relname:     { usage: LABEL, description: relation name of indexed table }
-    - progress:    { usage: GAUGE, description: the actual progress }
+    - datname:           { usage: LABEL ,description: database name }
+    - pid:               { usage: LABEL ,description: process id of vacuum worker }
+    - relname:           { usage: LABEL ,description: relation name of vacuuming table }
+    - progress:          { usage: GAUGE ,description: vacuum progress ratio (0-1) based on heap blocks scanned/vacuumed }
+    - indexes_total:     { usage: GAUGE ,description: total number of indexes that will be vacuumed or cleaned up }
+    - indexes_processed: { usage: GAUGE ,description: number of indexes that have been vacuumed or cleaned up }
+    - dead_tuple_bytes:  { usage: GAUGE ,description: total size of dead tuples collected since the beginning of vacuum in bytes }
+
+pg_vacuuming_12:
+  name: pg_vacuuming
+  desc: PostgreSQL vacuum progress 12-16
+  query: |-
+    SELECT datname, pid, relid::RegClass AS relname,
+      CASE phase WHEN 'scanning heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE 0.0 END)
+        WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE 0 END) ELSE NULL END AS progress
+    FROM pg_stat_progress_vacuum;
+
+  ttl: 10
+  min_version: 120000
+  max_version: 170000
+  tags: [ cluster, primary ]
+  metrics:
+    - datname:   { usage: LABEL ,description: database name }
+    - pid:       { usage: LABEL ,description: process id of vacuum worker }
+    - relname:   { usage: LABEL ,description: relation name of vacuuming table }
+    - progress:  { usage: GAUGE ,description: vacuum progress ratio (0-1) based on heap blocks scanned/vacuumed }
 
 
