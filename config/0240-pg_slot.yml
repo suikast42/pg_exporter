@@ -3,7 +3,7 @@
 #==============================================================#
 pg_slot_17:
   name: pg_slot
-  desc: PostgreSQL replication slot metrics v17
+  desc: PostgreSQL replication slot metrics v17, slot also exists on standby
   query: |-
     SELECT s.slot_name, s.slot_type, plugin, database AS datname,datoid,active_pid,
        active,temporary,two_phase,conflicting,failover,synced,
@@ -52,7 +52,7 @@ pg_slot_17:
 
 pg_slot_16:
   name: pg_slot
-  desc: PostgreSQL replication slot metrics v16 with conflicting
+  desc: PostgreSQL replication slot metrics v16 with conflicting, now slot also exists on standby
   query: |-
     SELECT s.slot_name, s.slot_type, plugin, database AS datname,datoid,active_pid,
       active,temporary,two_phase,conflicting,xmin::TEXT::BIGINT AS xmin,catalog_xmin::TEXT::BIGINT  AS catalog_xmin,

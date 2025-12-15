@@ -12,7 +12,7 @@ pg_db_confl_16:
   tags: [ cluster, replica ]
   metrics:
     - datid:                { usage: DISCARD }
-    - datname:              { usage: LABEL  ,description: Name of this database }
+    - datname:              { usage: LABEL   ,description: Name of this database }
     - confl_tablespace:     { usage: COUNTER ,description: Number of queries in this database that have been canceled due to dropped tablespaces }
     - confl_lock:           { usage: COUNTER ,description: Number of queries in this database that have been canceled due to lock timeouts }
     - confl_snapshot:       { usage: COUNTER ,description: Number of queries in this database that have been canceled due to old snapshots }
@@ -22,7 +22,7 @@ pg_db_confl_16:
 
 pg_db_confl_15:
   name: pg_db_confl
-  desc: PostgreSQL database conflicts metrics for pg 9.1 - 16
+  desc: PostgreSQL database conflicts metrics for pg 9.1 - 15
   query: SELECT * FROM pg_stat_database_conflicts;
   ttl: 10
   min_version: 90100
@@ -30,7 +30,7 @@ pg_db_confl_15:
   tags: [ cluster, replica ]
   metrics:
     - datid:                { usage: DISCARD }
-    - datname:              { usage: LABEL  ,description: Name of this database }
+    - datname:              { usage: LABEL   ,description: Name of this database }
     - confl_tablespace:     { usage: COUNTER ,description: Number of queries in this database that have been canceled due to dropped tablespaces }
     - confl_lock:           { usage: COUNTER ,description: Number of queries in this database that have been canceled due to lock timeouts }
     - confl_snapshot:       { usage: COUNTER ,description: Number of queries in this database that have been canceled due to old snapshots }

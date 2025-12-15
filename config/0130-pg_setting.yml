@@ -1,56 +1,94 @@
 #==============================================================#
 # 0130 pg_setting
 #==============================================================#
+# Key PostgreSQL configuration parameters
+# All parameters use current_setting(name, missing_ok) for version safety
+# Parameters introduced after PG10 use missing_ok=true to return NULL on older versions
 pg_setting:
   name: pg_setting
-  desc: Important postgres setting parameters
+  desc: PostgreSQL shared configuration parameters (shared across all databases)
   query: |
     SELECT
-      current_setting('max_connections')           AS max_connections,
-      current_setting('max_prepared_transactions') AS max_prepared_transactions,
-      current_setting('max_locks_per_transaction') AS max_locks_per_transaction,
-      current_setting('max_worker_processes')      AS max_worker_processes,
-      current_setting('max_replication_slots')     AS max_replication_slots,
-      current_setting('max_wal_senders')           AS max_wal_senders,
-      current_setting('block_size')                AS block_size,
-      current_setting('wal_block_size')            AS wal_block_size,
-      pg_size_bytes(current_setting('segment_size')) AS segment_size,
-      pg_size_bytes(current_setting('wal_segment_size')) AS wal_segment_size,
+      current_setting('max_connections')::int                          AS max_connections,
+      current_setting('max_prepared_transactions')::int                AS max_prepared_transactions,
+      current_setting('max_locks_per_transaction')::int                AS max_locks_per_transaction,
+      current_setting('max_worker_processes')::int                     AS max_worker_processes,
+      current_setting('max_parallel_workers')::int                     AS max_parallel_workers,
+      current_setting('max_parallel_workers_per_gather')::int          AS max_parallel_workers_per_gather,
+      current_setting('max_parallel_maintenance_workers', true)::int   AS max_parallel_maintenance_workers,
+      current_setting('max_replication_slots')::int                    AS max_replication_slots,
+      current_setting('max_wal_senders')::int                          AS max_wal_senders,
+      current_setting('block_size')::int                               AS block_size,
+      current_setting('wal_block_size')::int                           AS wal_block_size,
+      pg_size_bytes(current_setting('segment_size'))                   AS segment_size,
+      pg_size_bytes(current_setting('wal_segment_size'))               AS wal_segment_size,
       CASE current_setting('data_checksums') WHEN 'on' THEN 1 ELSE 0 END AS data_checksums,
       CASE current_setting('wal_log_hints') WHEN 'on' THEN 1 ELSE 0 END AS wal_log_hints,
+      CASE current_setting('fsync') WHEN 'on' THEN 1 ELSE 0 END AS fsync,
+      CASE current_setting('full_page_writes') WHEN 'on' THEN 1 ELSE 0 END AS full_page_writes,
       CASE current_setting('wal_level') WHEN 'logical' THEN 3 WHEN 'replica' THEN 2 WHEN 'minimal' THEN 1 ELSE 0 END AS wal_level,
-      pg_size_bytes(current_setting('work_mem', true)) AS work_memory_size,
-      pg_size_bytes(current_setting('shared_memory_size', true)) AS shared_memory_size,
-      CASE current_setting('huge_pages_status', true) WHEN 'on' THEN 1 WHEN 'off' THEN 0 WHEN 'unknown' THEN -1 ELSE -2 END AS hugepage_status,
-      current_setting('shared_memory_size_in_huge_pages', true) AS hugepage_count,
-      pg_size_bytes(current_setting('min_wal_size')) AS min_wal_size,
-      pg_size_bytes(current_setting('max_wal_size')) AS max_wal_size,
-      pg_size_bytes(current_setting('max_slot_wal_keep_size', true)) AS max_slot_wal_keep_size,
-      CASE current_setting('archive_mode') WHEN 'off' THEN 0 WHEN 'on' THEN 1 WHEN 'always' THEN 2 ELSE -1 END AS archive_mode;
+      pg_size_bytes(current_setting('min_wal_size'))                   AS min_wal_size,
+      pg_size_bytes(current_setting('max_wal_size'))                   AS max_wal_size,
+      pg_size_bytes(current_setting('max_slot_wal_keep_size', true))   AS max_slot_wal_keep_size,
+      pg_size_bytes(current_setting('shared_buffers'))                 AS shared_buffers,
+      pg_size_bytes(current_setting('work_mem'))                       AS work_mem,
+      pg_size_bytes(current_setting('maintenance_work_mem'))           AS maintenance_work_mem,
+      pg_size_bytes(current_setting('effective_cache_size'))           AS effective_cache_size,
+      pg_size_bytes(current_setting('shared_memory_size', true))       AS shared_memory_size,
+      CASE current_setting('huge_pages_status', true) WHEN 'on' THEN 1 WHEN 'off' THEN 0 WHEN 'unknown' THEN -1 ELSE NULL END AS hugepage_status,
+      current_setting('shared_memory_size_in_huge_pages', true)::int   AS hugepage_count,
+      CASE current_setting('archive_mode') WHEN 'off' THEN 0 WHEN 'on' THEN 1 WHEN 'always' THEN 2 ELSE -1 END AS archive_mode,
+      CASE current_setting('autovacuum') WHEN 'on' THEN 1 ELSE 0 END AS autovacuum,
+      current_setting('autovacuum_max_workers')::int                   AS autovacuum_max_workers,
+      extract(epoch from current_setting('checkpoint_timeout')::interval)::int AS checkpoint_timeout,
+      current_setting('checkpoint_completion_target')::float           AS checkpoint_completion_target,
+      CASE current_setting('hot_standby') WHEN 'on' THEN 1 ELSE 0 END AS hot_standby,
+      CASE current_setting('synchronous_commit')
+        WHEN 'off' THEN 0 WHEN 'local' THEN 1 WHEN 'remote_write' THEN 2
+        WHEN 'on' THEN 3 WHEN 'remote_apply' THEN 4 ELSE -1 END AS synchronous_commit,
+      CASE current_setting('io_method', true)
+        WHEN 'sync' THEN 0 WHEN 'worker' THEN 1 WHEN 'io_uring' THEN 2 ELSE NULL END AS io_method;
+
   ttl: 10
-  min_version: 090600
+  min_version: 100000
   tags: [ cluster ]
   metrics:
-    - max_connections:           { usage: GAUGE ,description: number of concurrent connections to the database server }
-    - max_prepared_transactions: { usage: GAUGE ,description: maximum number of transactions that can be in the prepared state simultaneously }
-    - max_locks_per_transaction: { usage: GAUGE ,description: no more than this many distinct objects can be locked at any one time }
-    - max_worker_processes:      { usage: GAUGE ,description: maximum number of background processes that the system can support }
-    - max_replication_slots:     { usage: GAUGE ,description: maximum number of replication slots }
-    - max_wal_senders:           { usage: GAUGE ,description: maximum number of concurrent connections from standby servers }
-    - block_size:                { usage: GAUGE ,description: pg page block size, 8192 by default }
-    - wal_block_size:            { usage: GAUGE ,description: block size in WAL files }
-    - segment_size:              { usage: GAUGE ,description: segment size for database files }
-    - wal_segment_size:          { usage: GAUGE ,description: segment size for WAL files }
-    - data_checksums:            { usage: GAUGE ,description: whether data checksum is enabled, 1 enabled 0 disabled }
-    - wal_log_hints:             { usage: GAUGE ,description: whether wal_log_hints is enabled, 1 enabled 0 disabled }
-    - wal_level:                 { usage: GAUGE ,description: WAL level, 1=minimal, 2=replica, 3=logical }
-    - work_memory_size:          { usage: GAUGE ,description: size of work memory in bytes }
-    - shared_memory_size:        { usage: GAUGE ,description: size of shared memory segment in bytes }
-    - hugepage_count:            { usage: GAUGE ,description: Reports the number of huge pages that are needed for the main shared memory area }
-    - hugepage_status:           { usage: GAUGE ,description: huge pages configuration status, 0=off, 1=on, -1=unknown }
-    - min_wal_size:              { usage: GAUGE ,description: minimum size that the WAL will shrink to in bytes }
-    - max_wal_size:              { usage: GAUGE ,description: maximum size that the WAL will grow to in bytes }
-    - max_slot_wal_keep_size:    { usage: GAUGE ,description: maximum WAL size that replication slots are allowed to retain in bytes, -1 means no limit }
-    - archive_mode:              { usage: GAUGE ,description: archive mode status, 0=off, 1=on, 2=always, -1=other }
+    - max_connections:                  { usage: GAUGE ,description: maximum number of concurrent connections to the database server }
+    - max_prepared_transactions:        { usage: GAUGE ,description: maximum number of transactions that can be in the prepared state simultaneously }
+    - max_locks_per_transaction:        { usage: GAUGE ,description: maximum number of locks per transaction }
+    - max_worker_processes:             { usage: GAUGE ,description: maximum number of background processes }
+    - max_parallel_workers:             { usage: GAUGE ,description: maximum number of parallel workers that can be active at one time }
+    - max_parallel_workers_per_gather:  { usage: GAUGE ,description: maximum number of parallel workers per Gather node }
+    - max_parallel_maintenance_workers: { usage: GAUGE ,description: maximum number of parallel maintenance workers (PG11+, NULL on older) }
+    - max_replication_slots:            { usage: GAUGE ,description: maximum number of replication slots }
+    - max_wal_senders:                  { usage: GAUGE ,description: maximum number of concurrent WAL sender connections }
+    - block_size:                       { usage: GAUGE ,description: database block size in bytes (default 8192) }
+    - wal_block_size:                   { usage: GAUGE ,description: WAL block size in bytes }
+    - segment_size:                     { usage: GAUGE ,description: database file segment size in bytes }
+    - wal_segment_size:                 { usage: GAUGE ,description: WAL segment size in bytes }
+    - data_checksums:                   { usage: GAUGE ,description: data checksums enabled, 1=on 0=off }
+    - wal_log_hints:                    { usage: GAUGE ,description: WAL log hints enabled, 1=on 0=off }
+    - fsync:                            { usage: GAUGE ,description: fsync enabled (CRITICAL for data safety), 1=on 0=off }
+    - full_page_writes:                 { usage: GAUGE ,description: full page writes enabled, 1=on 0=off }
+    - wal_level:                        { usage: GAUGE ,description: WAL level, 1=minimal 2=replica 3=logical }
+    - min_wal_size:                     { usage: GAUGE ,description: minimum WAL size in bytes }
+    - max_wal_size:                     { usage: GAUGE ,description: maximum WAL size in bytes }
+    - max_slot_wal_keep_size:           { usage: GAUGE ,description: maximum WAL size retained by replication slots in bytes (PG13+, NULL on older) }
+    - shared_buffers:                   { usage: GAUGE ,description: shared buffer size in bytes }
+    - work_mem:                         { usage: GAUGE ,description: work memory size in bytes }
+    - maintenance_work_mem:             { usage: GAUGE ,description: maintenance work memory size in bytes }
+    - effective_cache_size:             { usage: GAUGE ,description: planner's assumption about effective OS cache size in bytes }
+    - shared_memory_size:               { usage: GAUGE ,description: total shared memory size in bytes (PG13+, NULL on older) }
+    - hugepage_status:                  { usage: GAUGE ,description: huge pages status, 1=on 0=off -1=unknown NULL=unavailable (PG14+) }
+    - hugepage_count:                   { usage: GAUGE ,description: number of huge pages needed for shared memory (PG14+, NULL on older) }
+    - archive_mode:                     { usage: GAUGE ,description: archive mode, 0=off 1=on 2=always }
+    - autovacuum:                       { usage: GAUGE ,description: autovacuum enabled, 1=on 0=off }
+    - autovacuum_max_workers:           { usage: GAUGE ,description: maximum number of autovacuum worker processes }
+    - checkpoint_timeout:               { usage: GAUGE ,description: checkpoint timeout in seconds }
+    - checkpoint_completion_target:     { usage: GAUGE ,description: checkpoint completion target (0.0-1.0) }
+    - hot_standby:                      { usage: GAUGE ,description: hot standby mode enabled, 1=on 0=off }
+    - synchronous_commit:               { usage: GAUGE ,description: synchronous commit level, 0=off 1=local 2=remote_write 3=on 4=remote_apply }
+    - io_method:                         { usage: GAUGE ,description: I/O method (PG18+), 0=sync 1=worker 2=io_uring NULL=unavailable }
+
 
 

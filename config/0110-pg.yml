@@ -71,9 +71,9 @@ pg_replica_only:
   fatal: true
   skip: false
   metrics:
-    - timestamp:            { usage: GAUGE   ,description: database current timestamp }
+    - timestamp:            { usage: GAUGE   ,description: current database timestamp in unix epoch }
     - uptime:               { usage: GAUGE   ,description: seconds since postmaster start }
-    - boot_time:            { usage: GAUGE   ,description: unix timestamp when postmaster boot }
+    - boot_time:            { usage: GAUGE   ,description: postmaster boot timestamp in unix epoch }
     - lsn:                  { usage: COUNTER ,description: log sequence number, current write location }
     - insert_lsn:           { usage: COUNTER ,description: primary only, location of current wal inserting }
     - write_lsn:            { usage: COUNTER ,description: primary only, location of current wal writing }
@@ -85,6 +85,6 @@ pg_replica_only:
     - last_replay_time:     { usage: GAUGE   ,description: time when last transaction been replayed }
     - lag:                  { usage: GAUGE   ,description: replica only, replication lag in seconds }
     - is_in_recovery:       { usage: GAUGE   ,description: 1 if in recovery mode }
-    - is_wal_replay_paused: { usage: GAUGE   ,description: 1 if wal play paused }
+    - is_wal_replay_paused: { usage: GAUGE   ,description: 1 if wal play is paused }
 
 

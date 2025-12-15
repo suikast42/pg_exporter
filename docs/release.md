@@ -5,20 +5,21 @@ breadcrumbs: false
 comments: false
 ---
 
-The latest stable version of `pg_exporter` is [v1.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3)
+The latest stable version of `pg_exporter` is [v1.1.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0)
 
 |     Version     |    Date    | Summary                                                 |                               GitHub                               |
 |:---------------:|:----------:|---------------------------------------------------------|:------------------------------------------------------------------:|
-| [v1.0.3](#v103) | 2023-11-20 | Routine update on 1.25.4, fix unsupported libpq env     | [v1.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3) |
-| [v1.0.2](#v102) | 2023-08-14 | Build for more os arch with goreleaser                  | [v1.0.2](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2) |
-| [v1.0.1](#v101) | 2023-07-17 | DockerHub images, Go 1.24.5, disable pg_tsdb_hypertable | [v1.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1) |
-| [v1.0.0](#v100) | 2023-05-06 | PostgreSQL 18 support, new WAL/checkpointer/I/O metrics | [v1.0.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.0) |
-| [v0.9.0](#v090) | 2023-04-26 | TimescaleDB, Citus, pg_wait_sampling collectors         | [v0.9.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.9.0) |
-| [v0.8.1](#v081) | 2024-02-14 | Dependencies update, docker image tags                  | [v0.8.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.1) |
-| [v0.8.0](#v080) | 2024-02-14 | PgBouncer 1.24 support, Go 1.24, logging refactor       | [v0.8.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.0) |
-| [v0.7.1](#v071) | 2022-08-13 | Routine update, configuration as Reader support         | [v0.7.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.1) |
-| [v0.7.0](#v070) | 2022-08-13 | PostgreSQL 17 support, predicate queries feature        | [v0.7.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.0) |
-| [v0.6.0](#v060) | 2022-10-18 | PostgreSQL 16 support, ARM64 packages, security fixes   | [v0.6.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.6.0) |
+| [v1.1.0](#v110) | 2025-12-15 | Update default metrics collectors, bump to go 1.25.5    | [v1.1.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0) |
+| [v1.0.3](#v103) | 2025-11-20 | Routine update on 1.25.4, fix unsupported libpq env     | [v1.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3) |
+| [v1.0.2](#v102) | 2025-08-14 | Build for more os arch with goreleaser                  | [v1.0.2](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2) |
+| [v1.0.1](#v101) | 2025-07-17 | DockerHub images, Go 1.24.5, disable pg_tsdb_hypertable | [v1.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1) |
+| [v1.0.0](#v100) | 2025-05-06 | PostgreSQL 18 support, new WAL/checkpointer/I/O metrics | [v1.0.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.0) |
+| [v0.9.0](#v090) | 2025-04-26 | TimescaleDB, Citus, pg_wait_sampling collectors         | [v0.9.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.9.0) |
+| [v0.8.1](#v081) | 2025-02-14 | Dependencies update, docker image tags                  | [v0.8.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.1) |
+| [v0.8.0](#v080) | 2025-02-14 | PgBouncer 1.24 support, Go 1.24, logging refactor       | [v0.8.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.8.0) |
+| [v0.7.1](#v071) | 2024-12-29 | Routine update, configuration as Reader support         | [v0.7.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.1) |
+| [v0.7.0](#v070) | 2024-08-13 | PostgreSQL 17 support, predicate queries feature        | [v0.7.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.7.0) |
+| [v0.6.0](#v060) | 2023-10-18 | PostgreSQL 16 support, ARM64 packages, security fixes   | [v0.6.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.6.0) |
 | [v0.5.0](#v050) | 2022-04-27 | RPM/DEB builds, column scaling, metrics enhancements    | [v0.5.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.5.0) |
 | [v0.4.1](#v041) | 2022-03-08 | Collector updates, connect-timeout parameter            | [v0.4.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.4.1) |
 | [v0.4.0](#v040) | 2021-07-12 | PostgreSQL 14 support, auto-discovery feature           | [v0.4.0](https://github.com/pgsty/pg_exporter/releases/tag/v0.4.0) |
@@ -35,6 +36,32 @@ The latest stable version of `pg_exporter` is [v1.0.3](https://github.com/pgsty/
 | [v0.0.1](#v001) | 2019-12-06 | Initial release with PgBouncer mode                     | [v0.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.0.1) |
 
 
+
+## v1.1.0
+
+Build with Go 1.25.5 and latest dependencies, collector updates:
+
+**Collector Changes:**
+
+- `pg_setting`: Major refactor for PG10-18 compatibility with `missing_ok` support
+  - Add 13 new metrics: `max_parallel_workers`, `max_parallel_workers_per_gather`, `max_parallel_maintenance_workers`, `shared_buffers`, `maintenance_work_mem`, `effective_cache_size`, `fsync`, `full_page_writes`, `autovacuum`, `autovacuum_max_workers`, `checkpoint_timeout`, `checkpoint_completion_target`, `hot_standby`, `synchronous_commit`, `io_method`
+  - Rename `work_memory_size` to `work_mem`
+  - Change min_version from 9.6 to 10, explicit `::int` type casting
+- `pg_size`: Fix log directory size detection, use `logging_collector` check instead of path pattern matching
+- `pg_table`: Performance optimization, replace LATERAL subqueries with JOIN for better query performance; fix `tuples` and `frozenxid` metric type from COUNTER to GAUGE; increase timeout from 1s to 2s
+- `pg_vacuuming`: Add PG17 collector branch with new metrics `indexes_total`, `indexes_processed`, `dead_tuple_bytes` for index vacuum progress tracking
+- `pg_query`: Increase timeout from 1s to 2s for high-load scenarios
+- `pg_io`: Fix typo in `reuses` description ("in reused" -> "is reused")
+- `pg_checkpointer`: Fix description for pg_checkpointer_10 ("9.4+" -> "9.4-17")
+- `pg_db_confl`: Fix description for pg_db_confl_15 ("9.1 - 16" -> "9.1 - 15")
+- Format alignment fixes for `pg_db`, `pg_indexing`, `pg_clustering`, `pg_backup`
+
+**Other Changes:**
+
+- Fix release year by [@anayrat](https://github.com/anayrat)
+
+
+
 ## v1.0.3
 
 - Build with Go 1.25.4 and latest dependencies
@@ -45,6 +72,20 @@ The latest stable version of `pg_exporter` is [v1.0.3](https://github.com/pgsty/
 
 https://github.com/pgsty/pg_exporter/releases/download/v1.0.3/checksums.txt
 
+```bash
+7efa1a77dfd5b94813c32c7ac015b1d479b1f04fb958f6b1ed5af333e354d015  pg-exporter_1.0.3-1_amd64.deb
+41e18bf18eba2ab90ac371bfb46e9152da9fe628ebd8e26766cac08325eb3b07  pg-exporter_1.0.3-1_arm64.deb
+7da8ed738d254c120d42aa51d6137f84e7f4e3188bc764d4f9a1438220363a43  pg-exporter_1.0.3-1_ppc64le.deb
+a214b555981156da7b7d248b1f728f8ac88a07ac8f77a66c5d8e43b40670d6b4  pg_exporter-1.0.3-1.aarch64.rpm
+d876fc66e208612ebffe3c43dabce88b088d915f92584260d710b85a3a131413  pg_exporter-1.0.3-1.ppc64le.rpm
+75f62d314fec50c836c534996c884d25ecea77810ab33e7ba0e9c4b783e775b4  pg_exporter-1.0.3-1.x86_64.rpm
+47829a19707284bcee1b8dc47cc7d0172398bb533e6b4043950f787486712769  pg_exporter-1.0.3.darwin-amd64.tar.gz
+38b6ccb72315cadea542b1f2a7b7022d0e8d48ffd4ab177bb69a0a909b99af6b  pg_exporter-1.0.3.darwin-arm64.tar.gz
+36e8dff84d61a7593ff1fcec567ca4ffeaecd0be2f9eabd227ceac71b12a919a  pg_exporter-1.0.3.linux-amd64.tar.gz
+6477e8ef873773a09c4f39a29444f21b5b2c71e717e52ca425bcc8e8e5448791  pg_exporter-1.0.3.linux-arm64.tar.gz
+a083b51ebed2b280e2eaa0f19558494e7fa6f122a0a86a1d117206fcd090820c  pg_exporter-1.0.3.linux-ppc64le.tar.gz
+a1f9b27b7190f478726d96f270a72d9dc4d3f2bcc3b0326b7c4a2607e62ea588  pg_exporter-1.0.3.windows-amd64.tar.gz
+```
 
 
 ## v1.0.2

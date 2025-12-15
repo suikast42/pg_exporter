@@ -9,9 +9,9 @@ pg_backup:
   min_version: 130000
   tags: [ cluster ]
   metrics:
-    - pid:           { usage: LABEL, description: process id of basebackup sender }
-    - phase:         { usage: GAUGE, description: Phase encoded in 0~5 initial, wait checkpoint, estimate, streaming, waiting archive, transfer archive }
-    - total_bytes:   { usage: GAUGE, description: Total amount of data that will be streamed }
-    - sent_bytes:    { usage: GAUGE, description: Amount of data streamed }
+    - pid:           { usage: LABEL ,description: process id of basebackup sender }
+    - phase:         { usage: GAUGE ,description: Phase encoded in 0~5 initial, wait checkpoint, estimate, streaming, waiting archive, transfer archive }
+    - total_bytes:   { usage: GAUGE ,description: Total amount of data that will be streamed }
+    - sent_bytes:    { usage: GAUGE ,description: Amount of data streamed }
 
 

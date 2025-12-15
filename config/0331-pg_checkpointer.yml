@@ -42,7 +42,7 @@ pg_checkpointer_17:
 
 pg_checkpointer_10:
   name: pg_checkpointer
-  desc: "PostgreSQL checkpointer stat metrics for pg 10+"
+  desc: "PostgreSQL checkpointer stat metrics for pg 9.4-17"
   query: SELECT checkpoints_timed, checkpoints_req, checkpoint_write_time, checkpoint_sync_time, buffers_checkpoint, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_bgwriter;
   ttl: 10
   min_version: 090400

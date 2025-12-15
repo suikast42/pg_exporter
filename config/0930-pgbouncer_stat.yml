@@ -30,9 +30,9 @@ pgbouncer_stat_124:
     - avg_xact_time:                 { usage: GAUGE   ,scale: 1e-6     ,description: Average transaction duration, in seconds }
     - avg_query_time:                { usage: GAUGE   ,scale: 1e-6     ,description: Average query duration, in seconds }
     - avg_wait_time:                 { usage: GAUGE   ,scale: 1e-6     ,description: Time spent by clients waiting for a server, in seconds (average per second). }
-    - avg_client_parse_count:        { usage: COUNTER                  ,description: Average number of prepared statements created by clients }
-    - avg_server_parse_count:        { usage: COUNTER                  ,description: Average number of prepared statements created on a server. }
-    - avg_bind_count:                { usage: COUNTER                  ,description: Average number of prepared statements readied for execution by clients and forwarded to postgres }
+    - avg_client_parse_count:        { usage: GAUGE                    ,description: Average number of prepared statements created by clients }
+    - avg_server_parse_count:        { usage: GAUGE                    ,description: Average number of prepared statements created on a server. }
+    - avg_bind_count:                { usage: GAUGE                    ,description: Average number of prepared statements readied for execution by clients and forwarded to postgres }
 
 pgbouncer_stat_123:
   name: pgbouncer_stat

@@ -5,21 +5,22 @@ pg_table_18:
   name: pg_table
   desc: PostgreSQL table metrics v18+
   query: |-
-    SELECT CURRENT_CATALOG AS datname, relnamespace::RegNamespace || '.' || c.relname AS relname, c.oid AS relid, ascii(relkind) AS kind,
-       relpages AS pages, reltuples AS tuples, relfrozenxid AS frozenxid, age(relfrozenxid) AS age, relnatts AS ncols,
-       seq_scan,seq_tup_read,idx_scan,idx_tup_fetch,seq_scan + idx_scan AS tbl_scan, seq_tup_read + idx_tup_fetch AS tup_read,
-       n_tup_ins,n_tup_upd,n_tup_del,(n_tup_ins + n_tup_upd + n_tup_del) AS n_tup_mod,n_tup_hot_upd,n_tup_newpage_upd,n_live_tup,n_dead_tup,
-       n_mod_since_analyze,n_ins_since_vacuum,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze,last_seq_scan,
-       vacuum_count,autovacuum_count,analyze_count,autoanalyze_count,
-       total_vacuum_time AS vacuum_time,total_autovacuum_time AS autovacuum_time,total_analyze_time AS analyze_time,total_autoanalyze_time AS autoanalyze_time,
-       heap_blks_read,heap_blks_hit,idx_blks_read,idx_blks_hit,toast_blks_read,toast_blks_hit,tidx_blks_read,tidx_blks_hit
-    FROM pg_class c, LATERAL (SELECT * FROM pg_stat_user_tables WHERE relid = c.oid LIMIT 1) psut, LATERAL (SELECT * FROM pg_statio_user_tables WHERE relid = c.oid LIMIT 1) psutio
-    WHERE relnamespace = ANY (SELECT oid FROM pg_namespace WHERE nspname !~ '^pg_' AND nspname !~ '^_' AND nspname !~ '^timescaledb' AND nspname !~ '^citus' AND nspname !~ '^columnar' 
-          AND nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor')) AND relkind = ANY (ARRAY ['r', 'm', 't', 'p'])
-    ORDER BY relpages DESC LIMIT 256;
+    SELECT CURRENT_CATALOG AS datname, nsp.nspname || '.' || c.relname AS relname, c.oid AS relid, ascii(c.relkind) AS kind,
+       c.relpages AS pages, c.reltuples AS tuples, c.relfrozenxid AS frozenxid, age(c.relfrozenxid) AS age, c.relnatts AS ncols,
+       psut.seq_scan,psut.seq_tup_read,psut.idx_scan,psut.idx_tup_fetch,psut.seq_scan + psut.idx_scan AS tbl_scan, psut.seq_tup_read + psut.idx_tup_fetch AS tup_read,
+       psut.n_tup_ins,psut.n_tup_upd,psut.n_tup_del,(psut.n_tup_ins + psut.n_tup_upd + psut.n_tup_del) AS n_tup_mod,psut.n_tup_hot_upd,psut.n_tup_newpage_upd,psut.n_live_tup,psut.n_dead_tup,
+       psut.n_mod_since_analyze,psut.n_ins_since_vacuum,psut.last_vacuum,psut.last_autovacuum,psut.last_analyze,psut.last_autoanalyze,psut.last_seq_scan,
+       psut.vacuum_count,psut.autovacuum_count,psut.analyze_count,psut.autoanalyze_count,
+       psut.total_vacuum_time AS vacuum_time,psut.total_autovacuum_time AS autovacuum_time,psut.total_analyze_time AS analyze_time,psut.total_autoanalyze_time AS autoanalyze_time,
+       psio.heap_blks_read,psio.heap_blks_hit,psio.idx_blks_read,psio.idx_blks_hit,psio.toast_blks_read,psio.toast_blks_hit,psio.tidx_blks_read,psio.tidx_blks_hit
+    FROM pg_class c JOIN pg_namespace nsp ON c.relnamespace = nsp.oid
+        LEFT JOIN pg_stat_user_tables psut ON psut.relid = c.oid LEFT JOIN pg_statio_user_tables psio ON psio.relid = c.oid
+    WHERE nsp.nspname !~ '^pg_' AND nsp.nspname !~ '^_' AND nsp.nspname !~ '^timescaledb' AND nsp.nspname !~ '^citus' AND nsp.nspname !~ '^columnar'
+        AND nsp.nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor') AND c.relkind = ANY (ARRAY ['r','m','t','p'])
+    ORDER BY c.relpages DESC LIMIT 256;
 
   ttl: 10
-  timeout: 1
+  timeout: 2
   min_version: 180000
   metrics:
     - datname:             { usage: LABEL                 ,description: Database name of this table }
@@ -27,8 +28,8 @@ pg_table_18:
     - relid:               { usage: GAUGE                 ,description: Relation oid of this table }
     - kind:                { usage: GAUGE                 ,description: Relation kind r/table/114,m/mview/109,t/toast/116,p/partitioned/112 }
     - pages:               { usage: GAUGE                 ,description: Size of the on-disk representation of this table in pages }
-    - tuples:              { usage: COUNTER               ,description: All txid before this have been frozen on this table }
-    - frozenxid:           { usage: COUNTER               ,description: All txid before this have been frozen on this table }
+    - tuples:              { usage: GAUGE                 ,description: Estimated number of rows in this table }
+    - frozenxid:           { usage: GAUGE                 ,description: All txid before this have been frozen on this table }
     - age:                 { usage: GAUGE                 ,description: Age of this table in vacuum cycles }
     - ncols:               { usage: GAUGE                 ,description: Number of columns in the table }
     - seq_scan:            { usage: COUNTER  ,default: 0  ,description: Number of sequential scans initiated on this table }
@@ -71,22 +72,23 @@ pg_table_18:
 
 pg_table_16:
   name: pg_table
-  desc: PostgreSQL table metrics 16+
+  desc: PostgreSQL table metrics 16-17
   query: |-
-    SELECT CURRENT_CATALOG AS datname, relnamespace::RegNamespace || '.' || c.relname AS relname, c.oid AS relid, ascii(relkind) AS kind,
-       relpages AS pages, reltuples AS tuples, relfrozenxid AS frozenxid, age(relfrozenxid) AS age, relnatts AS ncols,
-       seq_scan,seq_tup_read,idx_scan,idx_tup_fetch,seq_scan + idx_scan AS tbl_scan, seq_tup_read + idx_tup_fetch AS tup_read,
-       n_tup_ins,n_tup_upd,n_tup_del,(n_tup_ins + n_tup_upd + n_tup_del) AS n_tup_mod,n_tup_hot_upd,n_tup_newpage_upd,n_live_tup,n_dead_tup,
-       n_mod_since_analyze,n_ins_since_vacuum,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze,last_seq_scan,
-       vacuum_count,autovacuum_count,analyze_count,autoanalyze_count,
-       heap_blks_read,heap_blks_hit,idx_blks_read,idx_blks_hit,toast_blks_read,toast_blks_hit,tidx_blks_read,tidx_blks_hit
-    FROM pg_class c, LATERAL (SELECT * FROM pg_stat_user_tables WHERE relid = c.oid LIMIT 1) psut, LATERAL (SELECT * FROM pg_statio_user_tables WHERE relid = c.oid LIMIT 1) psutio
-    WHERE relnamespace = ANY (SELECT oid FROM pg_namespace WHERE nspname !~ '^pg_' AND nspname !~ '^_' AND nspname !~ '^timescaledb' AND nspname !~ '^citus' AND nspname !~ '^columnar' 
-          AND nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor')) AND relkind = ANY (ARRAY ['r', 'm', 't', 'p'])
-    ORDER BY relpages DESC LIMIT 256;
+    SELECT CURRENT_CATALOG AS datname, nsp.nspname || '.' || c.relname AS relname, c.oid AS relid, ascii(c.relkind) AS kind,
+       c.relpages AS pages, c.reltuples AS tuples, c.relfrozenxid AS frozenxid, age(c.relfrozenxid) AS age, c.relnatts AS ncols,
+       psut.seq_scan,psut.seq_tup_read,psut.idx_scan,psut.idx_tup_fetch,psut.seq_scan + psut.idx_scan AS tbl_scan, psut.seq_tup_read + psut.idx_tup_fetch AS tup_read,
+       psut.n_tup_ins,psut.n_tup_upd,psut.n_tup_del,(psut.n_tup_ins + psut.n_tup_upd + psut.n_tup_del) AS n_tup_mod,psut.n_tup_hot_upd,psut.n_tup_newpage_upd,psut.n_live_tup,psut.n_dead_tup,
+       psut.n_mod_since_analyze,psut.n_ins_since_vacuum,psut.last_vacuum,psut.last_autovacuum,psut.last_analyze,psut.last_autoanalyze,psut.last_seq_scan,
+       psut.vacuum_count,psut.autovacuum_count,psut.analyze_count,psut.autoanalyze_count,
+       psio.heap_blks_read,psio.heap_blks_hit,psio.idx_blks_read,psio.idx_blks_hit,psio.toast_blks_read,psio.toast_blks_hit,psio.tidx_blks_read,psio.tidx_blks_hit
+    FROM pg_class c JOIN pg_namespace nsp ON c.relnamespace = nsp.oid
+        LEFT JOIN pg_stat_user_tables psut ON psut.relid = c.oid LEFT JOIN pg_statio_user_tables psio ON psio.relid = c.oid
+    WHERE nsp.nspname !~ '^pg_' AND nsp.nspname !~ '^_' AND nsp.nspname !~ '^timescaledb' AND nsp.nspname !~ '^citus' AND nsp.nspname !~ '^columnar'
+        AND nsp.nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor') AND c.relkind = ANY (ARRAY ['r','m','t','p'])
+    ORDER BY c.relpages DESC LIMIT 256;
 
   ttl: 10
-  timeout: 1
+  timeout: 2
   min_version: 160000
   max_version: 180000
   metrics:
@@ -95,8 +97,8 @@ pg_table_16:
     - relid:               { usage: GAUGE                 ,description: Relation oid of this table }
     - kind:                { usage: GAUGE                 ,description: Relation kind r/table/114,m/mview/109,t/toast/116,p/partitioned/112 }
     - pages:               { usage: GAUGE                 ,description: Size of the on-disk representation of this table in pages }
-    - tuples:              { usage: COUNTER               ,description: All txid before this have been frozen on this table }
-    - frozenxid:           { usage: COUNTER               ,description: All txid before this have been frozen on this table }
+    - tuples:              { usage: GAUGE                 ,description: Estimated number of rows in this table }
+    - frozenxid:           { usage: GAUGE                 ,description: All txid before this have been frozen on this table }
     - age:                 { usage: GAUGE                 ,description: Age of this table in vacuum cycles }
     - ncols:               { usage: GAUGE                 ,description: Number of columns in the table }
     - seq_scan:            { usage: COUNTER  ,default: 0  ,description: Number of sequential scans initiated on this table }
@@ -135,22 +137,23 @@ pg_table_16:
 
 pg_table_13:
   name: pg_table
-  desc: PostgreSQL table metrics (v13 with n_ins_since_vacuum)
+  desc: PostgreSQL table metrics 13-15 (with n_ins_since_vacuum)
   query: |-
-    SELECT CURRENT_CATALOG AS datname, relnamespace::RegNamespace || '.' || c.relname AS relname, c.oid AS relid, ascii(relkind) AS kind,
-       relpages AS pages, reltuples AS tuples, relfrozenxid AS frozenxid, age(relfrozenxid) AS age, relnatts AS ncols,
-       seq_scan,seq_tup_read,idx_scan,idx_tup_fetch,seq_scan + idx_scan AS tbl_scan, seq_tup_read + idx_tup_fetch AS tup_read,
-       n_tup_ins,n_tup_upd,n_tup_del,(n_tup_ins + n_tup_upd + n_tup_del) AS n_tup_mod,n_tup_hot_upd,n_live_tup,n_dead_tup,
-       n_mod_since_analyze,n_ins_since_vacuum,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze,
-       vacuum_count,autovacuum_count,analyze_count,autoanalyze_count,
-       heap_blks_read,heap_blks_hit,idx_blks_read,idx_blks_hit,toast_blks_read,toast_blks_hit,tidx_blks_read,tidx_blks_hit
-    FROM pg_class c, LATERAL (SELECT * FROM pg_stat_user_tables WHERE relid = c.oid LIMIT 1) psut, LATERAL (SELECT * FROM pg_statio_user_tables WHERE relid = c.oid LIMIT 1) psutio
-    WHERE relnamespace = ANY (SELECT oid FROM pg_namespace WHERE nspname !~ '^pg_' AND nspname !~ '^_' AND nspname !~ '^timescaledb' AND nspname !~ '^citus' 
-          AND nspname !~ '^columnar' AND nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor')) AND relkind = ANY (ARRAY ['r', 'm', 't', 'p'])
-    ORDER BY relpages DESC LIMIT 256;
+    SELECT CURRENT_CATALOG AS datname, nsp.nspname || '.' || c.relname AS relname, c.oid AS relid, ascii(c.relkind) AS kind,
+       c.relpages AS pages, c.reltuples AS tuples, c.relfrozenxid AS frozenxid, age(c.relfrozenxid) AS age, c.relnatts AS ncols,
+       psut.seq_scan,psut.seq_tup_read,psut.idx_scan,psut.idx_tup_fetch,psut.seq_scan + psut.idx_scan AS tbl_scan, psut.seq_tup_read + psut.idx_tup_fetch AS tup_read,
+       psut.n_tup_ins,psut.n_tup_upd,psut.n_tup_del,(psut.n_tup_ins + psut.n_tup_upd + psut.n_tup_del) AS n_tup_mod,psut.n_tup_hot_upd,psut.n_live_tup,psut.n_dead_tup,
+       psut.n_mod_since_analyze,psut.n_ins_since_vacuum,psut.last_vacuum,psut.last_autovacuum,psut.last_analyze,psut.last_autoanalyze,
+       psut.vacuum_count,psut.autovacuum_count,psut.analyze_count,psut.autoanalyze_count,
+       psio.heap_blks_read,psio.heap_blks_hit,psio.idx_blks_read,psio.idx_blks_hit,psio.toast_blks_read,psio.toast_blks_hit,psio.tidx_blks_read,psio.tidx_blks_hit
+    FROM pg_class c JOIN pg_namespace nsp ON c.relnamespace = nsp.oid
+        LEFT JOIN pg_stat_user_tables psut ON psut.relid = c.oid LEFT JOIN pg_statio_user_tables psio ON psio.relid = c.oid
+    WHERE nsp.nspname !~ '^pg_' AND nsp.nspname !~ '^_' AND nsp.nspname !~ '^timescaledb' AND nsp.nspname !~ '^citus' AND nsp.nspname !~ '^columnar'
+        AND nsp.nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor') AND c.relkind = ANY (ARRAY ['r','m','t','p'])
+    ORDER BY c.relpages DESC LIMIT 256;
 
   ttl: 10
-  timeout: 1
+  timeout: 2
   min_version: 130000
   max_version: 160000
   metrics:
@@ -159,8 +162,8 @@ pg_table_13:
     - relid:               { usage: GAUGE                 ,description: Relation oid of this table }
     - kind:                { usage: GAUGE                 ,description: Relation kind r/table/114,m/mview/109,t/toast/116,p/partitioned/112 }
     - pages:               { usage: GAUGE                 ,description: Size of the on-disk representation of this table in pages }
-    - tuples:              { usage: COUNTER               ,description: All txid before this have been frozen on this table }
-    - frozenxid:           { usage: COUNTER               ,description: All txid before this have been frozen on this table }
+    - tuples:              { usage: GAUGE                 ,description: Estimated number of rows in this table }
+    - frozenxid:           { usage: GAUGE                 ,description: All txid before this have been frozen on this table }
     - age:                 { usage: GAUGE                 ,description: Age of this table in vacuum cycles }
     - ncols:               { usage: GAUGE                 ,description: Number of columns in the table }
     - seq_scan:            { usage: COUNTER  ,default: 0  ,description: Number of sequential scans initiated on this table }
@@ -197,21 +200,23 @@ pg_table_13:
 
 pg_table_10:
   name: pg_table
-  desc: PostgreSQL table metrics (9.4-12)
+  desc: PostgreSQL table metrics 9.4-12
   query: |-
-    SELECT CURRENT_CATALOG AS datname, relnamespace::RegNamespace || '.' || c.relname AS relname, oid AS relid, ascii(relkind) AS kind,
-       relpages AS pages, reltuples AS tuples, relfrozenxid AS frozenxid, age(relfrozenxid) AS age, relnatts AS ncols,
-       seq_scan,seq_tup_read,idx_scan,idx_tup_fetch,seq_scan + idx_scan AS tbl_scan, seq_tup_read + idx_tup_fetch AS tup_read,
-       n_tup_ins,n_tup_upd,n_tup_del,(n_tup_ins + n_tup_upd + n_tup_del) AS n_tup_mod,n_tup_hot_upd,n_live_tup,n_dead_tup,
-       n_mod_since_analyze,last_vacuum,last_autovacuum,last_analyze,last_autoanalyze,
-       vacuum_count,autovacuum_count,analyze_count,autoanalyze_count,
-       heap_blks_read,heap_blks_hit,idx_blks_read,idx_blks_hit,toast_blks_read,toast_blks_hit,tidx_blks_read,tidx_blks_hit
-    FROM pg_class c, LATERAL (SELECT * FROM pg_stat_user_tables WHERE relid = c.oid LIMIT 1) psut, LATERAL (SELECT * FROM pg_statio_user_tables WHERE relid = c.oid LIMIT 1) psutio
-    WHERE relnamespace = ANY (SELECT oid FROM pg_namespace WHERE nspname !~ '^pg_' AND nspname !~ '^_' AND nspname !~ '^timescaledb' AND nspname !~ '^citus' 
-          AND nspname !~ '^columnar' AND nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor')) AND relkind = ANY (ARRAY ['r', 'm', 't', 'p'])
-    ORDER BY relpages DESC LIMIT 256;
+    SELECT CURRENT_CATALOG AS datname, nsp.nspname || '.' || c.relname AS relname, c.oid AS relid, ascii(c.relkind) AS kind,
+       c.relpages AS pages, c.reltuples AS tuples, c.relfrozenxid AS frozenxid, age(c.relfrozenxid) AS age, c.relnatts AS ncols,
+       psut.seq_scan,psut.seq_tup_read,psut.idx_scan,psut.idx_tup_fetch,psut.seq_scan + psut.idx_scan AS tbl_scan, psut.seq_tup_read + psut.idx_tup_fetch AS tup_read,
+       psut.n_tup_ins,psut.n_tup_upd,psut.n_tup_del,(psut.n_tup_ins + psut.n_tup_upd + psut.n_tup_del) AS n_tup_mod,psut.n_tup_hot_upd,psut.n_live_tup,psut.n_dead_tup,
+       psut.n_mod_since_analyze,psut.last_vacuum,psut.last_autovacuum,psut.last_analyze,psut.last_autoanalyze,
+       psut.vacuum_count,psut.autovacuum_count,psut.analyze_count,psut.autoanalyze_count,
+       psio.heap_blks_read,psio.heap_blks_hit,psio.idx_blks_read,psio.idx_blks_hit,psio.toast_blks_read,psio.toast_blks_hit,psio.tidx_blks_read,psio.tidx_blks_hit
+    FROM pg_class c JOIN pg_namespace nsp ON c.relnamespace = nsp.oid
+        LEFT JOIN pg_stat_user_tables psut ON psut.relid = c.oid LEFT JOIN pg_statio_user_tables psio ON psio.relid = c.oid
+    WHERE nsp.nspname !~ '^pg_' AND nsp.nspname !~ '^_' AND nsp.nspname !~ '^timescaledb' AND nsp.nspname !~ '^citus' AND nsp.nspname !~ '^columnar'
+        AND nsp.nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor') AND c.relkind = ANY (ARRAY ['r','m','t','p'])
+    ORDER BY c.relpages DESC LIMIT 256;
+
   ttl: 10
-  timeout: 1
+  timeout: 2
   min_version: 090400
   max_version: 130000
   metrics:
@@ -220,8 +225,8 @@ pg_table_10:
     - relid:               { usage: GAUGE                 ,description: Relation oid of this table }
     - kind:                { usage: GAUGE                 ,description: Relation kind r/table/114,m/mview/109,t/toast/116,p/partitioned/112 }
     - pages:               { usage: GAUGE                 ,description: Size of the on-disk representation of this table in pages }
-    - tuples:              { usage: COUNTER               ,description: All txid before this have been frozen on this table }
-    - frozenxid:           { usage: COUNTER               ,description: All txid before this have been frozen on this table }
+    - tuples:              { usage: GAUGE                 ,description: Estimated number of rows in this table }
+    - frozenxid:           { usage: GAUGE                 ,description: All txid before this have been frozen on this table }
     - age:                 { usage: GAUGE                 ,description: Age of this table in vacuum cycles }
     - ncols:               { usage: GAUGE                 ,description: Number of columns in the table }
     - seq_scan:            { usage: COUNTER  ,default: 0  ,description: Number of sequential scans initiated on this table }

@@ -12,8 +12,8 @@ pg_origin:
   skip: true
   tags: [ cluster ]
   metrics:
-    - roiname:             { usage: LABEL   ,description: The external, user defined, name of a replication origin. }
-    - remote_lsn:          { usage: LABEL   ,description: The origin node's LSN up to which data has been replicated. }
-    - local_lsn:           { usage: LABEL   ,description: This node's LSN at which remote_lsn has been replicated. }
+    - roname:              { usage: LABEL     ,description: The external, user defined, name of a replication origin. }
+    - remote_lsn:          { usage: COUNTER   ,description: The origin node's LSN up to which data has been replicated. }
+    - local_lsn:           { usage: COUNTER   ,description: This node's LSN at which remote_lsn has been replicated. }
 
 
