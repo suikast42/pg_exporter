@@ -9,6 +9,7 @@ The latest stable version of `pg_exporter` is [v1.0.3](https://github.com/pgsty/
 
 |     Version     |    Date    | Summary                                                 |                               GitHub                               |
 |:---------------:|:----------:|---------------------------------------------------------|:------------------------------------------------------------------:|
+| [v1.1.0](#v110) | 2025-12-15 | Update default metrics collectors, bump to go 1.25.5    | [v1.1.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0) |
 | [v1.0.3](#v103) | 2025-11-20 | Routine update on 1.25.4, fix unsupported libpq env     | [v1.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3) |
 | [v1.0.2](#v102) | 2025-08-14 | Build for more os arch with goreleaser                  | [v1.0.2](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2) |
 | [v1.0.1](#v101) | 2025-07-17 | DockerHub images, Go 1.24.5, disable pg_tsdb_hypertable | [v1.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.1) |
@@ -33,6 +34,32 @@ The latest stable version of `pg_exporter` is [v1.0.3](https://github.com/pgsty/
 | [v0.0.3](#v003) | 2019-12-14 | Production environment testing                          | [v0.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v0.0.3) |
 | [v0.0.2](#v002) | 2019-12-09 | Early testing release                                   | [v0.0.2](https://github.com/pgsty/pg_exporter/releases/tag/v0.0.2) |
 | [v0.0.1](#v001) | 2019-12-06 | Initial release with PgBouncer mode                     | [v0.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.0.1) |
+
+
+
+## v1.1.0
+
+Build with Go 1.25.5 and latest dependencies, collector updates:
+
+**Collector Changes:**
+
+- `pg_setting`: Major refactor for PG10-18 compatibility with `missing_ok` support
+  - Add 13 new metrics: `max_parallel_workers`, `max_parallel_workers_per_gather`, `max_parallel_maintenance_workers`, `shared_buffers`, `maintenance_work_mem`, `effective_cache_size`, `fsync`, `full_page_writes`, `autovacuum`, `autovacuum_max_workers`, `checkpoint_timeout`, `checkpoint_completion_target`, `hot_standby`, `synchronous_commit`, `io_method`
+  - Rename `work_memory_size` to `work_mem`
+  - Change min_version from 9.6 to 10, explicit `::int` type casting
+- `pg_size`: Fix log directory size detection, use `logging_collector` check instead of path pattern matching
+- `pg_table`: Performance optimization, replace LATERAL subqueries with JOIN for better query performance; fix `tuples` and `frozenxid` metric type from COUNTER to GAUGE; increase timeout from 1s to 2s
+- `pg_vacuuming`: Add PG17 collector branch with new metrics `indexes_total`, `indexes_processed`, `dead_tuple_bytes` for index vacuum progress tracking
+- `pg_query`: Increase timeout from 1s to 2s for high-load scenarios
+- `pg_io`: Fix typo in `reuses` description ("in reused" -> "is reused")
+- `pg_checkpointer`: Fix description for pg_checkpointer_10 ("9.4+" -> "9.4-17")
+- `pg_db_confl`: Fix description for pg_db_confl_15 ("9.1 - 16" -> "9.1 - 15")
+- Format alignment fixes for `pg_db`, `pg_indexing`, `pg_clustering`, `pg_backup`
+
+**Other Changes:**
+
+- Fix release year by [@anayrat](https://github.com/anayrat)
+
 
 
 ## v1.0.3
