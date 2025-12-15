@@ -60,6 +60,27 @@ Build with Go 1.25.5 and latest dependencies, collector updates:
 
 - Fix release year by [@anayrat](https://github.com/anayrat)
 
+**Checksums**
+
+https://github.com/pgsty/pg_exporter/releases/download/v1.0.3/checksums.txt
+
+```bash
+9c65f43e76213bb8a49d1eab2c76a27d9ab694e67bc79f0ad12769ea362b5ca2  pg-exporter_1.1.0-1_amd64.deb
+bcd2cacb4febc5fb92f9eda8e733c161c8c6721416e16ec91a773503241c972d  pg-exporter_1.1.0-1_arm64.deb
+2c9d4a9cb06d07af0b6dd9dd6e568af073dc9f6775abde63b45f0aae34d171b1  pg-exporter_1.1.0-1_ppc64le.deb
+2934ab5b0fb16dca5a96ec1e8f230e32c72b30ca076b5e5ddf8ec553c821f7b8  pg_exporter-1.1.0-1.aarch64.rpm
+3c9955f31ba93532cc7f95ff60b0658f4b6eca6a827710e2f70c0716b34eab43  pg_exporter-1.1.0-1.ppc64le.rpm
+9fdefbd8e7660dcb130207901a27762e0a381857ba8cf12b63184744f92dea05  pg_exporter-1.1.0-1.x86_64.rpm
+7159002016754309e0ed625a9a48049d21177883fa11d1e448eb7655ceb690cc  pg_exporter-1.1.0.darwin-amd64.tar.gz
+7d55ac5cda0b1fd8ffbd5e76b9c1c1784ac8e353104a206caaadce89adda6d65  pg_exporter-1.1.0.darwin-arm64.tar.gz
+8211ec24277554b9b1a36920d7865153e21c2621031d3d08f22d94cdd2ddf02f  pg_exporter-1.1.0.linux-amd64.tar.gz
+d17ab7f9bf04442e642483d432d005d25bb62e0c9caa73cb7e69ee19eb89b3ae  pg_exporter-1.1.0.linux-arm64.tar.gz
+c074aeb345cc30f7b6e16aa153ae3d9a12789e4425987590c3fd77c4e68a40b6  pg_exporter-1.1.0.linux-ppc64le.tar.gz
+13d653e2abb023ce9526bdc2815135b82f49c044d237030f3f56b09fb016fcb7  pg_exporter-1.1.0.windows-amd64.tar.gz
+```
+
+https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0
+
 
 
 ## v1.0.3
@@ -86,6 +107,9 @@ d876fc66e208612ebffe3c43dabce88b088d915f92584260d710b85a3a131413  pg_exporter-1.
 a083b51ebed2b280e2eaa0f19558494e7fa6f122a0a86a1d117206fcd090820c  pg_exporter-1.0.3.linux-ppc64le.tar.gz
 a1f9b27b7190f478726d96f270a72d9dc4d3f2bcc3b0326b7c4a2607e62ea588  pg_exporter-1.0.3.windows-amd64.tar.gz
 ```
+
+https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3
+
 
 
 ## v1.0.2
@@ -116,6 +140,7 @@ d742111185f6a89fff34bfd304b851c8eb7a8e38444f0220786e11ed1934eff1  pg_exporter-1.
 ```
 
 https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2
+
 
 
 ## v1.0.1
