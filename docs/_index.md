@@ -116,10 +116,10 @@ sudo apt install -y pg-exporter
 {{< /tab >}}
 {{< tab >}}
 ```bash
-wget https://github.com/pgsty/pg_exporter/releases/download/v1.0.3/pg_exporter-v1.0.3.linux-amd64.tar.gz
-tar -xf pg_exporter-v1.0.3.linux-amd64.tar.gz
-sudo install pg_exporter-v1.0.3.linux-amd64/pg_exporter /usr/bin/
-sudo install pg_exporter-v1.0.3.linux-amd64/pg_exporter.yml /etc/pg_exporter.yml
+wget https://github.com/pgsty/pg_exporter/releases/download/v1.1.0/pg_exporter-v1.1.0.linux-amd64.tar.gz
+tar -xf pg_exporter-v1.1.0.linux-amd64.tar.gz
+sudo install pg_exporter-v1.1.0.linux-amd64/pg_exporter /usr/bin/
+sudo install pg_exporter-v1.1.0.linux-amd64/pg_exporter.yml /etc/pg_exporter.yml
 ```
 {{< /tab >}}
 {{< tab >}}

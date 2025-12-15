@@ -5,7 +5,7 @@ breadcrumbs: false
 comments: false
 ---
 
-The latest stable version of `pg_exporter` is [v1.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3)
+The latest stable version of `pg_exporter` is [v1.1.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0)
 
 |     Version     |    Date    | Summary                                                 |                               GitHub                               |
 |:---------------:|:----------:|---------------------------------------------------------|:------------------------------------------------------------------:|
