@@ -6,7 +6,7 @@
 
 [![Webite: exp.pgsty.com](https://img.shields.io/badge/website-exp.pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://exp.pigsty.com)
 [![DockerHub: pgsty/pg_exporter](https://img.shields.io/badge/docker-pgsty/pg_exporter-slategray?style=flat&logo=docker&logoColor=white)](https://hub.docker.com/r/pgsty/pg_exporter)
-[![Version: 1.1.0](https://img.shields.io/badge/version-1.1.0-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0)
+[![Version: 1.1.1](https://img.shields.io/badge/version-1.1.1-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pgsty/pg_exporter)](https://goreportcard.com/report/github.com/pgsty/pg_exporter)
@@ -37,10 +37,10 @@ Check [**https://g.pgsty.com**](https://g.pgsty.com) for live demo, which is bui
 ## Features
 
 - **Highly Customizable**: Define almost all metrics through declarative YAML configs
-- **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.24+) in single exporter
+- **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.25+) in single exporter
 - **Fine-grained Control**: Configure timeout, caching, skip conditions, and fatality per collector
 - **Dynamic Planning**: Define multiple query branches based on different conditions
-- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://g.pigsty.com/d/pgsql-exporter) for complete observability
+- **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.io/d/pgsql-exporter) for complete observability
 - **Production-Ready**: Battle-tested in real-world environments across 12K+ cores for 6+ years
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
@@ -51,7 +51,7 @@ Check [**https://g.pgsty.com**](https://g.pgsty.com) for live demo, which is bui
 
 ## Quick Start
 
-RPM / DEB / Tarball available in the GitHub [release page](https://github.com/pgsty/pg_exporter/releases), and Pigsty's YUM / APT [Infra Repo](https://ext.pigsty.io/repo/infra).
+RPM / DEB / Tarball available in the GitHub [release page](https://github.com/pgsty/pg_exporter/releases), and Pigsty's YUM / APT [Infra Repo](https://pgext.cloud/repo/infra).
 
 To run this exporter, you need to pass the postgres/pgbouncer URL via env or arg:
 
@@ -243,6 +243,7 @@ Current `pg_exporter` is shipped with the following metrics collector definition
 - [0331-pg_checkpointer.yml](config/0331-pg_checkpointer.yml)
 - [0340-pg_ssl.yml](config/0340-pg_ssl.yml)
 - [0350-pg_checkpoint.yml](config/0350-pg_checkpoint.yml)
+- [0355-pg_timeline.yml](config/0355-pg_timeline.yml)
 - [0360-pg_recovery.yml](config/0360-pg_recovery.yml)
 - [0370-pg_slru.yml](config/0370-pg_slru.yml)
 - [0380-pg_shmem.yml](config/0380-pg_shmem.yml)
@@ -282,7 +283,7 @@ Current `pg_exporter` is shipped with the following metrics collector definition
 
 > #### Note
 >
-> Supported version: PostgreSQL 10, 11, 12, 13, 14, 15, 16, 17+
+> Supported version: PostgreSQL 10, 11, 12, 13, 14, 15, 16, 17, 18+
 >
 > But you can still get PostgreSQL 9.4, 9.5, 9.6 support by switching to the older version collector definition
 
@@ -524,7 +525,7 @@ Contributors: https://github.com/pgsty/pg_exporter/graphs/contributors
 
 License: [Apache-2.0](LICENSE)
 
-Copyright: 2018-2025 rh@vonng.com
+Copyright: 2018-2026 rh@vonng.com
 
 <p align="center">
   <img src="static/logo.png" alt="PG Exporter Logo" height="128" align="middle">

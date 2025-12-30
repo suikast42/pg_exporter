@@ -5,10 +5,11 @@ breadcrumbs: false
 comments: false
 ---
 
-The latest stable version of `pg_exporter` is [v1.1.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0)
+The latest stable version of `pg_exporter` is [v1.1.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1)
 
 |     Version     |    Date    | Summary                                                 |                               GitHub                               |
 |:---------------:|:----------:|---------------------------------------------------------|:------------------------------------------------------------------:|
+| [v1.1.1](#v111) | 2025-12-30 | pg_timeline, pg_recv, pg_sub collector update           | [v1.1.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1) |
 | [v1.1.0](#v110) | 2025-12-15 | Update default metrics collectors, bump to go 1.25.5    | [v1.1.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0) |
 | [v1.0.3](#v103) | 2025-11-20 | Routine update on 1.25.4, fix unsupported libpq env     | [v1.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3) |
 | [v1.0.2](#v102) | 2025-08-14 | Build for more os arch with goreleaser                  | [v1.0.2](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.2) |
@@ -37,6 +38,27 @@ The latest stable version of `pg_exporter` is [v1.1.0](https://github.com/pgsty/
 
 
 
+
+## v1.1.1
+
+minor fix on some collectors
+
+- add new collector pg_timeline
+- add pg_sub_16 branch to filter out parallel works in subscription
+- fix: add coalesce slotname for pg_recv collector
+
+**Checksums**
+
+https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/checksums.txt
+
+```bash
+
+```
+
+https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1
+
+
+
 ## v1.1.0
 
 Build with Go 1.25.5 and latest dependencies, collector updates:
@@ -62,7 +84,7 @@ Build with Go 1.25.5 and latest dependencies, collector updates:
 
 **Checksums**
 
-https://github.com/pgsty/pg_exporter/releases/download/v1.0.3/checksums.txt
+https://github.com/pgsty/pg_exporter/releases/download/v1.1.0/checksums.txt
 
 ```bash
 9c65f43e76213bb8a49d1eab2c76a27d9ab694e67bc79f0ad12769ea362b5ca2  pg-exporter_1.1.0-1_amd64.deb
