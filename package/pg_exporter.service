@@ -1,6 +1,6 @@
 [Unit]
 Description=Prometheus exporter for PostgreSQL/Pgbouncer server metrics
-Documentation=https://exp.pgsty.com
+Documentation=https://pigsty.io/docs/pg_exporter
 After=network.target
 
 [Service]

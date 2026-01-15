@@ -9,7 +9,7 @@ import (
 /* ================ Parameters ================ */
 
 // Version is read by make build procedure
-var Version = "1.1.1"
+var Version = "1.1.2"
 
 // Build information. Populated at build-time.
 var (
