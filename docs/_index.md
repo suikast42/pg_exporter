@@ -116,10 +116,10 @@ sudo apt install -y pg-exporter
 {{< /tab >}}
 {{< tab >}}
 ```bash
-wget https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg_exporter-v1.1.1.linux-amd64.tar.gz
-tar -xf pg_exporter-v1.1.1.linux-amd64.tar.gz
-sudo install pg_exporter-v1.1.1.linux-amd64/pg_exporter /usr/bin/
-sudo install pg_exporter-v1.1.1.linux-amd64/pg_exporter.yml /etc/pg_exporter.yml
+wget https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.linux-amd64.tar.gz
+tar -xf pg_exporter-v1.1.2.linux-amd64.tar.gz
+sudo install pg_exporter-v1.1.2.linux-amd64/pg_exporter /usr/bin/
+sudo install pg_exporter-v1.1.2.linux-amd64/pg_exporter.yml /etc/pg_exporter.yml
 ```
 {{< /tab >}}
 {{< tab >}}
@@ -163,14 +163,14 @@ curl http://localhost:9630/metrics
 Experience PG Exporter in action with our live demo environment:
 
 <div class="hx-mt-4">
-{{< hextra/hero-button text="View Live Demo" link="https://g.pgsty.com" >}}
+{{< hextra/hero-button text="View Live Demo" link="https://demo.pigsty.io" >}}
 </div>
 
 The demo showcases real PostgreSQL clusters monitored by PG Exporter, featuring:
 - Real-time metrics visualization with Grafana
 - Multiple PostgreSQL versions and configurations
 - Extension-specific metrics and monitoring
-- Complete observability stack powered by [Pigsty](https://pgsty.com)
+- Complete observability stack powered by [Pigsty](https://pigsty.io)
 
 ## Community & Support
 
@@ -178,7 +178,7 @@ The demo showcases real PostgreSQL clusters monitored by PG Exporter, featuring:
 {{< cards >}}
 {{< card link="https://github.com/pgsty/pg_exporter" title="GitHub" subtitle="Source code, issues, and contributions" icon="github" >}}
 {{< card link="https://github.com/pgsty/pg_exporter/discussions" title="Discussions" subtitle="Ask questions and share experiences" icon="chat" >}}
-{{< card link="https://pgsty.com" title="Pigsty" subtitle="Complete PostgreSQL Distro with PG Exporter" >}}
+{{< card link="https://pigsty.io" title="Pigsty" subtitle="Complete PostgreSQL Distro with PG Exporter" >}}
 {{< /cards >}}
 </div>
 

@@ -5,10 +5,11 @@ breadcrumbs: false
 comments: false
 ---
 
-The latest stable version of `pg_exporter` is [v1.1.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1)
+The latest stable version of `pg_exporter` is [v1.1.2](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.2)
 
 |     Version     |    Date    | Summary                                                 |                               GitHub                               |
 |:---------------:|:----------:|---------------------------------------------------------|:------------------------------------------------------------------:|
+| [v1.1.2](#v112) | 2026-01-15 | fix pg_timeline id template issue                       | [v1.1.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1) |
 | [v1.1.1](#v111) | 2025-12-30 | pg_timeline, pg_recv, pg_sub collector update           | [v1.1.1](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1) |
 | [v1.1.0](#v110) | 2025-12-15 | Update default metrics collectors, bump to go 1.25.5    | [v1.1.0](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.0) |
 | [v1.0.3](#v103) | 2025-11-20 | Routine update on 1.25.4, fix unsupported libpq env     | [v1.0.3](https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3) |
@@ -37,6 +38,17 @@ The latest stable version of `pg_exporter` is [v1.1.1](https://github.com/pgsty/
 | [v0.0.1](#v001) | 2019-12-06 | Initial release with PgBouncer mode                     | [v0.0.1](https://github.com/pgsty/pg_exporter/releases/tag/v0.0.1) |
 
 
+## v1.1.2
+
+minor fix on config file, pg_timeline with `{{ ttl_norm }}` 
+
+**Checksums**
+
+https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/checksums.txt
+
+https://github.com/pgsty/pg_exporter/releases/tag/v1.1.2
+
+
 
 
 ## v1.1.1
@@ -50,10 +62,6 @@ minor fix on some collectors
 **Checksums**
 
 https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/checksums.txt
-
-```bash
-
-```
 
 https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1
 
@@ -137,7 +145,7 @@ https://github.com/pgsty/pg_exporter/releases/tag/v1.0.3
 ## v1.0.2
 
 - Build with Go 1.25.0 and latest dependencies
-- Dedicate website and homepage: https://exp.pgsty.com
+- Dedicate website and homepage: https://pigsty.io/docs/pg_exporter
 - Release with goreleaser for more os/arch with CI/CD pipeline:
   - add windows amd64 support
   - add linux ppc64le support

@@ -1,4 +1,4 @@
-baseURL: 'https://pgexp.pgsty.com/'
+baseURL: 'https://exp.pgsty.com/'
 languageCode: 'en'
 title: 'PG Exporter - Advanced PostgreSQL & pgBouncer Metrics Exporter'
 
@@ -34,7 +34,7 @@ languages:
       main:
         - name: Pigsty
           weight: 1
-          url: "https://pgsty.com"
+          url: "https://pigsty.io"
         - name: GitHub
           weight: 2
           url: "https://github.com/pgsty/pg_exporter"
@@ -52,15 +52,15 @@ languages:
           weight: 6
         - identifier: pigsty
           name: "Pigsty ↗"
-          url: "https://pgsty.com"
+          url: "https://pigsty.io"
           weight: 7
         - identifier: pig-cli
           name: "PIG CLI ↗"
-          url: "https://pig.pgsty.com"
+          url: "https://pigsty.io/docs/pig"
           weight: 8
         - identifier: pgext
           name: "PG Extensions ↗"
-          url: "https://ext.pgsty.com"
+          url: "https://pgext.cloud"
           weight: 10
         - identifier: github-repo
           name: "GitHub repo ↗"
@@ -68,7 +68,7 @@ languages:
           weight: 11
         - identifier: demo
           name: "Public Demo ↗"
-          url: "https://g.pgsty.com"
+          url: "https://demo.pigsty.io"
           weight: 12
         - identifier: vonng
           name: "Author: Vonng ↗"

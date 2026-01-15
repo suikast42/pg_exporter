@@ -28,15 +28,15 @@ curl -fsSL https://repo.pigsty.io/get | bash; cd ~/pigsty;
 You can also download `pg_exporter` package (`RPM`/`DEB`/ Tarball) directly from the [Latest GitHub Release Page](https://github.com/pgsty/pg_exporter/releases/latest):
 
 {{< filetree/container >}}
-{{< filetree/folder name="v1.1.1" state="open" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg-exporter_1.1.1_amd64.deb" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg-exporter_1.1.1_arm64.deb" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg_exporter-1.1.1-1.aarch64.rpm" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg_exporter-1.1.1-1.x86_64.rpm" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg_exporter-v1.1.1.linux-amd64.tar.gz" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg_exporter-v1.1.1.linux-arm64.tar.gz" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg_exporter-v1.1.1.darwin-amd64.tar.gz" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.1/pg_exporter-v1.1.1.darwin-arm64.tar.gz" >}}
+{{< filetree/folder name="v1.1.2" state="open" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg-exporter_1.1.2_amd64.deb" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg-exporter_1.1.2_arm64.deb" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-1.1.2-1.aarch64.rpm" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-1.1.2-1.x86_64.rpm" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.linux-amd64.tar.gz" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.linux-arm64.tar.gz" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.darwin-amd64.tar.gz" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.darwin-arm64.tar.gz" >}}
 {{< /filetree/folder >}}
 {{< /filetree/container >}}
 
@@ -45,7 +45,7 @@ You can install it directly with your OS package manager (`rpm`/`dpkg`), or even
 
 ## Repository
 
-The pig package is also available in the [`pigsty-infra`](https://ext.pgsty.com/repo/infra) repo,
+The pig package is also available in the [`pigsty-infra`](https://pigsty.io/docs/repo/infra) repo,
 You can add the repo to your system, and install it with OS package manager:
 
 ### YUM
