@@ -1,5 +1,5 @@
 /***********************************************************************\
-Copyright © 2019-2025 Ruohang Feng <rh@vonng.com>
+Copyright © 2018-2026 Ruohang Feng <rh@vonng.com>
 Contributors: https://github.com/pgsty/pg_exporter/graphs/contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");

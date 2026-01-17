@@ -2,7 +2,7 @@
 # File      :   Makefile
 # Mtime     :   2025-08-14
 # License   :   Apache-2.0 @ https://github.com/pgsty/pg_exporter
-# Copyright :   2018-2025  Ruohang Feng / Vonng (rh@vonng.com)
+# Copyright :   2018-2026  Ruohang Feng / Vonng (rh@vonng.com)
 #==============================================================#
 VERSION      ?= v1.1.2
 BUILD_DATE   := $(shell date '+%Y%m%d%H%M%S')

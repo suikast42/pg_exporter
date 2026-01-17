@@ -186,4 +186,4 @@ The demo showcases real PostgreSQL clusters monitored by PG Exporter, featuring:
 
 PG Exporter is open-source software licensed under the [Apache License 2.0](https://github.com/pgsty/pg_exporter/blob/main/LICENSE).
 
-Copyright 2018-2025 © [Ruohang Feng](https://vonng.com/en) / [rh@vonng.com](mailto:rh@vonng.com)
+Copyright 2018-2026 © [Ruohang Feng](https://vonng.com/en) / [rh@vonng.com](mailto:rh@vonng.com)

@@ -4,7 +4,7 @@
 # Desc      :   Build single-arch Docker image locally with Go
 # Mtime     :   2025-07-17
 # License   :   Apache-2.0 @ https://github.com/pgsty/pg_exporter
-# Copyright :   2018-2025  Ruohang Feng / Vonng (rh@vonng.com)
+# Copyright :   2018-2026  Ruohang Feng / Vonng (rh@vonng.com)
 #==============================================================#
 
 set -euo pipefail
