@@ -4,9 +4,9 @@
 
 # PG EXPORTER
 
-[![Webite: exp.pgsty.com](https://img.shields.io/badge/website-exp.pgsty.com-slategray?style=flat&logo=cilium&logoColor=white)](https://exp.pigsty.com)
+[![Webite: https://pigsty.io/docs/pg_exporter](https://img.shields.io/badge/website-pigsty.io/docs/pg_exporter-slategray?style=flat&logo=cilium&logoColor=white)](https://pigsty.io/docs/pg_exporter)
 [![DockerHub: pgsty/pg_exporter](https://img.shields.io/badge/docker-pgsty/pg_exporter-slategray?style=flat&logo=docker&logoColor=white)](https://hub.docker.com/r/pgsty/pg_exporter)
-[![Version: 1.1.1](https://img.shields.io/badge/version-1.1.1-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.1)
+[![Version: 1.1.2](https://img.shields.io/badge/version-1.1.2-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.2)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pgsty/pg_exporter)](https://goreportcard.com/report/github.com/pgsty/pg_exporter)
@@ -16,20 +16,20 @@
 PG Exporter brings ultimate monitoring experience to your PostgreSQL with **declarative config**, **dynamic planning**, and **customizable collectors**. 
 It provides **600+** metrics and ~3K time series per instance, covers everything you'll need for PostgreSQL observability.
 
-Check [**https://g.pgsty.com**](https://g.pgsty.com) for live demo, which is built upon this exporter by [**Pigsty**](https://pgsty.com).
+Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
 
 <div align="center">
-    <a href="https://exp.pgsty.com">Docs</a> •    
+    <a href="https://pigsty.io/docs/pg_exporter">Docs</a> •    
     <a href="#quick-start">Quick Start</a> •
     <a href="#features">Features</a> •
     <a href="#usage">Usage</a> •
     <a href="#api">API</a> •
     <a href="#deployment">Deployment</a> •
     <a href="#collectors">Collectors</a> •
-    <a href="https://g.pgsty.com">Demo</a>
+    <a href="https://demo.pigsty.io">Demo</a>
 </div><br>
 
-[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://g.pgsty.com)
+[![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.io)
 
 
 --------
@@ -51,7 +51,7 @@ Check [**https://g.pgsty.com**](https://g.pgsty.com) for live demo, which is bui
 
 ## Quick Start
 
-RPM / DEB / Tarball available in the GitHub [release page](https://github.com/pgsty/pg_exporter/releases), and Pigsty's YUM / APT [Infra Repo](https://pgext.cloud/repo/infra).
+RPM / DEB / Tarball available in the GitHub [release page](https://github.com/pgsty/pg_exporter/releases), and Pigsty's YUM / APT [Infra Repo](https://pigsty.io/docs/repo/infra).
 
 To run this exporter, you need to pass the postgres/pgbouncer URL via env or arg:
 
@@ -66,7 +66,7 @@ There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_export
 
 There are two monitoring dashboards in the [`monitor/`](monitor/) directory.
 
-You can use [**Pigsty**](https://pgsty.com) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
+You can use [**Pigsty**](https://pigsty.io) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
 
 
 --------
@@ -188,7 +188,7 @@ CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o pg_expo
 
 Or [download](https://github.com/pgsty/pg_exporter/releases) the latest prebuilt binaries from release pages.
 
-We also have pre-packaged RPM / DEB packages in the [Pigsty Infra Repo](https://ext.pgsty.com/repo/infra/)
+We also have pre-packaged RPM / DEB packages in the [Pigsty Infra Repo](https://pigsty.io/docs/repo/infra/)
 
 
 --------
@@ -210,7 +210,7 @@ Redhat rpm and Debian/Ubuntu deb packages are made with `nfpm` for `x86/arm64`:
 * [`/etc/default/pg_exporter`](package/pg_exporter.default): systemd service envs & options
 
 
-Which is also available on Pigsty's [Infra Repo](https://ext.pgsty.com/repo/infra).
+Which is also available on Pigsty's [Infra Repo](https://pigsty.io/docs/repo/infra).
 
 
 ------

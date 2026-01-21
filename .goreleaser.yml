@@ -71,13 +71,13 @@ nfpms:
       {{- else if eq .Arch "arm64" }}aarch64
       {{- else }}{{ .Arch }}{{ end }}
     vendor: PGSTY
-    homepage: https://exp.pgsty.com
+    homepage: https://pigsty.io/docs/pg_exporter
     maintainer: Ruohang Feng <rh@vonng.com>
     description: |
       Prometheus exporter for PostgreSQL / Pgbouncer server metrics.
       Supported version: Postgres9.4 - 17+ & Pgbouncer 1.8 - 1.24+
       Part of Project Pigsty -- Battery Included PostgreSQL Distribution
-      with ultimate observability support: https://doc.pgsty.com
+      with ultimate observability support: https://pigsty.io/docs
     license: Apache-2.0
     formats:
       - rpm
@@ -122,13 +122,13 @@ nfpms:
       {{- else if eq .Arch "arm64" }}arm64
       {{- else }}{{ .Arch }}{{ end }}
     vendor: PGSTY
-    homepage: https://exp.pgsty.com
+    homepage: https://pigsty.io/docs/pg_exporter
     maintainer: Ruohang Feng <rh@vonng.com>
     description: |
       Prometheus exporter for PostgreSQL / Pgbouncer server metrics.
       Supported version: Postgres9.4 - 17+ & Pgbouncer 1.8 - 1.24+
       Part of Project Pigsty -- Battery Included PostgreSQL Distribution
-      with ultimate observability support: https://doc.pgsty.com
+      with ultimate observability support: https://pigsty.io/docs
     license: Apache-2.0
     formats:
       - deb
