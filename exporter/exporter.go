@@ -6,12 +6,21 @@ import (
 	"io"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 /* ================ Exporter ================ */
+
+const (
+	healthStatusUnknown int32 = iota
+	healthStatusDown
+	healthStatusStarting
+	healthStatusPrimary
+	healthStatusReplica
+)
 
 // Exporter implement prometheus.Collector interface
 // exporter contains one or more (auto-discover-database) servers that can scrape metrics with Query
@@ -68,31 +77,134 @@ type Exporter struct {
 	queryScrapeMetricCount        *prometheus.GaugeVec // {datname,query} query level: how many metrics the query returns?
 	queryScrapeHitCount           *prometheus.GaugeVec // {datname,query} query level: how many errors the query triggers?
 
+	// lock-free health snapshot for high-frequency probes
+	healthUp       atomic.Bool
+	healthRecovery atomic.Bool
+	healthStatus   atomic.Int32
+
+	healthLoopLock sync.Mutex
+	healthLoopStop chan struct{}
+	healthLoopDone chan struct{}
 }
 
 // Up will delegate aliveness check to primary server
 func (e *Exporter) Up() bool {
-	return e.server.UP
+	return e.healthUp.Load()
 }
 
 // Recovery will delegate primary/replica check to primary server
 func (e *Exporter) Recovery() bool {
-	return e.server.Recovery
+	return e.healthRecovery.Load()
 }
 
-// Status will report 4 available status: primary|replica|down|unknown
+// Status will report available status: primary|replica|starting|down|unknown
 func (e *Exporter) Status() string {
-	if e.server == nil {
+	switch e.healthStatus.Load() {
+	case healthStatusPrimary:
+		return `primary`
+	case healthStatusReplica:
+		return `replica`
+	case healthStatusStarting:
+		return `starting`
+	case healthStatusDown:
+		return `down`
+	default:
 		return `unknown`
 	}
-	if !e.server.UP {
-		return `down`
-	} else {
-		if e.server.Recovery {
-			return `replica`
-		} else {
-			return `primary`
+}
+
+func (e *Exporter) updateHealthState(up, recovery bool) {
+	e.updateHealthStateWithStartup(up, recovery, false)
+}
+
+func (e *Exporter) updateHealthStateWithStartup(up, recovery, starting bool) {
+	e.healthUp.Store(up)
+	if starting {
+		e.healthRecovery.Store(false)
+		e.healthStatus.Store(healthStatusStarting)
+		return
+	}
+	e.healthRecovery.Store(up && recovery)
+	if !up {
+		e.healthStatus.Store(healthStatusDown)
+		return
+	}
+	if recovery {
+		e.healthStatus.Store(healthStatusReplica)
+		return
+	}
+	e.healthStatus.Store(healthStatusPrimary)
+}
+
+func (e *Exporter) updateHealthStateFromServer() {
+	if e.server == nil {
+		e.healthUp.Store(false)
+		e.healthRecovery.Store(false)
+		e.healthStatus.Store(healthStatusUnknown)
+		return
+	}
+	e.server.lock.RLock()
+	up := e.server.UP
+	recovery := e.server.Recovery
+	e.server.lock.RUnlock()
+	e.updateHealthState(up, recovery)
+}
+
+func (e *Exporter) probeAndUpdateHealthState() error {
+	if e.server == nil {
+		e.healthUp.Store(false)
+		e.healthRecovery.Store(false)
+		e.healthStatus.Store(healthStatusUnknown)
+		return errors.New("primary server is nil")
+	}
+	up, recovery, starting, err := e.server.ProbeHealth()
+	e.updateHealthStateWithStartup(up, recovery, starting)
+	return err
+}
+
+func (e *Exporter) startHealthLoop() {
+	e.healthLoopLock.Lock()
+	if e.healthLoopStop != nil {
+		e.healthLoopLock.Unlock()
+		return
+	}
+	stopCh := make(chan struct{})
+	doneCh := make(chan struct{})
+	e.healthLoopStop = stopCh
+	e.healthLoopDone = doneCh
+	e.healthLoopLock.Unlock()
+
+	go func() {
+		defer close(doneCh)
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		_ = e.probeAndUpdateHealthState()
+		for {
+			select {
+			case <-stopCh:
+				return
+			case <-ticker.C:
+				_ = e.probeAndUpdateHealthState()
+			}
 		}
+	}()
+}
+
+func (e *Exporter) stopHealthLoop() {
+	e.healthLoopLock.Lock()
+	stopCh := e.healthLoopStop
+	doneCh := e.healthLoopDone
+	e.healthLoopStop = nil
+	e.healthLoopDone = nil
+	e.healthLoopLock.Unlock()
+
+	if stopCh == nil {
+		return
+	}
+	close(stopCh)
+	if doneCh != nil {
+		<-doneCh
 	}
 }
 
@@ -120,10 +232,17 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	e.lastScrapeTime.Set(float64(e.scrapeDone.Unix()))
 	e.scrapeDuration.Set(e.scrapeDone.Sub(e.scrapeBegin).Seconds())
-	e.version.Set(float64(s.Version))
-	if s.UP {
+	s.lock.RLock()
+	version := s.Version
+	up := s.UP
+	recovery := s.Recovery
+	s.lock.RUnlock()
+
+	e.version.Set(float64(version))
+	e.updateHealthState(up, recovery)
+	if up {
 		e.up.Set(1)
-		if s.Recovery {
+		if recovery {
 			e.recovery.Set(1)
 		} else {
 			e.recovery.Set(0)
@@ -153,12 +272,11 @@ func (e *Exporter) collectServerMetrics() {
 	servers := e.IterateServer()
 	servers = append(servers, e.server) // append primary server to extra server list
 	for _, s := range servers {
-		e.serverScrapeDuration.WithLabelValues(s.Database).Set(s.Duration())
+		s.lock.RLock()
+		e.serverScrapeDuration.WithLabelValues(s.Database).Set(s.scrapeDone.Sub(s.scrapeBegin).Seconds())
 		e.serverScrapeTotalSeconds.WithLabelValues(s.Database).Set(s.totalTime)
 		e.serverScrapeTotalCount.WithLabelValues(s.Database).Set(s.totalCount)
-		if s.Error() != nil {
-			e.serverScrapeErrorCount.WithLabelValues(s.Database).Add(1)
-		}
+		e.serverScrapeErrorCount.WithLabelValues(s.Database).Set(s.errorCount)
 
 		for queryName, counter := range s.queryCacheTTL {
 			e.queryCacheTTL.WithLabelValues(s.Database, queryName).Set(counter)
@@ -181,6 +299,7 @@ func (e *Exporter) collectServerMetrics() {
 		for queryName, counter := range s.queryScrapeDuration {
 			e.queryScrapeDuration.WithLabelValues(s.Database, queryName).Set(counter)
 		}
+		s.lock.RUnlock()
 	}
 }
 
@@ -197,7 +316,7 @@ func (e *Exporter) Stat() string {
 
 // Check will perform an immediate server health check
 func (e *Exporter) Check() {
-	if err := e.server.Check(); err != nil {
+	if err := e.probeAndUpdateHealthState(); err != nil {
 		logErrorf("exporter check failure: %s", err.Error())
 	} else {
 		logDebugf("exporter check ok")
@@ -206,18 +325,24 @@ func (e *Exporter) Check() {
 
 // Close will close all underlying servers
 func (e *Exporter) Close() {
+	e.stopHealthLoop()
+
 	if e.server != nil {
-		err := e.server.Close()
-		if err != nil {
-			logErrorf("fail closing server %s: %s", e.server.Name(), err.Error())
+		if e.server.DB != nil {
+			err := e.server.Close()
+			if err != nil {
+				logErrorf("fail closing server %s: %s", e.server.Name(), err.Error())
+			}
 		}
 	}
 	// close peripheral servers (we may skip acquire lock here)
 	for _, srv := range e.IterateServer() {
 		if srv != nil {
-			err := srv.Close()
-			if err != nil {
-				logErrorf("fail closing server %s: %s", e.server.Name(), err.Error())
+			if srv.DB != nil {
+				err := srv.Close()
+				if err != nil {
+					logErrorf("fail closing server %s: %s", srv.Name(), err.Error())
+				}
 			}
 		}
 	}
@@ -312,7 +437,7 @@ func (e *Exporter) setupInternalMetrics() {
 	}, []string{"datname"})
 	e.serverScrapeErrorCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_server", Name: "scrape_error_count", Help: "times exporter server was scraped for metrics and failed",
+		Subsystem: "exporter_server", Name: "scrape_error_count", Help: "cumulative times exporter server scrape failed (fatal scrape failures only)",
 	}, []string{"datname"})
 
 	// query level metrics
@@ -346,6 +471,7 @@ func (e *Exporter) setupInternalMetrics() {
 	}, []string{"datname", "query"})
 
 	e.exporterUp.Set(1) // always be true
+	e.healthStatus.Store(healthStatusUnknown)
 }
 
 func (e *Exporter) collectInternalMetrics(ch chan<- prometheus.Metric) {
@@ -441,6 +567,10 @@ func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
 	}
 	e.pgbouncerMode = e.server.PgbouncerMode
 	e.setupInternalMetrics()
+	e.updateHealthStateFromServer()
+	if err == nil {
+		e.startHealthLoop()
+	}
 
 	return
 }
@@ -502,19 +632,32 @@ func (e *Exporter) CreateServer(dbname string) {
 // This happens when a database is dropped
 func (e *Exporter) RemoveServer(dbname string) {
 	e.sLock.Lock()
-	delete(e.servers, dbname)
-	logWarnf("database %s is removed due to auto-discovery", dbname)
+	srv, ok := e.servers[dbname]
+	if ok {
+		delete(e.servers, dbname)
+	}
 	e.sLock.Unlock()
+
+	if ok && srv != nil {
+		if srv.DB != nil {
+			if err := srv.Close(); err != nil {
+				logErrorf("fail closing removed database server %s: %s", dbname, err.Error())
+			}
+		}
+	}
+	logWarnf("database %s is removed due to auto-discovery", dbname)
 }
 
 // IterateServer will get snapshot of extra servers
 func (e *Exporter) IterateServer() (res []*Server) {
-	if len(e.servers) > 0 {
-		e.sLock.RLock()
-		defer e.sLock.RUnlock()
-		for _, srv := range e.servers {
-			res = append(res, srv)
-		}
+	e.sLock.RLock()
+	defer e.sLock.RUnlock()
+	if len(e.servers) == 0 {
+		return nil
+	}
+	res = make([]*Server, 0, len(e.servers))
+	for _, srv := range e.servers {
+		res = append(res, srv)
 	}
 	return
 }
@@ -619,64 +762,106 @@ func WithConnectTimeout(timeout int) ExporterOpt {
 
 /* ================ Exporter RESTAPI ================ */
 
+func currentExporter() *Exporter {
+	if target := currentExporterPt.Load(); target != nil {
+		return target
+	}
+	ReloadLock.RLock()
+	defer ReloadLock.RUnlock()
+	return PgExporter
+}
+
 // ExplainFunc expose explain document
 func (e *Exporter) ExplainFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	_, _ = w.Write([]byte(e.Explain()))
+	target := currentExporter()
+	if target == nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte("exporter unavailable"))
+		return
+	}
+	_, _ = w.Write([]byte(target.Explain()))
 }
 
 // StatFunc expose html statistics
 func (e *Exporter) StatFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	_, _ = w.Write([]byte(e.Stat()))
+	target := currentExporter()
+	if target == nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte("exporter unavailable"))
+		return
+	}
+	_, _ = w.Write([]byte(target.Stat()))
 }
 
 // UpCheckFunc tells whether target instance is alive, 200 up 503 down
 func (e *Exporter) UpCheckFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	e.Check()
-	if e.Up() {
+	target := currentExporter()
+	if target == nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte("unknown"))
+		return
+	}
+
+	status := target.Status()
+	if target.Up() {
 		w.WriteHeader(200)
-		_, _ = w.Write([]byte(PgExporter.Status()))
+		_, _ = w.Write([]byte(status))
 	} else {
 		w.WriteHeader(503)
-		_, _ = w.Write([]byte(PgExporter.Status()))
+		_, _ = w.Write([]byte(status))
 	}
 }
 
 // PrimaryCheckFunc tells whether target instance is a primary, 200 yes 404 no 503 unknown
 func (e *Exporter) PrimaryCheckFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	e.Check()
-	if PgExporter.Up() {
-		if PgExporter.Recovery() {
+	target := currentExporter()
+	if target == nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte("unknown"))
+		return
+	}
+
+	status := target.Status()
+	if target.Up() {
+		if target.Recovery() {
 			w.WriteHeader(404)
-			_, _ = w.Write([]byte(PgExporter.Status()))
+			_, _ = w.Write([]byte(status))
 		} else {
 			w.WriteHeader(200)
-			_, _ = w.Write([]byte(PgExporter.Status()))
+			_, _ = w.Write([]byte(status))
 		}
 	} else {
 		w.WriteHeader(503)
-		_, _ = w.Write([]byte(PgExporter.Status()))
+		_, _ = w.Write([]byte(status))
 	}
 }
 
 // ReplicaCheckFunc tells whether target instance is a replica, 200 yes 404 no 503 unknown
 func (e *Exporter) ReplicaCheckFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	e.Check()
-	if PgExporter.Up() {
-		if PgExporter.Recovery() {
+	target := currentExporter()
+	if target == nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = w.Write([]byte("unknown"))
+		return
+	}
+
+	status := target.Status()
+	if target.Up() {
+		if target.Recovery() {
 			w.WriteHeader(200)
-			_, _ = w.Write([]byte(PgExporter.Status()))
+			_, _ = w.Write([]byte(status))
 		} else {
 			w.WriteHeader(404)
-			_, _ = w.Write([]byte(PgExporter.Status()))
+			_, _ = w.Write([]byte(status))
 		}
 	} else {
 		w.WriteHeader(503)
-		_, _ = w.Write([]byte(PgExporter.Status()))
+		_, _ = w.Write([]byte(status))
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -18,6 +19,8 @@ import (
 
 /* ================ Const ================ */
 const connMaxLifeTime = 1 * time.Minute // close connection after 1 minute to avoid conn leak
+
+const pgSQLStateCannotConnectNow = "57P03"
 
 /* ================ Server ================ */
 
@@ -64,7 +67,7 @@ type Server struct {
 	serverInit  time.Time // server init timestamp
 	scrapeBegin time.Time // server last scrape begin time
 	scrapeDone  time.Time // server last scrape done time
-	errorCount  float64   // total error count on this server
+	errorCount  float64   // total scrape error count on this server (fatal scrape failures only)
 	totalCount  float64   // total scrape count on this server
 	totalTime   float64   // total time spend on scraping
 
@@ -98,7 +101,45 @@ func (s *Server) Error() error {
 
 // Check will issue a connection and executing precheck hook function
 func (s *Server) Check() error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	return s.beforeScrape(s)
+}
+
+// ProbeHealth performs a lightweight probe for exporter health checks.
+// It returns whether the database is reachable, whether it's in recovery,
+// and whether PostgreSQL is still starting up (SQLSTATE 57P03).
+func (s *Server) ProbeHealth() (up, recovery, starting bool, err error) {
+	db := s.DB
+	pgbouncerMode := s.PgbouncerMode
+	timeout := s.GetConnectTimeout()
+
+	if db == nil {
+		return false, false, false, errors.New("database connection is not initialized")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if pgbouncerMode {
+		var one int
+		if err = db.QueryRowContext(ctx, `SELECT 1;`).Scan(&one); err != nil {
+			return false, false, false, err
+		}
+		return true, false, false, nil
+	}
+
+	if err = db.QueryRowContext(ctx, `SELECT pg_catalog.pg_is_in_recovery();`).Scan(&recovery); err != nil {
+		starting = isPostgresStartupError(err)
+		return false, false, starting, err
+	}
+
+	return true, recovery, false, nil
+}
+
+func isPostgresStartupError(err error) bool {
+	var pgErr *pq.Error
+	return errors.As(err, &pgErr) && string(pgErr.Code) == pgSQLStateCannotConnectNow
 }
 
 // PgbouncerPrecheck checks pgbouncer connection before scrape
@@ -195,10 +236,11 @@ func PostgresPrecheck(s *Server) (err error) {
 	}
 	s.Version = version
 
-	// do not check here
-	if _, err = s.DB.Exec(`SET application_name = pg_exporter;`); err != nil {
+	ctxSet, cancelSet := context.WithTimeout(context.Background(), s.GetConnectTimeout())
+	defer cancelSet()
+	if _, err = s.DB.ExecContext(ctxSet, `SET application_name = pg_exporter;`); err != nil {
 		s.UP = false
-		return fmt.Errorf("fail settting application name: %w", err)
+		return fmt.Errorf("fail setting application name: %w", err)
 	}
 
 	// get important metadata
@@ -209,9 +251,9 @@ func PostgresPrecheck(s *Server) (err error) {
 	(SELECT pg_catalog.array_agg(d.datname)::text[] AS databases FROM pg_catalog.pg_database d WHERE d.datallowconn AND NOT d.datistemplate),
 	(SELECT pg_catalog.array_agg(n.nspname)::text[] AS namespaces FROM pg_catalog.pg_namespace n),
 	(SELECT pg_catalog.array_agg(e.extname)::text[] AS extensions FROM pg_catalog.pg_extension e);`
-	ctx, cancel2 := context.WithTimeout(context.Background(), s.GetConnectTimeout())
+	ctx2, cancel2 := context.WithTimeout(context.Background(), s.GetConnectTimeout())
 	defer cancel2()
-	if err = s.DB.QueryRowContext(ctx, precheckSQL).Scan(&datname, &username, &recovery, pq.Array(&databases), pq.Array(&namespaces), pq.Array(&extensions)); err != nil {
+	if err = s.DB.QueryRowContext(ctx2, precheckSQL).Scan(&datname, &username, &recovery, pq.Array(&databases), pq.Array(&namespaces), pq.Array(&extensions)); err != nil {
 		s.UP = false
 		return fmt.Errorf("fail fetching server version: %w", err)
 	}
@@ -425,6 +467,8 @@ func (s *Server) Compatible(query *Query) (res bool, reason string) {
 
 // Explain will print all queries that registered to server
 func (s *Server) Explain() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	var res []string
 	for _, i := range s.Collectors {
 		res = append(res, i.Explain())
@@ -434,6 +478,8 @@ func (s *Server) Explain() string {
 
 // Stat will turn Server internal stats into HTML
 func (s *Server) Stat() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	buf := new(bytes.Buffer)
 	//err := statsTemplate.Execute(buf, s)
 	//if err != nil {
@@ -458,6 +504,8 @@ func (s *Server) Stat() string {
 
 // ExplainHTML will print server stats in HTML format
 func (s *Server) ExplainHTML() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	var res []string
 	for _, i := range s.Collectors {
 		res = append(res, i.HTML())
@@ -467,6 +515,8 @@ func (s *Server) ExplainHTML() string {
 
 // Describe implement prometheus.Collector
 func (s *Server) Describe(ch chan<- *prometheus.Desc) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	for _, instance := range s.Collectors {
 		instance.Describe(ch)
 	}
@@ -479,7 +529,7 @@ func (s *Server) Collect(ch chan<- prometheus.Metric) {
 	s.scrapeBegin = time.Now() // This ts is used for cache expiration check
 
 	// check server conn, gathering fact
-	if s.err = s.Check(); s.err != nil {
+	if s.err = s.beforeScrape(s); s.err != nil {
 		logDebugf("fail establishing connection to %s: %s", s.Name(), s.err.Error())
 		goto final
 	}
@@ -563,8 +613,6 @@ func (s *Server) executeQuery(query *Collector, ch chan<- prometheus.Metric) err
 		skipped, _ := query.PredicateSkip()
 		if skipped {
 			s.queryScrapePredicateSkipCount[query.Name]++
-		} else {
-			s.queryScrapePredicateSkipCount[query.Name] = 0
 		}
 	}
 

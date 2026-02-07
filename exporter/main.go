@@ -68,13 +68,25 @@ func Reload() error {
 
 	logDebugf("shutdown old exporter instance")
 	// if older one exists, close and unregister it
-	if PgExporter != nil {
+	oldExporter := PgExporter
+	if oldExporter != nil {
 		// DO NOT MANUALLY CLOSE OLD EXPORTER INSTANCE because the stupid implementation of sql.DB
 		// there connection will be automatically released after 1 min
 		// PgExporter.Close()
-		prometheus.Unregister(PgExporter)
+		prometheus.Unregister(oldExporter)
 	}
-	PgExporter = newExporter
+	if err := prometheus.Register(newExporter); err != nil {
+		// Best-effort rollback: keep the old exporter serving metrics.
+		if oldExporter != nil {
+			_ = prometheus.Register(oldExporter)
+		}
+		newExporter.Close()
+		return fmt.Errorf("fail to register reloaded exporter: %w", err)
+	}
+	if oldExporter != nil {
+		oldExporter.stopHealthLoop()
+	}
+	setCurrentExporter(newExporter)
 	runtime.GC()
 	logInfof("server reloaded")
 	return nil
@@ -150,11 +162,11 @@ func Run() {
 	// and will panic if they are set. We clear them to ensure stable operation.
 	// See: https://github.com/lib/pq/blob/master/conn.go#L2019
 	unsupportedEnvs := []string{
-		"PGSYSCONFDIR",   // PostgreSQL system configuration directory
-		"PGSERVICEFILE",  // PostgreSQL connection service file
-		"PGSERVICE",      // PostgreSQL service name
-		"PGLOCALEDIR",    // PostgreSQL locale directory
-		"PGREALM",        // Kerberos realm
+		"PGSYSCONFDIR",  // PostgreSQL system configuration directory
+		"PGSERVICEFILE", // PostgreSQL connection service file
+		"PGSERVICE",     // PostgreSQL service name
+		"PGLOCALEDIR",   // PostgreSQL locale directory
+		"PGREALM",       // Kerberos realm
 	}
 
 	for _, env := range unsupportedEnvs {
@@ -188,11 +200,12 @@ func Run() {
 
 	// create exporter: if target is down, exporter creation will wait until it backup online
 	var err error
-	PgExporter, err = NewExporter(
+	newExporter, err := NewExporter(
 		*pgURL,
 		WithConfig(*configPath),
 		WithConstLabels(*constLabels),
 		WithCacheDisabled(*disableCache),
+		WithIntroDisabled(*disableIntro),
 		WithFailFast(*failFast),
 		WithNamespace(*exporterNamespace),
 		WithAutoDiscovery(*autoDiscovery),
@@ -205,6 +218,7 @@ func Run() {
 		logFatalf("fail creating pg_exporter: %s", err.Error())
 		os.Exit(2)
 	}
+	setCurrentExporter(newExporter)
 
 	// trigger a manual planning before explain
 	if *explainOnly {
