@@ -51,10 +51,11 @@ func ParseConfig(content []byte) (queries map[string]*Query, err error) {
 				if column.Name == "" {
 					column.Name = colName
 				}
-				if _, isValid := ColumnUsage[column.Usage]; !isValid {
-					return nil, fmt.Errorf("column %s have unsupported usage: %s", colName, column.Desc)
+				usage := strings.ToUpper(column.Usage)
+				if _, isValid := ColumnUsage[usage]; !isValid {
+					return nil, fmt.Errorf("column %s have unsupported usage: %s", colName, column.Usage)
 				}
-				column.Usage = strings.ToUpper(column.Usage)
+				column.Usage = usage
 				switch column.Usage {
 				case LABEL:
 					labelColumns = append(labelColumns, column.Name)

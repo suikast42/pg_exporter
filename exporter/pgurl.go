@@ -25,19 +25,18 @@ func RetrievePGURL() (res string) {
 	}
 	// env PG_EXPORTER_URL
 	if res = os.Getenv("PG_EXPORTER_URL"); res != "" {
-		logInfof("retrieve target url %s from PG_EXPORTER_URL", ShadowPGURL(*pgURL))
+		logInfof("retrieve target url %s from PG_EXPORTER_URL", ShadowPGURL(res))
 		return res
 	}
 	// env PGURL
 	if res = os.Getenv("PGURL"); res != "" {
-		logInfof("retrieve target url %s from PGURL", ShadowPGURL(*pgURL))
+		logInfof("retrieve target url %s from PGURL", ShadowPGURL(res))
 		return res
 	}
 	// file content from file PG_EXPORTER_URL_FILE
 	if filename := os.Getenv("PG_EXPORTER_URL_FILE"); filename != "" {
 		if fileContents, err := os.ReadFile(filename); err != nil {
-			logFatalf("PG_EXPORTER_URL_FILE=%s is specified, fail loading url, exit", err.Error())
-			os.Exit(-1)
+			logFatalf("PG_EXPORTER_URL_FILE=%s is specified, fail loading url: %s", filename, err.Error())
 		} else {
 			res = strings.TrimSpace(string(fileContents))
 			logInfof("retrieve target url %s from PG_EXPORTER_URL_FILE", ShadowPGURL(res))
@@ -62,19 +61,7 @@ func ProcessPGURL(pgurl string) string {
 	if sslmode := qs.Get(`sslmode`); sslmode == "" {
 		qs.Set(`sslmode`, `disable`)
 	}
-	var buf strings.Builder
-	for k, v := range qs {
-		if len(v) == 0 {
-			continue
-		}
-		if buf.Len() > 0 {
-			buf.WriteByte('&')
-		}
-		buf.WriteString(k)
-		buf.WriteByte('=')
-		buf.WriteString(v[0])
-	}
-	u.RawQuery = buf.String()
+	u.RawQuery = qs.Encode()
 	return u.String()
 }
 
@@ -84,7 +71,6 @@ func ShadowPGURL(pgurl string) string {
 	// That means we got a bad connection string. Fail early
 	if err != nil {
 		logFatalf("Could not parse connection string %s", err.Error())
-		os.Exit(-1)
 	}
 
 	// We need to handle two cases:
@@ -92,23 +78,15 @@ func ShadowPGURL(pgurl string) string {
 	// 2. The password is in the format postgresql://<user>:<pass>@localhost:5432/postgres?sslmode=disable
 
 	qs := parsedURL.Query()
-	var buf strings.Builder
-	for k, v := range qs {
-		if len(v) == 0 {
-			continue
-		}
-		if buf.Len() > 0 {
-			buf.WriteByte('&')
-		}
-		buf.WriteString(k)
-		buf.WriteByte('=')
-		if strings.ToLower(k) == "password" {
-			buf.WriteString("xxxxx")
-		} else {
-			buf.WriteString(v[0])
+	for k, values := range qs {
+		if strings.EqualFold(k, "password") {
+			for i := range values {
+				values[i] = "xxxxx"
+			}
+			qs[k] = values
 		}
 	}
-	parsedURL.RawQuery = buf.String()
+	parsedURL.RawQuery = qs.Encode()
 	return parsedURL.Redacted()
 }
 
