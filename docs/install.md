@@ -28,15 +28,15 @@ curl -fsSL https://repo.pigsty.io/get | bash; cd ~/pigsty;
 You can also download `pg_exporter` package (`RPM`/`DEB`/ Tarball) directly from the [Latest GitHub Release Page](https://github.com/pgsty/pg_exporter/releases/latest):
 
 {{< filetree/container >}}
-{{< filetree/folder name="v1.1.2" state="open" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg-exporter_1.1.2_amd64.deb" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg-exporter_1.1.2_arm64.deb" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-1.1.2-1.aarch64.rpm" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-1.1.2-1.x86_64.rpm" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.linux-amd64.tar.gz" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.linux-arm64.tar.gz" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.darwin-amd64.tar.gz" >}}
-{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.1.2/pg_exporter-v1.1.2.darwin-arm64.tar.gz" >}}
+{{< filetree/folder name="v1.2.0" state="open" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg-exporter_1.2.0_amd64.deb" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg-exporter_1.2.0_arm64.deb" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg_exporter-1.2.0-1.aarch64.rpm" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg_exporter-1.2.0-1.x86_64.rpm" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg_exporter-v1.2.0.linux-amd64.tar.gz" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg_exporter-v1.2.0.linux-arm64.tar.gz" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg_exporter-v1.2.0.darwin-amd64.tar.gz" >}}
+{{< filetree/file name="https://github.com/pgsty/pg_exporter/releases/download/v1.2.0/pg_exporter-v1.2.0.darwin-arm64.tar.gz" >}}
 {{< /filetree/folder >}}
 {{< /filetree/container >}}
 
