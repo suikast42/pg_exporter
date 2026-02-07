@@ -1,0 +1,27 @@
+#==============================================================#
+# 0360 pg_recovery
+#==============================================================#
+pg_recovery:
+  name: pg_recovery
+  desc: PostgreSQL control recovery metrics (9.6)
+  query: |
+    SELECT min_recovery_end_timeline AS min_timeline,
+      (('x' || lpad(split_part(min_recovery_end_lsn::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+       + ('x' || lpad(split_part(min_recovery_end_lsn::text, '/', 2), 8, '0'))::bit(32)::bigint) AS min_lsn,
+      (('x' || lpad(split_part(backup_start_lsn::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+       + ('x' || lpad(split_part(backup_start_lsn::text, '/', 2), 8, '0'))::bit(32)::bigint)     AS backup_start_lsn,
+      (('x' || lpad(split_part(backup_end_lsn::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+       + ('x' || lpad(split_part(backup_end_lsn::text, '/', 2), 8, '0'))::bit(32)::bigint)       AS backup_end_lsn,
+      end_of_backup_record_required AS require_record
+    FROM pg_control_recovery();
+  ttl: 10
+  min_version: 90600
+  max_version: 100000
+  tags: [ cluster, replica ]
+  metrics:
+    - min_timeline:      { usage: COUNTER ,description: Min recovery ending loc's timeline }
+    - min_lsn:           { usage: COUNTER ,description: Minimum recovery ending location }
+    - backup_start_lsn:  { usage: COUNTER ,description: Backup start location }
+    - backup_end_lsn:    { usage: COUNTER ,description: Backup end location }
+    - require_record:    { usage: GAUGE   ,description: End-of-backup record required }
+

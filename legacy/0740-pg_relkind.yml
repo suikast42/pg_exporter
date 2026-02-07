@@ -1,0 +1,19 @@
+#==============================================================#
+# 0740 pg_relkind
+#==============================================================#
+pg_relkind:
+  name: pg_relkind
+  desc: Postgres relation count by kind
+  query: |
+    SELECT CURRENT_CATALOG AS datname, relkind, count(*) AS count
+    FROM pg_class
+    GROUP BY relkind;
+  ttl: 60
+  timeout: 1
+  min_version: 90000
+  max_version: 100000
+  metrics:
+    - datname: { usage: LABEL ,description: Database name }
+    - relkind: { usage: LABEL ,description: Relation kind (r,i,S,t,v,c,...) }
+    - count:   { usage: GAUGE ,description: Number of relations }
+

@@ -1,0 +1,47 @@
+#==============================================================#
+# Desc      :   pg_exporter metrics collector definition (Legacy)
+# Ver       :   PostgreSQL 9.0 ~ 9.6 and pgbouncer 1.9~1.25+
+# Ctime     :   2019-12-09
+# Mtime     :   2026-02-07
+# Homepage  :   https://pigsty.io
+# Author    :   Ruohang Feng (rh@vonng.com)
+# License   :   Apache-2.0 @ https://github.com/pgsty/pg_exporter
+# Copyright :   2018-2026  Ruohang Feng / Vonng (rh@vonng.com)
+#==============================================================#
+
+
+#==============================================================#
+# 1. Config File
+#==============================================================#
+# The configuration file for pg_exporter is a YAML file.
+# Default configurations are retrieved via following precedence:
+#     1. command line args:      --config=<config path>
+#     2. environment variables:  PG_EXPORTER_CONFIG=<config path>
+#     3. pg_exporter.yml        (Current directory)
+#     4. /etc/pg_exporter.yml   (config file)
+#     5. /etc/pg_exporter       (config dir)
+
+#==============================================================#
+# 2. Config Format
+#==============================================================#
+# pg_exporter config could be a single YAML file, or a directory containing a series of separated YAML files.
+# Each YAML config file consists of one or more metrics Collector definition, which are top-level objects.
+# If a directory is provided, all YAML in that directory will be merged in alphabetic order.
+
+#==============================================================#
+# 3. Version Compatibility
+#==============================================================#
+# Each collector has two optional version compatibility parameters: `min_version` and `max_version`.
+# These two parameters specify the version compatibility of the collector. If target postgres/pgbouncer's
+# version is less than `min_version`, or higher than `max_version`, the collector will not be installed.
+#
+# These two parameters are using PostgreSQL server version number format, which is a 6-digit integer
+# format as <major:2 digit><minor:2 digit>:<release: 2 digit>.
+#
+# For example:
+#   - 90000  stands for 9.0
+#   - 90600  stands for 9.6
+#   - 100000 stands for 10.0
+#
+# Version compatibility range is left-inclusive right-exclusive: [min, max)
+

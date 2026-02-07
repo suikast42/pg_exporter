@@ -1,0 +1,18 @@
+#==============================================================#
+# 0355 pg_timeline
+#==============================================================#
+pg_timeline:
+  name: pg_timeline
+  desc: Current timeline ID from primary or replica
+  query: |
+    SELECT COALESCE(
+      (SELECT received_tli FROM pg_stat_wal_receiver),
+      (SELECT timeline_id FROM pg_control_checkpoint())
+    ) AS id;
+  ttl: 10
+  min_version: 90600
+  max_version: 100000
+  tags: [ cluster ]
+  metrics:
+    - id: { usage: GAUGE ,description: Current timeline ID }
+

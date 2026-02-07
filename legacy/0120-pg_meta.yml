@@ -1,0 +1,81 @@
+#==============================================================#
+# 0120 pg_meta
+#==============================================================#
+pg_meta_96:
+  name: pg_meta
+  desc: PostgreSQL meta info for pg 9.6 (with pg_control_system)
+  query: |
+    SELECT
+      (SELECT system_identifier FROM pg_control_system())          AS cluster_id,
+      coalesce((SELECT setting FROM pg_settings WHERE name = 'cluster_name'), 'N/A') AS cluster_name,
+      (SELECT setting FROM pg_settings WHERE name = 'port')        AS listen_port,
+      (SELECT setting FROM pg_settings WHERE name = 'data_directory') AS data_dir,
+      (SELECT setting FROM pg_settings WHERE name = 'config_file') AS conf_path,
+      (SELECT setting FROM pg_settings WHERE name = 'hba_file')    AS hba_path,
+      (SELECT setting FROM pg_settings WHERE name = 'wal_level')   AS wal_level,
+      (SELECT setting FROM pg_settings WHERE name = 'server_encoding') AS encoding,
+      (SELECT setting FROM pg_settings WHERE name = 'server_version') AS version,
+      (SELECT setting FROM pg_settings WHERE name = 'server_version_num') AS ver_num,
+      version()                                                   AS ver_str,
+      (SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries') AS extensions,
+      coalesce((SELECT setting FROM pg_settings WHERE name = 'primary_conninfo'), 'N/A') AS primary_conninfo,
+      1                                                           AS info;
+  ttl: 10
+  min_version: 90600
+  max_version: 100000
+  tags: [ cluster ]
+  metrics:
+    - cluster_id:        { usage: LABEL ,description: cluster system identifier }
+    - cluster_name:      { usage: LABEL ,description: cluster name }
+    - listen_port:       { usage: LABEL ,description: listen port }
+    - data_dir:          { usage: LABEL ,description: path to data directory }
+    - conf_path:         { usage: LABEL ,description: path to postgresql.conf }
+    - hba_path:          { usage: LABEL ,description: path to pg_hba.conf }
+    - wal_level:         { usage: LABEL ,description: wal level }
+    - encoding:          { usage: LABEL ,description: server encoding }
+    - version:           { usage: LABEL ,description: server version in human-readable format }
+    - ver_num:           { usage: LABEL ,description: server version number in machine-readable format }
+    - ver_str:           { usage: LABEL ,description: complete version string }
+    - extensions:        { usage: LABEL ,description: server installed preload libraries }
+    - primary_conninfo:  { usage: LABEL ,description: connection string to upstream (do not set password here) }
+    - info:              { usage: GAUGE ,description: constant 1 }
+
+pg_meta_90:
+  name: pg_meta
+  desc: PostgreSQL meta info for pg 9.0 - 9.5
+  query: |
+    SELECT
+      'N/A'                                                      AS cluster_id,
+      coalesce((SELECT setting FROM pg_settings WHERE name = 'cluster_name'), 'N/A') AS cluster_name,
+      (SELECT setting FROM pg_settings WHERE name = 'port')       AS listen_port,
+      (SELECT setting FROM pg_settings WHERE name = 'data_directory') AS data_dir,
+      (SELECT setting FROM pg_settings WHERE name = 'config_file') AS conf_path,
+      (SELECT setting FROM pg_settings WHERE name = 'hba_file')   AS hba_path,
+      (SELECT setting FROM pg_settings WHERE name = 'wal_level')  AS wal_level,
+      (SELECT setting FROM pg_settings WHERE name = 'server_encoding') AS encoding,
+      (SELECT setting FROM pg_settings WHERE name = 'server_version') AS version,
+      (SELECT setting FROM pg_settings WHERE name = 'server_version_num') AS ver_num,
+      version()                                                  AS ver_str,
+      (SELECT setting FROM pg_settings WHERE name = 'shared_preload_libraries') AS extensions,
+      coalesce((SELECT setting FROM pg_settings WHERE name = 'primary_conninfo'), 'N/A') AS primary_conninfo,
+      1                                                          AS info;
+  ttl: 10
+  min_version: 90000
+  max_version: 90600
+  tags: [ cluster ]
+  metrics:
+    - cluster_id:        { usage: LABEL ,description: cluster system identifier }
+    - cluster_name:      { usage: LABEL ,description: cluster name }
+    - listen_port:       { usage: LABEL ,description: listen port }
+    - data_dir:          { usage: LABEL ,description: path to data directory }
+    - conf_path:         { usage: LABEL ,description: path to postgresql.conf }
+    - hba_path:          { usage: LABEL ,description: path to pg_hba.conf }
+    - wal_level:         { usage: LABEL ,description: wal level }
+    - encoding:          { usage: LABEL ,description: server encoding }
+    - version:           { usage: LABEL ,description: server version in human-readable format }
+    - ver_num:           { usage: LABEL ,description: server version number in machine-readable format }
+    - ver_str:           { usage: LABEL ,description: complete version string }
+    - extensions:        { usage: LABEL ,description: server installed preload libraries }
+    - primary_conninfo:  { usage: LABEL ,description: connection string to upstream (do not set password here) }
+    - info:              { usage: GAUGE ,description: constant 1 }
+

@@ -1,0 +1,177 @@
+#==============================================================#
+# 0210 pg_repl
+#==============================================================#
+pg_repl_94:
+  name: pg_repl
+  desc: PostgreSQL replication stat metrics 9.4 - 9.6 (with backend_xmin)
+  query: |-
+    SELECT appname, usename, address, pid, client_port, state, sync_state, sync_priority, backend_xmin, lsn,
+           lsn - sent_lsn  AS sent_diff, lsn - write_lsn AS write_diff, lsn - flush_lsn AS flush_diff, lsn - replay_lsn AS replay_diff,
+           sent_lsn, write_lsn, flush_lsn, replay_lsn,
+           0::FLOAT AS write_lag, 0::FLOAT AS flush_lag, 0::FLOAT AS replay_lag,
+           extract(EPOCH FROM current_timestamp) AS "time", extract(EPOCH FROM backend_start) AS launch_time
+    FROM (
+      SELECT application_name AS appname, usename, coalesce(client_addr::TEXT,'localhost') AS address, pid::TEXT, client_port,
+             CASE state WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
+             CASE sync_state WHEN 'async' THEN 0 WHEN 'potential' THEN 1 WHEN 'sync' THEN 2 WHEN 'quorum' THEN 3 ELSE -1 END AS sync_state,
+             sync_priority, backend_xmin::TEXT::BIGINT AS backend_xmin,
+             (('x' || lpad(split_part(current.loc::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(current.loc::text, '/', 2), 8, '0'))::bit(32)::bigint) AS lsn,
+             (('x' || lpad(split_part(sent_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(sent_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS sent_lsn,
+             (('x' || lpad(split_part(write_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(write_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS write_lsn,
+             (('x' || lpad(split_part(flush_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(flush_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS flush_lsn,
+             (('x' || lpad(split_part(replay_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(replay_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS replay_lsn,
+             backend_start
+      FROM pg_stat_replication,
+           (SELECT CASE WHEN pg_is_in_recovery() THEN pg_last_xlog_replay_location() ELSE pg_current_xlog_location() END AS loc) current
+    ) d;
+
+  ttl: 10
+  min_version: 90400
+  max_version: 100000
+  tags: [ cluster ]
+  metrics:
+    - appname:           { usage: LABEL   ,description: Name of the application that is connected to this WAL sender }
+    - usename:           { usage: LABEL   ,description: Name of the user logged into this WAL sender process }
+    - address:           { usage: LABEL   ,description: IP address of the client connected to this WAL sender, localhost for unix socket }
+    - pid:               { usage: LABEL   ,description: Process ID of the WAL sender process }
+    - client_port:       { usage: GAUGE   ,description: TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used }
+    - state:             { usage: GAUGE   ,description: Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping }
+    - sync_state:        { usage: GAUGE   ,description: Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum }
+    - sync_priority:     { usage: GAUGE   ,description: Priority of this standby server for being chosen as the synchronous standby }
+    - backend_xmin:      { usage: COUNTER ,description: This standby's xmin horizon reported by hot_standby_feedback. }
+    - lsn:               { usage: COUNTER ,description: Current log position on this server }
+    - sent_diff:         { usage: GAUGE   ,description: Last log position sent to this standby server diff with current lsn }
+    - write_diff:        { usage: GAUGE   ,description: Last log position written to disk by this standby server diff with current lsn }
+    - flush_diff:        { usage: GAUGE   ,description: Last log position flushed to disk by this standby server diff with current lsn }
+    - replay_diff:       { usage: GAUGE   ,description: Last log position replayed into the database on this standby server diff with current lsn }
+    - sent_lsn:          { usage: COUNTER ,description: Last write-ahead log location sent on this connection }
+    - write_lsn:         { usage: COUNTER ,description: Last write-ahead log location written to disk by this standby server }
+    - flush_lsn:         { usage: COUNTER ,description: Last write-ahead log location flushed to disk by this standby server }
+    - replay_lsn:        { usage: COUNTER ,description: Last write-ahead log location replayed into the database on this standby server }
+    - write_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x) }
+    - flush_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x) }
+    - replay_lag:        { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x) }
+    - time:              { usage: COUNTER ,description: Current timestamp in unix epoch }
+    - launch_time:       { usage: COUNTER ,description: Time when this process was started, i.e., when the client connected to this WAL sender }
+
+pg_repl_92:
+  name: pg_repl
+  desc: PostgreSQL replication stat metrics 9.2 - 9.3
+  query: |-
+    SELECT appname, usename, address, pid, client_port, state, sync_state, sync_priority, backend_xmin, lsn,
+           lsn - sent_lsn  AS sent_diff, lsn - write_lsn AS write_diff, lsn - flush_lsn AS flush_diff, lsn - replay_lsn AS replay_diff,
+           sent_lsn, write_lsn, flush_lsn, replay_lsn,
+           0::FLOAT AS write_lag, 0::FLOAT AS flush_lag, 0::FLOAT AS replay_lag,
+           extract(EPOCH FROM current_timestamp) AS "time", extract(EPOCH FROM backend_start) AS launch_time
+    FROM (
+      SELECT application_name AS appname, usename, coalesce(client_addr::TEXT,'localhost') AS address, pid::TEXT, client_port,
+             CASE state WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
+             CASE sync_state WHEN 'async' THEN 0 WHEN 'potential' THEN 1 WHEN 'sync' THEN 2 WHEN 'quorum' THEN 3 ELSE -1 END AS sync_state,
+             sync_priority, 0::BIGINT AS backend_xmin,
+             (('x' || lpad(split_part(current.loc::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(current.loc::text, '/', 2), 8, '0'))::bit(32)::bigint) AS lsn,
+             (('x' || lpad(split_part(sent_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(sent_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS sent_lsn,
+             (('x' || lpad(split_part(write_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(write_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS write_lsn,
+             (('x' || lpad(split_part(flush_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(flush_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS flush_lsn,
+             (('x' || lpad(split_part(replay_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(replay_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS replay_lsn,
+             backend_start
+      FROM pg_stat_replication,
+           (SELECT CASE WHEN pg_is_in_recovery() THEN pg_last_xlog_replay_location() ELSE pg_current_xlog_location() END AS loc) current
+    ) d;
+
+  ttl: 10
+  min_version: 90200
+  max_version: 90400
+  tags: [ cluster ]
+  metrics:
+    - appname:           { usage: LABEL   ,description: Name of the application that is connected to this WAL sender }
+    - usename:           { usage: LABEL   ,description: Name of the user logged into this WAL sender process }
+    - address:           { usage: LABEL   ,description: IP address of the client connected to this WAL sender, localhost for unix socket }
+    - pid:               { usage: LABEL   ,description: Process ID of the WAL sender process }
+    - client_port:       { usage: GAUGE   ,description: TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used }
+    - state:             { usage: GAUGE   ,description: Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping }
+    - sync_state:        { usage: GAUGE   ,description: Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum }
+    - sync_priority:     { usage: GAUGE   ,description: Priority of this standby server for being chosen as the synchronous standby }
+    - backend_xmin:      { usage: COUNTER ,description: This standby's xmin horizon reported by hot_standby_feedback (N/A before 9.4) }
+    - lsn:               { usage: COUNTER ,description: Current log position on this server }
+    - sent_diff:         { usage: GAUGE   ,description: Last log position sent to this standby server diff with current lsn }
+    - write_diff:        { usage: GAUGE   ,description: Last log position written to disk by this standby server diff with current lsn }
+    - flush_diff:        { usage: GAUGE   ,description: Last log position flushed to disk by this standby server diff with current lsn }
+    - replay_diff:       { usage: GAUGE   ,description: Last log position replayed into the database on this standby server diff with current lsn }
+    - sent_lsn:          { usage: COUNTER ,description: Last write-ahead log location sent on this connection }
+    - write_lsn:         { usage: COUNTER ,description: Last write-ahead log location written to disk by this standby server }
+    - flush_lsn:         { usage: COUNTER ,description: Last write-ahead log location flushed to disk by this standby server }
+    - replay_lsn:        { usage: COUNTER ,description: Last write-ahead log location replayed into the database on this standby server }
+    - write_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x) }
+    - flush_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x) }
+    - replay_lag:        { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x) }
+    - time:              { usage: COUNTER ,description: Current timestamp in unix epoch }
+    - launch_time:       { usage: COUNTER ,description: Time when this process was started, i.e., when the client connected to this WAL sender }
+
+pg_repl_91:
+  name: pg_repl
+  desc: PostgreSQL replication stat metrics 9.1 (procpid)
+  query: |-
+    SELECT appname, usename, address, pid, client_port, state, sync_state, sync_priority, backend_xmin, lsn,
+           lsn - sent_lsn  AS sent_diff, lsn - write_lsn AS write_diff, lsn - flush_lsn AS flush_diff, lsn - replay_lsn AS replay_diff,
+           sent_lsn, write_lsn, flush_lsn, replay_lsn,
+           0::FLOAT AS write_lag, 0::FLOAT AS flush_lag, 0::FLOAT AS replay_lag,
+           extract(EPOCH FROM current_timestamp) AS "time", extract(EPOCH FROM backend_start) AS launch_time
+    FROM (
+      SELECT application_name AS appname, usename, coalesce(client_addr::TEXT,'localhost') AS address, procpid::TEXT AS pid, client_port,
+             CASE state WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
+             CASE sync_state WHEN 'async' THEN 0 WHEN 'potential' THEN 1 WHEN 'sync' THEN 2 WHEN 'quorum' THEN 3 ELSE -1 END AS sync_state,
+             sync_priority, 0::BIGINT AS backend_xmin,
+             (('x' || lpad(split_part(current.loc::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(current.loc::text, '/', 2), 8, '0'))::bit(32)::bigint) AS lsn,
+             (('x' || lpad(split_part(sent_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(sent_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS sent_lsn,
+             (('x' || lpad(split_part(write_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(write_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS write_lsn,
+             (('x' || lpad(split_part(flush_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(flush_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS flush_lsn,
+             (('x' || lpad(split_part(replay_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+              + ('x' || lpad(split_part(replay_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS replay_lsn,
+             backend_start
+      FROM pg_stat_replication,
+           (SELECT CASE WHEN pg_is_in_recovery() THEN pg_last_xlog_replay_location() ELSE pg_current_xlog_location() END AS loc) current
+    ) d;
+
+  ttl: 10
+  min_version: 90100
+  max_version: 90200
+  tags: [ cluster ]
+  metrics:
+    - appname:           { usage: LABEL   ,description: Name of the application that is connected to this WAL sender }
+    - usename:           { usage: LABEL   ,description: Name of the user logged into this WAL sender process }
+    - address:           { usage: LABEL   ,description: IP address of the client connected to this WAL sender, localhost for unix socket }
+    - pid:               { usage: LABEL   ,description: Process ID of the WAL sender process }
+    - client_port:       { usage: GAUGE   ,description: TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used }
+    - state:             { usage: GAUGE   ,description: Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping }
+    - sync_state:        { usage: GAUGE   ,description: Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum }
+    - sync_priority:     { usage: GAUGE   ,description: Priority of this standby server for being chosen as the synchronous standby }
+    - backend_xmin:      { usage: COUNTER ,description: This standby's xmin horizon reported by hot_standby_feedback (N/A before 9.4) }
+    - lsn:               { usage: COUNTER ,description: Current log position on this server }
+    - sent_diff:         { usage: GAUGE   ,description: Last log position sent to this standby server diff with current lsn }
+    - write_diff:        { usage: GAUGE   ,description: Last log position written to disk by this standby server diff with current lsn }
+    - flush_diff:        { usage: GAUGE   ,description: Last log position flushed to disk by this standby server diff with current lsn }
+    - replay_diff:       { usage: GAUGE   ,description: Last log position replayed into the database on this standby server diff with current lsn }
+    - sent_lsn:          { usage: COUNTER ,description: Last write-ahead log location sent on this connection }
+    - write_lsn:         { usage: COUNTER ,description: Last write-ahead log location written to disk by this standby server }
+    - flush_lsn:         { usage: COUNTER ,description: Last write-ahead log location flushed to disk by this standby server }
+    - replay_lsn:        { usage: COUNTER ,description: Last write-ahead log location replayed into the database on this standby server }
+    - write_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x) }
+    - flush_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x) }
+    - replay_lag:        { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x) }
+    - time:              { usage: COUNTER ,description: Current timestamp in unix epoch }
+    - launch_time:       { usage: COUNTER ,description: Time when this process was started, i.e., when the client connected to this WAL sender }
+

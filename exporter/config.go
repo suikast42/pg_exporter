@@ -96,7 +96,7 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid config path: %s: %w", configPath, err)
 	}
-	if stat.IsDir() { // recursively iterate conf files if a dir is given
+	if stat.IsDir() { // load *.yml/*.yaml in a dir (depth=1)
 		files, err := os.ReadDir(configPath)
 		if err != nil {
 			return nil, fmt.Errorf("fail reading config dir: %s: %w", configPath, err)
@@ -105,8 +105,11 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 		logDebugf("load config from dir: %s", configPath)
 		confFiles := make([]string, 0)
 		for _, conf := range files {
-			if !(strings.HasSuffix(conf.Name(), ".yaml") || strings.HasSuffix(conf.Name(), ".yml")) && !conf.IsDir() { // depth = 1
-				continue // skip non yaml files
+			if conf.IsDir() {
+				continue // do not recurse into subdirectories
+			}
+			if !(strings.HasSuffix(conf.Name(), ".yaml") || strings.HasSuffix(conf.Name(), ".yml")) {
+				continue // skip non-yaml files
 			}
 			confFiles = append(confFiles, path.Join(configPath, conf.Name()))
 		}

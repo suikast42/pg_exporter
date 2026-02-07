@@ -1,0 +1,31 @@
+#==============================================================#
+# 0420 pg_wait
+#==============================================================#
+pg_wait_96:
+  name: pg_wait
+  desc: PostgreSQL backend client count group by wait event type (9.6)
+  query: |
+    SELECT coalesce(datname, '_system') AS datname, coalesce(wait_event_type, 'Running') AS event, count(*) AS count FROM pg_stat_activity GROUP BY 1, 2;
+  ttl: 10
+  min_version: 90600
+  max_version: 100000
+  tags: [ cluster ]
+  metrics:
+    - datname: { usage: LABEL ,description: Name of the database, _system for global process }
+    - event:   { usage: LABEL ,description: Wait event type }
+    - count:   { usage: GAUGE ,description: Count of WaitEvent on target database }
+
+pg_wait_90:
+  name: pg_wait
+  desc: PostgreSQL backend client count group by waiting flag (9.0-9.5)
+  query: |
+    SELECT coalesce(datname, '_system') AS datname, CASE WHEN waiting THEN 'Waiting' ELSE 'Running' END AS event, count(*) AS count FROM pg_stat_activity GROUP BY 1, 2;
+  ttl: 10
+  min_version: 90000
+  max_version: 90600
+  tags: [ cluster ]
+  metrics:
+    - datname: { usage: LABEL ,description: Name of the database, _system for global process }
+    - event:   { usage: LABEL ,description: Waiting flag, Waiting or Running }
+    - count:   { usage: GAUGE ,description: Backend count group by waiting flag }
+
