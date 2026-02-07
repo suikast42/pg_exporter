@@ -23,7 +23,7 @@ pg_checkpointer_18:
 
 pg_checkpointer_17:
   name: pg_checkpointer
-  desc: "PostgreSQL checkpointer stat metrics for pg 17+"
+  desc: "PostgreSQL checkpointer stat metrics for pg 17"
   query: SELECT num_timed, num_requested, restartpoints_timed, restartpoints_req, restartpoints_done, write_time, sync_time, buffers_written, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_checkpointer;
   ttl: 10
   min_version: 170000
@@ -42,7 +42,7 @@ pg_checkpointer_17:
 
 pg_checkpointer_10:
   name: pg_checkpointer
-  desc: "PostgreSQL checkpointer stat metrics for pg 9.4-17"
+  desc: "PostgreSQL checkpointer stat metrics for pg 9.4-16"
   query: SELECT checkpoints_timed, checkpoints_req, checkpoint_write_time, checkpoint_sync_time, buffers_checkpoint, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_bgwriter;
   ttl: 10
   min_version: 090400
@@ -55,5 +55,4 @@ pg_checkpointer_10:
     - checkpoint_sync_time:  { usage: COUNTER ,rename: sync_time  ,scale: 1e-3 ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds }
     - buffers_checkpoint:    { usage: COUNTER ,rename: buffers_written         ,description: Number of buffers written during checkpoints and restartpoints }
     - reset_time:            { usage: GAUGE                                    ,description: Time at which checkpointer statistics were last reset }
-
 

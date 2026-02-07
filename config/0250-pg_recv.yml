@@ -9,7 +9,7 @@ pg_recv_13:
       coalesce(sender_host, (regexp_match(conninfo, '.*host=(\S+).*'))[1]) AS sender_host, coalesce(sender_port::TEXT, (regexp_match(conninfo, '.*port=(\S+).*'))[1]) AS sender_port, coalesce(slot_name, 'NULL') AS slot_name,
       pid, CASE status WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
       receive_start_lsn - '0/0' AS init_lsn,receive_start_tli AS init_tli,
-      flushed_lsn - '0/0' AS flush_lsn,written_lsn - '0/0'AS write_lsn, received_tli AS flush_tli, latest_end_lsn - '0/0' AS reported_lsn,
+      flushed_lsn - '0/0' AS flush_lsn,written_lsn - '0/0' AS write_lsn, received_tli AS flush_tli, latest_end_lsn - '0/0' AS reported_lsn,
       last_msg_send_time AS msg_send_time,last_msg_receipt_time AS msg_recv_time,latest_end_time AS reported_time,now() AS time FROM pg_stat_wal_receiver;
 
   ttl: 10
@@ -34,7 +34,7 @@ pg_recv_13:
 
 pg_recv_11:
   name: pg_recv
-  desc: PostgreSQL walreceiver metrics v11+
+  desc: PostgreSQL walreceiver metrics (11-12)
   query: |-
     SELECT 
       coalesce(sender_host, (regexp_match(conninfo, '.*host=(\S+).*'))[1]) AS sender_host, coalesce(sender_port::TEXT, (regexp_match(conninfo, '.*port=(\S+).*'))[1]) AS sender_port, coalesce(slot_name, 'NULL') AS slot_name,
@@ -65,7 +65,7 @@ pg_recv_11:
 
 pg_recv_10:
   name: pg_recv
-  desc: PostgreSQL walreceiver metrics v10+
+  desc: PostgreSQL walreceiver metrics (10)
   query: |-
     SELECT 
       (regexp_match(conninfo, '.*host=(\S+).*'))[1] AS sender_host, (regexp_match(conninfo, '.*port=(\S+).*'))[1] AS sender_port, coalesce(slot_name, 'NULL') AS slot_name,
@@ -93,5 +93,4 @@ pg_recv_10:
     - msg_recv_time:       { usage: GAUGE   ,description: Receipt time of last message received from origin WAL sender }
     - reported_time:       { usage: GAUGE   ,description: Time of last write-ahead log location reported to origin WAL sender }
     - time:                { usage: GAUGE   ,description: Time of current snapshot }
-
 
