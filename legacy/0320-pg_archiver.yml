@@ -13,7 +13,6 @@ pg_archiver:
 
   ttl: 60
   min_version: 90400
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - finish_count:        { usage: COUNTER ,description: Number of WAL files that have been successfully archived }
@@ -21,4 +20,3 @@ pg_archiver:
     - finish_time:         { usage: GAUGE   ,description: Time of the last successful archive operation }
     - failed_time:         { usage: GAUGE   ,description: Time of the last failed archival operation }
     - reset_time:          { usage: GAUGE   ,description: Time at which archive statistics were last reset }
-

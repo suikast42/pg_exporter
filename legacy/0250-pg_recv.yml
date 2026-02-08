@@ -3,11 +3,11 @@
 #==============================================================#
 pg_recv_96:
   name: pg_recv
-  desc: PostgreSQL walreceiver metrics (9.6)
+  desc: PostgreSQL walreceiver metrics (9.6 - 12)
   query: |-
     SELECT 
-      (regexp_match(conninfo, '.*host=(\\S+).*'))[1] AS sender_host,
-      (regexp_match(conninfo, '.*port=(\\S+).*'))[1] AS sender_port,
+      (regexp_match(conninfo, '.*host=(\S+).*'))[1] AS sender_host,
+      (regexp_match(conninfo, '.*port=(\S+).*'))[1] AS sender_port,
       coalesce(slot_name, 'NULL')                    AS slot_name,
       pid,
       CASE status WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
@@ -27,7 +27,7 @@ pg_recv_96:
 
   ttl: 10
   min_version: 90600
-  max_version: 100000
+  max_version: 130000
   tags: [ cluster, replica ]
   metrics:
     - sender_host:         { usage: LABEL   ,description: Host of the PostgreSQL instance this WAL receiver is connected to }
@@ -44,4 +44,3 @@ pg_recv_96:
     - msg_recv_time:       { usage: GAUGE   ,description: Receipt time of last message received from origin WAL sender }
     - reported_time:       { usage: GAUGE   ,description: Time of last write-ahead log location reported to origin WAL sender }
     - time:                { usage: GAUGE   ,description: Time of current snapshot }
-

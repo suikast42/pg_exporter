@@ -18,7 +18,6 @@ pg_citus_node:
     FROM pg_dist_node;
   ttl: 60
   min_version: 90600
-  max_version: 100000
   tags: [ "extension:citus" ]
   metrics:
     - node:             { usage: LABEL ,description: nodename:port of the PostgreSQL instance }
@@ -29,4 +28,3 @@ pg_citus_node:
     - is_active:        { usage: GAUGE ,description: 1 = node currently accepts shards }
     - meta_synced:      { usage: GAUGE ,description: 1 = metadata fully synced to node }
     - have_shards:      { usage: GAUGE ,description: 1 = rebalancer may place shards here }
-

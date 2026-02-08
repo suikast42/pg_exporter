@@ -31,7 +31,6 @@ pg_checkpoint:
 
   ttl: 60
   min_version: 90600
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - checkpoint_lsn:       { usage: COUNTER ,description: Latest checkpoint location }
@@ -53,4 +52,3 @@ pg_checkpoint:
     - newest_commit_ts_xid: { usage: COUNTER ,description: Latest checkpoint's newestCommitTsXid }
     - time:                 { usage: COUNTER ,description: Time of latest checkpoint }
     - elapse:               { usage: GAUGE   ,description: Seconds elapsed since latest checkpoint in seconds }
-

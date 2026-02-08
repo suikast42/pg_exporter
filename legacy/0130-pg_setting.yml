@@ -55,7 +55,6 @@ pg_setting:
 
   ttl: 10
   min_version: 90000
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - max_connections:                  { usage: GAUGE ,description: maximum number of concurrent connections to the database server }
@@ -91,4 +90,3 @@ pg_setting:
     - checkpoint_completion_target:     { usage: GAUGE ,description: checkpoint completion target (0.0-1.0) }
     - hot_standby:                      { usage: GAUGE ,description: hot standby mode enabled, 1=on 0=off }
     - synchronous_commit:               { usage: GAUGE ,description: synchronous commit level, 0=off 1=local 2=remote_write 3=on 4=remote_apply }
-

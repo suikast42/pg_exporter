@@ -16,7 +16,6 @@ pg_recovery:
     FROM pg_control_recovery();
   ttl: 10
   min_version: 90600
-  max_version: 100000
   tags: [ cluster, replica ]
   metrics:
     - min_timeline:      { usage: COUNTER ,description: Min recovery ending loc's timeline }
@@ -24,4 +23,3 @@ pg_recovery:
     - backup_start_lsn:  { usage: COUNTER ,description: Backup start location }
     - backup_end_lsn:    { usage: COUNTER ,description: Backup end location }
     - require_record:    { usage: GAUGE   ,description: End-of-backup record required }
-

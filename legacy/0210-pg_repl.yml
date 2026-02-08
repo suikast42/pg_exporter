@@ -119,7 +119,7 @@ pg_repl_92:
 
 pg_repl_91:
   name: pg_repl
-  desc: PostgreSQL replication stat metrics 9.1 (procpid)
+  desc: PostgreSQL replication stat metrics 9.1 (procpid, no state/sync columns)
   query: |-
     SELECT appname, usename, address, pid, client_port, state, sync_state, sync_priority, backend_xmin, lsn,
            lsn - sent_lsn  AS sent_diff, lsn - write_lsn AS write_diff, lsn - flush_lsn AS flush_diff, lsn - replay_lsn AS replay_diff,
@@ -128,9 +128,7 @@ pg_repl_91:
            extract(EPOCH FROM current_timestamp) AS "time", extract(EPOCH FROM backend_start) AS launch_time
     FROM (
       SELECT application_name AS appname, usename, coalesce(client_addr::TEXT,'localhost') AS address, procpid::TEXT AS pid, client_port,
-             CASE state WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
-             CASE sync_state WHEN 'async' THEN 0 WHEN 'potential' THEN 1 WHEN 'sync' THEN 2 WHEN 'quorum' THEN 3 ELSE -1 END AS sync_state,
-             sync_priority, 0::BIGINT AS backend_xmin,
+             0::INT AS state, 0::INT AS sync_state, 0::INT AS sync_priority, 0::BIGINT AS backend_xmin,
              (('x' || lpad(split_part(current.loc::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
               + ('x' || lpad(split_part(current.loc::text, '/', 2), 8, '0'))::bit(32)::bigint) AS lsn,
              (('x' || lpad(split_part(sent_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
@@ -174,4 +172,3 @@ pg_repl_91:
     - replay_lag:        { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x) }
     - time:              { usage: COUNTER ,description: Current timestamp in unix epoch }
     - launch_time:       { usage: COUNTER ,description: Time when this process was started, i.e., when the client connected to this WAL sender }
-

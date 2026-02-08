@@ -11,9 +11,7 @@ pg_sync_standby:
     FROM (SELECT current_setting('synchronous_standby_names') AS names) n;
   ttl: 10
   min_version: 90100
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - names:   { usage: LABEL ,description: List of standby servers that can support synchronous replication }
     - enabled: { usage: GAUGE ,description: Synchronous commit enabled, 1 if enabled, 0 if disabled }
-

@@ -9,11 +9,9 @@ pg_index_bloat:
   ttl: 300
   timeout: 2
   min_version: 90400
-  max_version: 100000
   skip: true
   metrics:
     - datname:             { usage: LABEL    ,description: Database name of this index }
     - idxname:             { usage: LABEL    ,description: Schema qualified name of this index }
     - size:                { usage: GAUGE    ,description: Total bytes of this index }
     - ratio:               { usage: GAUGE    ,description: Estimated bloat ratio of this index from 0 to 1 }
-

@@ -11,8 +11,6 @@ pg_timeline:
     ) AS id;
   ttl: 10
   min_version: 90600
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - id: { usage: GAUGE ,description: Current timeline ID }
-

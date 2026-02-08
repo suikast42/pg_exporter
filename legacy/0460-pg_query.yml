@@ -3,7 +3,7 @@
 #==============================================================#
 pg_query_94:
   name: pg_query
-  desc: PostgreSQL query statement metrics, require pg_stat_statements installed, 9.4 - 9.6
+  desc: PostgreSQL query statement metrics, require pg_stat_statements installed, 9.4 - 12
   query: |-
     SELECT datname, queryid AS query, sum(calls) AS calls, sum(rows) AS rows, sum(total_time) AS exec_time, sum(blk_read_time) + sum(blk_write_time) AS io_time,
       sum(shared_blks_hit) AS sblk_hit, sum(shared_blks_read) AS sblk_read, sum(shared_blks_dirtied) AS sblk_dirtied, sum(shared_blks_written) AS sblk_written
@@ -12,7 +12,7 @@ pg_query_94:
   ttl: 10
   timeout: 2
   min_version: 90400
-  max_version: 100000
+  max_version: 130000
   tags: [ cluster, "extension:pg_stat_statements" ]
   metrics:
     - datname:      { usage: LABEL   ,description: Name of database }
@@ -50,4 +50,3 @@ pg_query_90:
     - sblk_read:    { usage: COUNTER ,description: Total number of shared blocks read by the statement }
     - sblk_dirtied: { usage: COUNTER ,description: Total number of shared blocks dirtied by the statement (N/A before 9.4, always 0) }
     - sblk_written: { usage: COUNTER ,description: Total number of shared blocks written by the statement }
-

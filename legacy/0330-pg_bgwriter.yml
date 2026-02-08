@@ -4,11 +4,11 @@
 # https://pgpedia.info/p/pg_stat_bgwriter.html
 pg_bgwriter_94:
   name: pg_bgwriter
-  desc: "PostgreSQL background writer metrics (PG 9.4-9.6)"
+  desc: "PostgreSQL background writer metrics (PG 9.4-16)"
   query: SELECT checkpoints_timed, checkpoints_req, checkpoint_write_time, checkpoint_sync_time, buffers_checkpoint, buffers_clean, buffers_backend, maxwritten_clean, buffers_backend_fsync, buffers_alloc, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_bgwriter;
   ttl: 10
   min_version: 90400
-  max_version: 100000
+  max_version: 170000
   tags: [ cluster ]
   metrics:
     - checkpoints_timed:     { usage: COUNTER              ,description: Number of scheduled checkpoints that have been performed }
@@ -43,4 +43,3 @@ pg_bgwriter_90:
     - buffers_backend_fsync: { usage: COUNTER              ,description: Number of times a backend had to execute its own fsync call }
     - buffers_alloc:         { usage: COUNTER              ,description: Number of buffers allocated }
     - reset_time:            { usage: GAUGE                ,description: Time at which bgwriter statistics were last reset }
-

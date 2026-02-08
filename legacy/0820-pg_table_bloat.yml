@@ -9,11 +9,9 @@ pg_table_bloat:
   ttl: 300
   timeout: 2
   min_version: 90400
-  max_version: 100000
   skip: true
   metrics:
     - datname:             { usage: LABEL    ,description: Database name of this table }
     - relname:             { usage: LABEL    ,description: Schema qualified name of this table }
     - size:                { usage: GAUGE    ,description: Total bytes of this table }
     - ratio:               { usage: GAUGE    ,description: Estimated bloat ratio of this table from 0 to 1 }
-

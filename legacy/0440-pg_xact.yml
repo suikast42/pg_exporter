@@ -14,10 +14,8 @@ pg_xact:
     FROM xmin, xmax, xnum;
   ttl: 10
   min_version: 90000
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - xmin: { usage: COUNTER ,description: Earliest txid that is still active }
     - xmax: { usage: COUNTER ,description: First as-yet-unassigned txid }
     - xnum: { usage: GAUGE   ,description: Current active transaction count }
-

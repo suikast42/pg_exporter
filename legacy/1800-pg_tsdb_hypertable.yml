@@ -17,7 +17,6 @@ pg_tsdb_hypertable:
   ttl: 60
   timeout: 2
   min_version: 90600
-  max_version: 100000
   skip: true
   tags: [ "extension:timescaledb", "schema:timescaledb_information" ]
   metrics:
@@ -27,4 +26,3 @@ pg_tsdb_hypertable:
     - chunks:          { usage: GAUGE ,description: Total chunks of this hypertable }
     - compressed:      { usage: GAUGE ,description: 1 if compression enabled }
     - bytes:           { usage: GAUGE ,description: Total size of hypertable in bytes }
-

@@ -22,7 +22,6 @@ pg_index:
   ttl: 10
   timeout: 1
   min_version: 90000
-  max_version: 100000
   metrics:
     - datname:             { usage: LABEL    ,description: Database name of this index }
     - idxname:             { usage: LABEL    ,description: Name of this index (full-qualified schema name) }
@@ -35,4 +34,3 @@ pg_index:
     - idx_tup_fetch:       { usage: COUNTER  ,description: Number of live table rows fetched by simple index scans using this index }
     - idx_blks_read:       { usage: COUNTER  ,description: Number of disk blocks read from this index }
     - idx_blks_hit:        { usage: COUNTER  ,description: Number of buffer hits in this index }
-

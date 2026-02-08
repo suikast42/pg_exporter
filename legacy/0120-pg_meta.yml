@@ -22,7 +22,6 @@ pg_meta_96:
       1                                                           AS info;
   ttl: 10
   min_version: 90600
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - cluster_id:        { usage: LABEL ,description: cluster system identifier }
@@ -78,4 +77,3 @@ pg_meta_90:
     - extensions:        { usage: LABEL ,description: server installed preload libraries }
     - primary_conninfo:  { usage: LABEL ,description: connection string to upstream (do not set password here) }
     - info:              { usage: GAUGE ,description: constant 1 }
-

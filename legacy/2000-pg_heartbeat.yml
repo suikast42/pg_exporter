@@ -14,7 +14,6 @@ pg_heartbeat:
 
   ttl: 10
   min_version: 90000
-  max_version: 100000
   tags: [ "dbname:postgres", "schema:monitor" ]
   skip: true
   metrics:
@@ -22,4 +21,3 @@ pg_heartbeat:
     - ts:               { usage: GAUGE   ,description: unix timestamp of the heartbeat }
     - lsn:              { usage: COUNTER ,description: lsn of the heartbeat }
     - txid:             { usage: GAUGE   ,description: txid of the heartbeat }
-

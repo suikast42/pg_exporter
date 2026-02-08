@@ -11,7 +11,6 @@ pg_db_92:
     FROM pg_database d JOIN pg_stat_database sd ON d.oid = sd.datid;
   ttl: 10
   min_version: 90200
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - datname:             { usage: LABEL   ,description: Name of the database }
@@ -125,4 +124,3 @@ pg_db_90:
     - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds (N/A on 9.0, always 0) }
     - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds (N/A on 9.0, always 0) }
     - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset }
-

@@ -9,9 +9,7 @@ pg_size:
   ttl: 60
   timeout: 1
   min_version: 90000
-  max_version: 100000
   tags: [ cluster ]
   metrics:
     - datname: { usage: LABEL ,description: Database name }
     - bytes:   { usage: GAUGE ,description: Database size in bytes }
-
