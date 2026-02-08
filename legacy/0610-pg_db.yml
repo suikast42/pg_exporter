@@ -90,7 +90,7 @@ pg_db_90:
     SELECT d.datname, datid,age(datfrozenxid) AS age, datistemplate AS is_template, datallowconn AS allow_conn, datconnlimit AS conn_limit, datfrozenxid::TEXT::BIGINT as frozen_xid,
       numbackends,xact_commit,xact_rollback,xact_rollback + xact_commit AS xact_total, blks_read,blks_hit,blks_read + blks_hit AS blks_access,tup_returned,tup_fetched,tup_inserted,tup_updated,tup_deleted,tup_inserted + tup_updated + tup_deleted AS tup_modified,
       0::BIGINT AS conflicts, 0::BIGINT AS temp_files, 0::BIGINT AS temp_bytes, 0::BIGINT AS deadlocks, 0::BIGINT AS blk_read_time, 0::BIGINT AS blk_write_time,
-      extract(EPOCH FROM stats_reset) AS reset_time
+      0::FLOAT AS reset_time
     FROM pg_database d JOIN pg_stat_database sd ON d.oid = sd.datid;
   ttl: 10
   min_version: 90000
@@ -123,4 +123,4 @@ pg_db_90:
     - deadlocks:           { usage: COUNTER ,description: Number of deadlocks detected in this database (N/A on 9.0, always 0) }
     - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds (N/A on 9.0, always 0) }
     - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds (N/A on 9.0, always 0) }
-    - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset }
+    - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset (N/A on 9.0, always 0) }

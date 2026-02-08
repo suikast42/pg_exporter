@@ -6,10 +6,10 @@ pg_checkpoint:
   desc: checkpoint information from pg_control_checkpoint (9.6)
   query: |-
     SELECT 
-      (('x' || lpad(split_part(checkpoint_lsn::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
-       + ('x' || lpad(split_part(checkpoint_lsn::text, '/', 2), 8, '0'))::bit(32)::bigint) AS checkpoint_lsn,
-      (('x' || lpad(split_part(redo_lsn::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
-       + ('x' || lpad(split_part(redo_lsn::text, '/', 2), 8, '0'))::bit(32)::bigint)       AS redo_lsn,
+      (('x' || lpad(split_part(checkpoint_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+       + ('x' || lpad(split_part(checkpoint_location::text, '/', 2), 8, '0'))::bit(32)::bigint) AS checkpoint_lsn,
+      (('x' || lpad(split_part(redo_location::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+       + ('x' || lpad(split_part(redo_location::text, '/', 2), 8, '0'))::bit(32)::bigint)       AS redo_lsn,
       timeline_id AS tli,
       prev_timeline_id AS prev_tli,
       full_page_writes,

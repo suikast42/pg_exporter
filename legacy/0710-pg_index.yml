@@ -15,9 +15,9 @@ pg_index:
     FROM pg_stat_user_indexes psui
       JOIN pg_statio_user_indexes psio ON psio.indexrelid = psui.indexrelid
       JOIN pg_class c ON c.oid = psui.indexrelid
-    WHERE schemaname !~ '^pg_' AND schemaname !~ '^_' AND schemaname !~ '^timescaledb' AND schemaname !~ '^citus' AND schemaname !~ '^columnar'
-      AND schemaname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor')
-    ORDER BY idx_tup_read DESC LIMIT 512;
+    WHERE psui.schemaname !~ '^pg_' AND psui.schemaname !~ '^_' AND psui.schemaname !~ '^timescaledb' AND psui.schemaname !~ '^citus' AND psui.schemaname !~ '^columnar'
+      AND psui.schemaname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor')
+    ORDER BY psui.idx_tup_read DESC LIMIT 512;
 
   ttl: 10
   timeout: 1
