@@ -120,9 +120,9 @@ The `pg_exporter` can be installed as a standalone binary.
 ## Compatibility
 
 The current pg_exporter support PostgreSQL version 10 and above.
-While it is designed to work with any PostgreSQL major version (back to 9.x).
+While it is designed to work with older PostgreSQL major versions (back to 9.1).
 
-The only problem to use with legacy version (9.6 and below) is that 
+The only problem to use with legacy versions (9.1 - 9.6) is that 
 we removed older metrics collector branches definition due to EOL.
 
 You can always retrieve these legacy version of config files and use against historic versions of PostgreSQL
@@ -130,7 +130,7 @@ You can always retrieve these legacy version of config files and use against his
 | PostgreSQL Version | Support Status |
 |--------------------|----------------|
 | 10 ~ 17            | ✅ Full Support |
-| 9.6-               | ⚠️ Legacy Conf |
+| 9.1 ~ 9.6          | ⚠️ Legacy Conf |
 
 pg_exporter works with pgbouncer 1.8+, Since `v1.8` is the first version with `SHOW` command support.
 
