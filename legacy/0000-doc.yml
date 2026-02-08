@@ -1,6 +1,6 @@
 #==============================================================#
 # Desc      :   pg_exporter metrics collector definition (Legacy)
-# Ver       :   PostgreSQL 9.0 ~ 9.6 and pgbouncer 1.9~1.25+
+# Ver       :   PostgreSQL 9.1 ~ 9.6 and pgbouncer 1.9~1.25+
 # Ctime     :   2019-12-09
 # Mtime     :   2026-02-07
 # Homepage  :   https://pigsty.io
@@ -39,9 +39,8 @@
 # format as <major:2 digit><minor:2 digit>:<release: 2 digit>.
 #
 # For example:
-#   - 90000  stands for 9.0
+#   - 90100  stands for 9.1
 #   - 90600  stands for 9.6
 #   - 100000 stands for 10.0
 #
 # Version compatibility range is left-inclusive right-exclusive: [min, max)
-

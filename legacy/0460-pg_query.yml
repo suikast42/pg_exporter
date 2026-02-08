@@ -26,9 +26,9 @@ pg_query_94:
     - sblk_dirtied: { usage: COUNTER ,description: Total number of shared blocks dirtied by the statement }
     - sblk_written: { usage: COUNTER ,description: Total number of shared blocks written by the statement }
 
-pg_query_90:
+pg_query_91:
   name: pg_query
-  desc: PostgreSQL query statement metrics, require pg_stat_statements installed, 9.0 - 9.3 (no queryid)
+  desc: PostgreSQL query statement metrics, require pg_stat_statements installed, 9.1 - 9.3 (no queryid)
   query: |-
     SELECT datname, md5(query) AS query, sum(calls) AS calls, sum(rows) AS rows, sum(total_time) AS exec_time, 0::FLOAT AS io_time,
       sum(shared_blks_hit) AS sblk_hit, sum(shared_blks_read) AS sblk_read, 0::BIGINT AS sblk_dirtied, sum(shared_blks_written) AS sblk_written
@@ -36,7 +36,7 @@ pg_query_90:
 
   ttl: 10
   timeout: 2
-  min_version: 90000
+  min_version: 90100
   max_version: 90400
   tags: [ cluster, "extension:pg_stat_statements" ]
   metrics:

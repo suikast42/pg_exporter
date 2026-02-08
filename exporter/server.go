@@ -247,18 +247,10 @@ func PostgresPrecheck(s *Server) (err error) {
 	var recovery bool
 	var datname, username string
 	var databases, namespaces, extensions []string
-	precheckSQLWithExtensions := `SELECT current_catalog, current_user, pg_catalog.pg_is_in_recovery(),
+	precheckSQL := `SELECT current_catalog, current_user, pg_catalog.pg_is_in_recovery(),
 	(SELECT pg_catalog.array_agg(d.datname)::text[] AS databases FROM pg_catalog.pg_database d WHERE d.datallowconn AND NOT d.datistemplate),
 	(SELECT pg_catalog.array_agg(n.nspname)::text[] AS namespaces FROM pg_catalog.pg_namespace n),
 	(SELECT pg_catalog.array_agg(e.extname)::text[] AS extensions FROM pg_catalog.pg_extension e);`
-	precheckSQLNoExtensions := `SELECT current_catalog, current_user, pg_catalog.pg_is_in_recovery(),
-	(SELECT pg_catalog.array_agg(d.datname)::text[] AS databases FROM pg_catalog.pg_database d WHERE d.datallowconn AND NOT d.datistemplate),
-	(SELECT pg_catalog.array_agg(n.nspname)::text[] AS namespaces FROM pg_catalog.pg_namespace n),
-	ARRAY[]::text[] AS extensions;`
-	precheckSQL := precheckSQLWithExtensions
-	if s.Version != 0 && s.Version < 90100 { // pg_extension introduced in 9.1
-		precheckSQL = precheckSQLNoExtensions
-	}
 	ctx2, cancel2 := context.WithTimeout(context.Background(), s.GetConnectTimeout())
 	defer cancel2()
 	if err = s.DB.QueryRowContext(ctx2, precheckSQL).Scan(&datname, &username, &recovery, pq.Array(&databases), pq.Array(&namespaces), pq.Array(&extensions)); err != nil {

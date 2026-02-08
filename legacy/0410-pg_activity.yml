@@ -20,9 +20,9 @@ pg_activity_92:
     - max_tx_duration:   { usage: GAUGE ,description: Max transaction duration since state change among (datname, state) }
     - max_conn_duration: { usage: GAUGE ,description: Max backend session duration since state change among (datname, state) }
 
-pg_activity_90:
+pg_activity_91:
   name: pg_activity
-  desc: PostgreSQL backend activity group by database (9.0-9.1)
+  desc: PostgreSQL backend activity group by database (9.1)
   query: |
     SELECT
       datname,
@@ -36,12 +36,12 @@ pg_activity_90:
       AND datname IS NOT NULL
     GROUP BY datname;
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   max_version: 90200
   tags: [ cluster ]
   metrics:
     - datname:           { usage: LABEL ,description: Name of the database this backend is connected to }
-    - state:             { usage: LABEL ,description: Current overall state of this backend (always active on 9.0-9.1) }
+    - state:             { usage: LABEL ,description: Current overall state of this backend (always active on 9.1) }
     - count:             { usage: GAUGE ,description: Count of connection among (datname,state) }
     - max_duration:      { usage: GAUGE ,description: Max duration since query start among (datname) }
     - max_tx_duration:   { usage: GAUGE ,description: Max transaction duration among (datname) }

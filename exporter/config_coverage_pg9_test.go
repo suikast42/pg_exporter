@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// Ensure the legacy/ config covers PG9.0..PG9.6 without version gaps for
+// Ensure the legacy/ config covers PG9.1..PG9.6 without version gaps for
 // collectors that are supposed to work on legacy PG9.x.
 func TestConfigCoveragePG9(t *testing.T) {
 	_, thisFile, _, ok := runtime.Caller(0)
@@ -32,7 +32,7 @@ func TestConfigCoveragePG9(t *testing.T) {
 		byName[q.Name] = append(byName[q.Name], q)
 	}
 
-	versions := []int{90000, 90100, 90200, 90300, 90400, 90500, 90600} // PG9.0..PG9.6
+	versions := []int{90100, 90200, 90300, 90400, 90500, 90600} // PG9.1..PG9.6
 	for name, qs := range byName {
 		minMin := 0
 		for i, q := range qs {

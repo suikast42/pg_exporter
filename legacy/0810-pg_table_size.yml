@@ -15,7 +15,7 @@ pg_table_size:
 
   ttl: 300
   timeout: 2
-  min_version: 90000
+  min_version: 90100
   metrics:
     - datname:             { usage: LABEL    ,description: Database name of this table }
     - relname:             { usage: LABEL    ,description: Schema qualified table name }

@@ -39,9 +39,9 @@ pg_meta_96:
     - primary_conninfo:  { usage: LABEL ,description: connection string to upstream (do not set password here) }
     - info:              { usage: GAUGE ,description: constant 1 }
 
-pg_meta_90:
+pg_meta_91:
   name: pg_meta
-  desc: PostgreSQL meta info for pg 9.0 - 9.5
+  desc: PostgreSQL meta info for pg 9.1 - 9.5
   query: |
     SELECT
       'N/A'                                                      AS cluster_id,
@@ -59,7 +59,7 @@ pg_meta_90:
       coalesce((SELECT setting FROM pg_settings WHERE name = 'primary_conninfo'), 'N/A') AS primary_conninfo,
       1                                                          AS info;
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   max_version: 90600
   tags: [ cluster ]
   metrics:

@@ -1,6 +1,6 @@
 #==============================================================#
 # Desc      :   pg_exporter metrics collector definition (Legacy)
-# Ver       :   PostgreSQL 9.0 ~ 9.6 and pgbouncer 1.9~1.25+
+# Ver       :   PostgreSQL 9.1 ~ 9.6 and pgbouncer 1.9~1.25+
 # Ctime     :   2019-12-09
 # Mtime     :   2026-02-07
 # Homepage  :   https://pigsty.io
@@ -39,12 +39,11 @@
 # format as <major:2 digit><minor:2 digit>:<release: 2 digit>.
 #
 # For example:
-#   - 90000  stands for 9.0
+#   - 90100  stands for 9.1
 #   - 90600  stands for 9.6
 #   - 100000 stands for 10.0
 #
 # Version compatibility range is left-inclusive right-exclusive: [min, max)
-
 #==============================================================#
 # 0110 pg
 #==============================================================#
@@ -74,7 +73,7 @@ pg_primary_only:
       FALSE                                                  AS is_wal_replay_paused;
   tags: [ cluster, primary ]
   ttl: 1
-  min_version: 90000
+  min_version: 90100
   max_version: 100000
   fatal: true
   skip: false
@@ -142,54 +141,6 @@ pg_replica_only:
     - lag:                  { usage: GAUGE   ,description: replica only, replication lag in seconds }
     - is_in_recovery:       { usage: GAUGE   ,description: 1 if in recovery mode }
     - is_wal_replay_paused: { usage: GAUGE   ,description: 1 if wal play is paused }
-
-pg_replica_only_90:
-  name: pg
-  desc: PostgreSQL basic information (on replica, 9.0)
-  query: |-
-    SELECT 
-      extract(EPOCH FROM CURRENT_TIMESTAMP)                  AS timestamp,
-      extract(EPOCH FROM now() - pg_postmaster_start_time()) AS uptime,
-      extract(EPOCH FROM pg_postmaster_start_time())         AS boot_time,
-      (('x' || lpad(split_part(pg_last_xlog_replay_location()::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
-       + ('x' || lpad(split_part(pg_last_xlog_replay_location()::text, '/', 2), 8, '0'))::bit(32)::bigint) AS lsn,
-      NULL::BIGINT                                           AS insert_lsn,
-      NULL::BIGINT                                           AS write_lsn,
-      NULL::BIGINT                                           AS flush_lsn,
-      (('x' || lpad(split_part(pg_last_xlog_receive_location()::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
-       + ('x' || lpad(split_part(pg_last_xlog_receive_location()::text, '/', 2), 8, '0'))::bit(32)::bigint) AS receive_lsn,
-      (('x' || lpad(split_part(pg_last_xlog_replay_location()::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
-       + ('x' || lpad(split_part(pg_last_xlog_replay_location()::text, '/', 2), 8, '0'))::bit(32)::bigint) AS replay_lsn,
-      extract(EPOCH FROM pg_conf_load_time())                AS reload_time,
-      extract(EPOCH FROM now() - pg_conf_load_time())        AS conf_reload_time,
-      NULL::FLOAT                                            AS last_replay_time,
-      0::FLOAT                                               AS lag,
-      pg_is_in_recovery()                                    AS is_in_recovery,
-      FALSE                                                  AS is_wal_replay_paused;
-
-  tags: [ cluster, replica ]
-  ttl: 1
-  min_version: 90000
-  max_version: 90100
-  fatal: true
-  skip: false
-  metrics:
-    - timestamp:            { usage: GAUGE   ,description: current database timestamp in unix epoch }
-    - uptime:               { usage: GAUGE   ,description: seconds since postmaster start }
-    - boot_time:            { usage: GAUGE   ,description: postmaster boot timestamp in unix epoch }
-    - lsn:                  { usage: COUNTER ,description: log sequence number, current write location }
-    - insert_lsn:           { usage: COUNTER ,description: primary only, location of current wal inserting }
-    - write_lsn:            { usage: COUNTER ,description: primary only, location of current wal writing }
-    - flush_lsn:            { usage: COUNTER ,description: primary only, location of current wal syncing }
-    - receive_lsn:          { usage: COUNTER ,description: replica only, location of wal synced to disk }
-    - replay_lsn:           { usage: COUNTER ,description: replica only, location of wal applied }
-    - reload_time:          { usage: GAUGE   ,description: time when configuration was last reloaded }
-    - conf_reload_time:     { usage: GAUGE   ,description: seconds since last configuration reload }
-    - last_replay_time:     { usage: GAUGE   ,description: time when last transaction been replayed }
-    - lag:                  { usage: GAUGE   ,description: replica only, replication lag in seconds }
-    - is_in_recovery:       { usage: GAUGE   ,description: 1 if in recovery mode }
-    - is_wal_replay_paused: { usage: GAUGE   ,description: 1 if wal play is paused }
-
 #==============================================================#
 # 0120 pg_meta
 #==============================================================#
@@ -231,9 +182,9 @@ pg_meta_96:
     - primary_conninfo:  { usage: LABEL ,description: connection string to upstream (do not set password here) }
     - info:              { usage: GAUGE ,description: constant 1 }
 
-pg_meta_90:
+pg_meta_91:
   name: pg_meta
-  desc: PostgreSQL meta info for pg 9.0 - 9.5
+  desc: PostgreSQL meta info for pg 9.1 - 9.5
   query: |
     SELECT
       'N/A'                                                      AS cluster_id,
@@ -251,7 +202,7 @@ pg_meta_90:
       coalesce((SELECT setting FROM pg_settings WHERE name = 'primary_conninfo'), 'N/A') AS primary_conninfo,
       1                                                          AS info;
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   max_version: 90600
   tags: [ cluster ]
   metrics:
@@ -272,11 +223,11 @@ pg_meta_90:
 #==============================================================#
 # 0130 pg_setting
 #==============================================================#
-# Key PostgreSQL configuration parameters for PostgreSQL 9.0 - 9.6
+# Key PostgreSQL configuration parameters for PostgreSQL 9.1 - 9.6
 # Use scalar subquery on pg_settings for "missing_ok" semantics (return NULL if not exist)
 pg_setting:
   name: pg_setting
-  desc: PostgreSQL shared configuration parameters (legacy 9.0-9.6)
+  desc: PostgreSQL shared configuration parameters (legacy 9.1-9.6)
   query: |
     SELECT
       (SELECT setting::int FROM pg_settings WHERE name = 'max_connections')                   AS max_connections,
@@ -325,7 +276,7 @@ pg_setting:
         FROM pg_settings WHERE name = 'synchronous_commit')                                   AS synchronous_commit;
 
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   tags: [ cluster ]
   metrics:
     - max_connections:                  { usage: GAUGE ,description: maximum number of concurrent connections to the database server }
@@ -770,12 +721,12 @@ pg_origin:
 #==============================================================#
 pg_size:
   name: pg_size
-  desc: PostgreSQL database size (legacy 9.0-9.6)
+  desc: PostgreSQL database size (legacy 9.1-9.6)
   query: |-
     SELECT datname, pg_database_size(oid) AS bytes FROM pg_database;
   ttl: 60
   timeout: 1
-  min_version: 90000
+  min_version: 90100
   tags: [ cluster ]
   metrics:
     - datname: { usage: LABEL ,description: Database name }
@@ -827,27 +778,6 @@ pg_bgwriter_94:
     - buffers_alloc:         { usage: COUNTER              ,description: Number of buffers allocated }
     - reset_time:            { usage: GAUGE                ,description: Time at which bgwriter statistics were last reset }
 
-pg_bgwriter_90:
-  name: pg_bgwriter
-  desc: "PostgreSQL background writer metrics (PG 9.0)"
-  query: SELECT checkpoints_timed, checkpoints_req, 0::BIGINT AS checkpoint_write_time, 0::BIGINT AS checkpoint_sync_time, buffers_checkpoint, buffers_clean, buffers_backend, maxwritten_clean, 0::BIGINT AS buffers_backend_fsync, buffers_alloc, 0::FLOAT AS reset_time FROM pg_stat_bgwriter;
-  ttl: 10
-  min_version: 90000
-  max_version: 90100
-  tags: [ cluster ]
-  metrics:
-    - checkpoints_timed:     { usage: COUNTER              ,description: Number of scheduled checkpoints that have been performed }
-    - checkpoints_req:       { usage: COUNTER              ,description: Number of requested checkpoints that have been performed }
-    - checkpoint_write_time: { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent writing checkpoint files, in seconds (N/A on 9.0-9.3, always 0) }
-    - checkpoint_sync_time:  { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent syncing checkpoint files, in seconds (N/A on 9.0-9.3, always 0) }
-    - buffers_checkpoint:    { usage: COUNTER              ,description: Number of buffers written during checkpoints }
-    - buffers_clean:         { usage: COUNTER              ,description: Number of buffers written by the background writer }
-    - buffers_backend:       { usage: COUNTER              ,description: Number of buffers written directly by a backend }
-    - maxwritten_clean:      { usage: COUNTER              ,description: Number of times the background writer stopped a cleaning scan because it had written too many buffers }
-    - buffers_backend_fsync: { usage: COUNTER              ,description: Number of times a backend had to execute its own fsync call (N/A on 9.0, always 0) }
-    - buffers_alloc:         { usage: COUNTER              ,description: Number of buffers allocated }
-    - reset_time:            { usage: GAUGE                ,description: Time at which bgwriter statistics were last reset (N/A on 9.0, always 0) }
-
 pg_bgwriter_91:
   name: pg_bgwriter
   desc: "PostgreSQL background writer metrics (PG 9.1-9.3)"
@@ -859,8 +789,8 @@ pg_bgwriter_91:
   metrics:
     - checkpoints_timed:     { usage: COUNTER              ,description: Number of scheduled checkpoints that have been performed }
     - checkpoints_req:       { usage: COUNTER              ,description: Number of requested checkpoints that have been performed }
-    - checkpoint_write_time: { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent writing checkpoint files, in seconds (N/A on 9.0-9.3, always 0) }
-    - checkpoint_sync_time:  { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent syncing checkpoint files, in seconds (N/A on 9.0-9.3, always 0) }
+    - checkpoint_write_time: { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent writing checkpoint files, in seconds (N/A on 9.1-9.3, always 0) }
+    - checkpoint_sync_time:  { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent syncing checkpoint files, in seconds (N/A on 9.1-9.3, always 0) }
     - buffers_checkpoint:    { usage: COUNTER              ,description: Number of buffers written during checkpoints }
     - buffers_clean:         { usage: COUNTER              ,description: Number of buffers written by the background writer }
     - buffers_backend:       { usage: COUNTER              ,description: Number of buffers written directly by a backend }
@@ -887,22 +817,6 @@ pg_checkpointer_94:
     - buffers_checkpoint:    { usage: COUNTER ,rename: buffers_written         ,description: Number of buffers written during checkpoints and restartpoints }
     - reset_time:            { usage: GAUGE                                    ,description: Time at which checkpointer statistics were last reset }
 
-pg_checkpointer_90:
-  name: pg_checkpointer
-  desc: "PostgreSQL checkpointer stat metrics for pg 9.0"
-  query: SELECT checkpoints_timed, checkpoints_req, 0::BIGINT AS checkpoint_write_time, 0::BIGINT AS checkpoint_sync_time, buffers_checkpoint, 0::FLOAT AS reset_time FROM pg_stat_bgwriter;
-  ttl: 10
-  min_version: 90000
-  max_version: 90100
-  tags: [ cluster ]
-  metrics:
-    - checkpoints_timed:     { usage: COUNTER ,rename: timed                   ,description: Number of scheduled checkpoints that have been performed }
-    - checkpoints_req:       { usage: COUNTER ,rename: req                     ,description: Number of requested checkpoints that have been performed }
-    - checkpoint_write_time: { usage: COUNTER ,rename: write_time ,scale: 1e-3 ,description: Total amount of time that has been spent writing checkpoint files, in seconds (N/A on 9.0-9.3, always 0) }
-    - checkpoint_sync_time:  { usage: COUNTER ,rename: sync_time  ,scale: 1e-3 ,description: Total amount of time that has been spent synchronizing checkpoint files to disk, in seconds (N/A on 9.0-9.3, always 0) }
-    - buffers_checkpoint:    { usage: COUNTER ,rename: buffers_written         ,description: Number of buffers written during checkpoints and restartpoints }
-    - reset_time:            { usage: GAUGE                                    ,description: Time at which checkpointer statistics were last reset (N/A on 9.0, always 0) }
-
 pg_checkpointer_91:
   name: pg_checkpointer
   desc: "PostgreSQL checkpointer stat metrics for pg 9.1-9.3"
@@ -914,8 +828,8 @@ pg_checkpointer_91:
   metrics:
     - checkpoints_timed:     { usage: COUNTER ,rename: timed                   ,description: Number of scheduled checkpoints that have been performed }
     - checkpoints_req:       { usage: COUNTER ,rename: req                     ,description: Number of requested checkpoints that have been performed }
-    - checkpoint_write_time: { usage: COUNTER ,rename: write_time ,scale: 1e-3 ,description: Total amount of time that has been spent writing checkpoint files, in seconds (N/A on 9.0-9.3, always 0) }
-    - checkpoint_sync_time:  { usage: COUNTER ,rename: sync_time  ,scale: 1e-3 ,description: Total amount of time that has been spent synchronizing checkpoint files to disk, in seconds (N/A on 9.0-9.3, always 0) }
+    - checkpoint_write_time: { usage: COUNTER ,rename: write_time ,scale: 1e-3 ,description: Total amount of time that has been spent writing checkpoint files, in seconds (N/A on 9.1-9.3, always 0) }
+    - checkpoint_sync_time:  { usage: COUNTER ,rename: sync_time  ,scale: 1e-3 ,description: Total amount of time that has been spent synchronizing checkpoint files to disk, in seconds (N/A on 9.1-9.3, always 0) }
     - buffers_checkpoint:    { usage: COUNTER ,rename: buffers_written         ,description: Number of buffers written during checkpoints and restartpoints }
     - reset_time:            { usage: GAUGE                                    ,description: Time at which checkpointer statistics were last reset }
 #==============================================================#
@@ -1049,9 +963,9 @@ pg_activity_92:
     - max_tx_duration:   { usage: GAUGE ,description: Max transaction duration since state change among (datname, state) }
     - max_conn_duration: { usage: GAUGE ,description: Max backend session duration since state change among (datname, state) }
 
-pg_activity_90:
+pg_activity_91:
   name: pg_activity
-  desc: PostgreSQL backend activity group by database (9.0-9.1)
+  desc: PostgreSQL backend activity group by database (9.1)
   query: |
     SELECT
       datname,
@@ -1065,12 +979,12 @@ pg_activity_90:
       AND datname IS NOT NULL
     GROUP BY datname;
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   max_version: 90200
   tags: [ cluster ]
   metrics:
     - datname:           { usage: LABEL ,description: Name of the database this backend is connected to }
-    - state:             { usage: LABEL ,description: Current overall state of this backend (always active on 9.0-9.1) }
+    - state:             { usage: LABEL ,description: Current overall state of this backend (always active on 9.1) }
     - count:             { usage: GAUGE ,description: Count of connection among (datname,state) }
     - max_duration:      { usage: GAUGE ,description: Max duration since query start among (datname) }
     - max_tx_duration:   { usage: GAUGE ,description: Max transaction duration among (datname) }
@@ -1091,13 +1005,13 @@ pg_wait_96:
     - event:   { usage: LABEL ,description: Wait event type }
     - count:   { usage: GAUGE ,description: Count of WaitEvent on target database }
 
-pg_wait_90:
+pg_wait_91:
   name: pg_wait
-  desc: PostgreSQL backend client count group by waiting flag (9.0-9.5)
+  desc: PostgreSQL backend client count group by waiting flag (9.1-9.5)
   query: |
     SELECT coalesce(datname, '_system') AS datname, CASE WHEN waiting THEN 'Waiting' ELSE 'Running' END AS event, count(*) AS count FROM pg_stat_activity GROUP BY 1, 2;
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   max_version: 90600
   tags: [ cluster ]
   metrics:
@@ -1119,7 +1033,7 @@ pg_xact:
     SELECT xmin.v AS xmin, xmax.v AS xmax, xnum.v AS xnum
     FROM xmin, xmax, xnum;
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   tags: [ cluster ]
   metrics:
     - xmin: { usage: COUNTER ,description: Earliest txid that is still active }
@@ -1136,7 +1050,7 @@ pg_lock:
       FROM (SELECT d.oid AS database, d.datname, l.mode FROM pg_database d, unnest(ARRAY ['AccessShareLock','RowShareLock','RowExclusiveLock','ShareUpdateExclusiveLock', 'ShareLock','ShareRowExclusiveLock','ExclusiveLock','AccessExclusiveLock']) l(mode) WHERE d.datallowconn AND NOT d.datistemplate) base
       LEFT JOIN (SELECT database, mode, count(*) AS count FROM pg_locks WHERE database IS NOT NULL GROUP BY 1, 2) cnt USING (database, mode);
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   tags: [ cluster ]
   metrics:
     - datname: { usage: LABEL ,description: Name of the database this backend is connected to }
@@ -1170,9 +1084,9 @@ pg_query_94:
     - sblk_dirtied: { usage: COUNTER ,description: Total number of shared blocks dirtied by the statement }
     - sblk_written: { usage: COUNTER ,description: Total number of shared blocks written by the statement }
 
-pg_query_90:
+pg_query_91:
   name: pg_query
-  desc: PostgreSQL query statement metrics, require pg_stat_statements installed, 9.0 - 9.3 (no queryid)
+  desc: PostgreSQL query statement metrics, require pg_stat_statements installed, 9.1 - 9.3 (no queryid)
   query: |-
     SELECT datname, md5(query) AS query, sum(calls) AS calls, sum(rows) AS rows, sum(total_time) AS exec_time, 0::FLOAT AS io_time,
       sum(shared_blks_hit) AS sblk_hit, sum(shared_blks_read) AS sblk_read, 0::BIGINT AS sblk_dirtied, sum(shared_blks_written) AS sblk_written
@@ -1180,7 +1094,7 @@ pg_query_90:
 
   ttl: 10
   timeout: 2
-  min_version: 90000
+  min_version: 90100
   max_version: 90400
   tags: [ cluster, "extension:pg_stat_statements" ]
   metrics:
@@ -1279,47 +1193,6 @@ pg_db_91:
     - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds (N/A on 9.1, always 0) }
     - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset }
 
-pg_db_90:
-  name: pg_db
-  desc: PostgreSQL database stats from pg_stat_database (9.0, no conflicts)
-  query: |-
-    SELECT d.datname, datid,age(datfrozenxid) AS age, datistemplate AS is_template, datallowconn AS allow_conn, datconnlimit AS conn_limit, datfrozenxid::TEXT::BIGINT as frozen_xid,
-      numbackends,xact_commit,xact_rollback,xact_rollback + xact_commit AS xact_total, blks_read,blks_hit,blks_read + blks_hit AS blks_access,tup_returned,tup_fetched,tup_inserted,tup_updated,tup_deleted,tup_inserted + tup_updated + tup_deleted AS tup_modified,
-      0::BIGINT AS conflicts, 0::BIGINT AS temp_files, 0::BIGINT AS temp_bytes, 0::BIGINT AS deadlocks, 0::BIGINT AS blk_read_time, 0::BIGINT AS blk_write_time,
-      0::FLOAT AS reset_time
-    FROM pg_database d JOIN pg_stat_database sd ON d.oid = sd.datid;
-  ttl: 10
-  min_version: 90000
-  max_version: 90100
-  tags: [ cluster ]
-  metrics:
-    - datname:             { usage: LABEL   ,description: Name of the database }
-    - datid:               { usage: GAUGE   ,description: OID of the database }
-    - age:                 { usage: GAUGE   ,description: Age of database calculated from datfrozenxid }
-    - is_template:         { usage: GAUGE   ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
-    - allow_conn:          { usage: GAUGE   ,description: If false(0) then no one can connect to this database. }
-    - conn_limit:          { usage: GAUGE   ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
-    - frozen_xid:          { usage: GAUGE   ,description: All transaction IDs before this one have been frozen }
-    - numbackends:         { usage: GAUGE   ,description: Number of backends currently connected to this database }
-    - xact_commit:         { usage: COUNTER ,description: Number of transactions in this database that have been committed }
-    - xact_rollback:       { usage: COUNTER ,description: Number of transactions in this database that have been rolled back }
-    - xact_total:          { usage: COUNTER ,description: Number of transactions in this database }
-    - blks_read:           { usage: COUNTER ,description: Number of disk blocks read in this database }
-    - blks_hit:            { usage: COUNTER ,description: Number of times disk blocks were found already in the buffer cache }
-    - blks_access:         { usage: COUNTER ,description: Number of times disk blocks that accessed read+hit }
-    - tup_returned:        { usage: COUNTER ,description: Number of rows returned by queries in this database }
-    - tup_fetched:         { usage: COUNTER ,description: Number of rows fetched by queries in this database }
-    - tup_inserted:        { usage: COUNTER ,description: Number of rows inserted by queries in this database }
-    - tup_updated:         { usage: COUNTER ,description: Number of rows updated by queries in this database }
-    - tup_deleted:         { usage: COUNTER ,description: Number of rows deleted by queries in this database }
-    - tup_modified:        { usage: COUNTER ,description: Number of rows modified by queries in this database }
-    - conflicts:           { usage: COUNTER ,description: Number of queries canceled due to conflicts with recovery in this database (N/A on 9.0, always 0) }
-    - temp_files:          { usage: COUNTER ,description: Number of temporary files created by queries in this database (N/A on 9.0, always 0) }
-    - temp_bytes:          { usage: COUNTER ,description: Total amount of data written to temporary files by queries in this database (N/A on 9.0, always 0) }
-    - deadlocks:           { usage: COUNTER ,description: Number of deadlocks detected in this database (N/A on 9.0, always 0) }
-    - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds (N/A on 9.0, always 0) }
-    - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds (N/A on 9.0, always 0) }
-    - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset (N/A on 9.0, always 0) }
 #==============================================================#
 # 0620 pg_db_confl
 #==============================================================#
@@ -1447,7 +1320,7 @@ pg_table_91:
     - n_tup_hot_upd:       { usage: COUNTER  ,default: 0  ,description: Number of rows HOT updated (i.e with no separate index update required) }
     - n_live_tup:          { usage: GAUGE                 ,description: Estimated number of live rows }
     - n_dead_tup:          { usage: GAUGE                 ,description: Estimated number of dead rows }
-    - n_mod_since_analyze: { usage: GAUGE                 ,description: Estimated number of rows modified since this table was last analyzed (N/A on 9.0-9.3, NULL) }
+    - n_mod_since_analyze: { usage: GAUGE                 ,description: Estimated number of rows modified since this table was last analyzed (N/A on 9.1-9.3, NULL) }
     - last_vacuum:         { usage: DISCARD               ,description: Last time at which this table was manually vacuumed (not counting VACUUM FULL) }
     - last_autovacuum:     { usage: DISCARD               ,description: Last time at which this table was vacuumed by the autovacuum daemon }
     - last_analyze:        { usage: DISCARD               ,description: Last time at which this table was manually analyzed }
@@ -1464,74 +1337,12 @@ pg_table_91:
     - toast_blks_hit:      { usage: DISCARD  ,default: 0  ,description: Number of buffer hits in this table's TOAST table (if any) }
     - tidx_blks_read:      { usage: DISCARD  ,default: 0  ,description: Number of disk blocks read from this table's TOAST table indexes (if any) }
     - tidx_blks_hit:       { usage: DISCARD  ,default: 0  ,description: Number of buffer hits in this table's TOAST table indexes (if any) }
-
-pg_table_90:
-  name: pg_table
-  desc: PostgreSQL table metrics 9.0 (no n_mod_since_analyze, no (auto)vacuum/analyze counts)
-  query: |-
-    SELECT CURRENT_CATALOG AS datname, nsp.nspname || '.' || c.relname AS relname, c.oid AS relid, ascii(c.relkind) AS kind,
-       c.relpages AS pages, c.reltuples AS tuples, c.relfrozenxid AS frozenxid, age(c.relfrozenxid) AS age, c.relnatts AS ncols,
-       psut.seq_scan,psut.seq_tup_read,psut.idx_scan,psut.idx_tup_fetch,psut.seq_scan + psut.idx_scan AS tbl_scan, psut.seq_tup_read + psut.idx_tup_fetch AS tup_read,
-       psut.n_tup_ins,psut.n_tup_upd,psut.n_tup_del,(psut.n_tup_ins + psut.n_tup_upd + psut.n_tup_del) AS n_tup_mod,psut.n_tup_hot_upd,psut.n_live_tup,psut.n_dead_tup,
-       NULL::BIGINT AS n_mod_since_analyze, psut.last_vacuum,psut.last_autovacuum,psut.last_analyze,psut.last_autoanalyze,
-       0::BIGINT AS vacuum_count, 0::BIGINT AS autovacuum_count, 0::BIGINT AS analyze_count, 0::BIGINT AS autoanalyze_count,
-       psio.heap_blks_read,psio.heap_blks_hit,psio.idx_blks_read,psio.idx_blks_hit,psio.toast_blks_read,psio.toast_blks_hit,psio.tidx_blks_read,psio.tidx_blks_hit
-    FROM pg_class c JOIN pg_namespace nsp ON c.relnamespace = nsp.oid
-        LEFT JOIN pg_stat_user_tables psut ON psut.relid = c.oid LEFT JOIN pg_statio_user_tables psio ON psio.relid = c.oid
-    WHERE nsp.nspname !~ '^pg_' AND nsp.nspname !~ '^_' AND nsp.nspname !~ '^timescaledb' AND nsp.nspname !~ '^citus' AND nsp.nspname !~ '^columnar'
-        AND nsp.nspname NOT IN ('pg_catalog','information_schema','pg_toast','repack','monitor') AND c.relkind = ANY (ARRAY ['r','m','t','p'])
-    ORDER BY c.relpages DESC LIMIT 256;
-
-  ttl: 10
-  timeout: 2
-  min_version: 90000
-  max_version: 90100
-  metrics:
-    - datname:             { usage: LABEL                 ,description: Database name of this table }
-    - relname:             { usage: LABEL                 ,description: Relation name of this table }
-    - relid:               { usage: GAUGE                 ,description: Relation oid of this table }
-    - kind:                { usage: GAUGE                 ,description: Relation kind r/table/114,t/toast/116 }
-    - pages:               { usage: GAUGE                 ,description: Size of the on-disk representation of this table in pages }
-    - tuples:              { usage: GAUGE                 ,description: Estimated number of rows in this table }
-    - frozenxid:           { usage: GAUGE                 ,description: All txid before this have been frozen on this table }
-    - age:                 { usage: GAUGE                 ,description: Age of this table in vacuum cycles }
-    - ncols:               { usage: GAUGE                 ,description: Number of columns in the table }
-    - seq_scan:            { usage: COUNTER  ,default: 0  ,description: Number of sequential scans initiated on this table }
-    - seq_tup_read:        { usage: COUNTER  ,default: 0  ,description: Number of live rows fetched by sequential scans }
-    - idx_scan:            { usage: COUNTER  ,default: 0  ,description: Number of index scans initiated on this table }
-    - idx_tup_fetch:       { usage: COUNTER  ,default: 0  ,description: Number of live rows fetched by index scans }
-    - tbl_scan:            { usage: COUNTER  ,default: 0  ,description: Number of scans initiated on this table }
-    - tup_read:            { usage: COUNTER  ,default: 0  ,description: Number of live rows fetched by scans }
-    - n_tup_ins:           { usage: COUNTER  ,default: 0  ,description: Number of rows inserted }
-    - n_tup_upd:           { usage: COUNTER  ,default: 0  ,description: Number of rows updated (includes HOT updated rows) }
-    - n_tup_del:           { usage: COUNTER  ,default: 0  ,description: Number of rows deleted }
-    - n_tup_mod:           { usage: COUNTER  ,default: 0  ,description: Number of rows modified (insert + update + delete) }
-    - n_tup_hot_upd:       { usage: COUNTER  ,default: 0  ,description: Number of rows HOT updated (i.e with no separate index update required) }
-    - n_live_tup:          { usage: GAUGE                 ,description: Estimated number of live rows }
-    - n_dead_tup:          { usage: GAUGE                 ,description: Estimated number of dead rows }
-    - n_mod_since_analyze: { usage: GAUGE                 ,description: Estimated number of rows modified since this table was last analyzed (N/A on 9.0-9.3, NULL) }
-    - last_vacuum:         { usage: DISCARD               ,description: Last time at which this table was manually vacuumed (not counting VACUUM FULL) }
-    - last_autovacuum:     { usage: DISCARD               ,description: Last time at which this table was vacuumed by the autovacuum daemon }
-    - last_analyze:        { usage: DISCARD               ,description: Last time at which this table was manually analyzed }
-    - last_autoanalyze:    { usage: DISCARD               ,description: Last time at which this table was analyzed by the autovacuum daemon }
-    - vacuum_count:        { usage: COUNTER  ,default: 0  ,description: Number of times this table has been manually vacuumed (not counting VACUUM FULL) (N/A on 9.0, always 0) }
-    - autovacuum_count:    { usage: COUNTER  ,default: 0  ,description: Number of times this table has been vacuumed by the autovacuum daemon (N/A on 9.0, always 0) }
-    - analyze_count:       { usage: COUNTER  ,default: 0  ,description: Number of times this table has been manually analyzed (N/A on 9.0, always 0) }
-    - autoanalyze_count:   { usage: COUNTER  ,default: 0  ,description: Number of times this table has been analyzed by the autovacuum daemon (N/A on 9.0, always 0) }
-    - heap_blks_read:      { usage: COUNTER  ,default: 0  ,description: Number of disk blocks read from this table }
-    - heap_blks_hit:       { usage: COUNTER  ,default: 0  ,description: Number of buffer hits in this table }
-    - idx_blks_read:       { usage: COUNTER  ,default: 0  ,description: Number of disk blocks read from all indexes on this table }
-    - idx_blks_hit:        { usage: COUNTER  ,default: 0  ,description: Number of buffer hits in all indexes on this table }
-    - toast_blks_read:     { usage: DISCARD  ,default: 0  ,description: Number of disk blocks read from this table's TOAST table (if any) }
-    - toast_blks_hit:      { usage: DISCARD  ,default: 0  ,description: Number of buffer hits in this table's TOAST table (if any) }
-    - tidx_blks_read:      { usage: DISCARD  ,default: 0  ,description: Number of disk blocks read from this table's TOAST table indexes (if any) }
-    - tidx_blks_hit:       { usage: DISCARD  ,default: 0  ,description: Number of buffer hits in this table's TOAST table indexes (if any) }
 #==============================================================#
 # 0710 pg_index
 #==============================================================#
 pg_index:
   name: pg_index
-  desc: PostgreSQL index metrics (legacy 9.0-9.6)
+  desc: PostgreSQL index metrics (legacy 9.1-9.6)
   query: |-
     SELECT CURRENT_CATALOG AS datname,
       psui.schemaname || '.' || psui.indexrelname AS idxname,
@@ -1549,7 +1360,7 @@ pg_index:
 
   ttl: 10
   timeout: 1
-  min_version: 90000
+  min_version: 90100
   metrics:
     - datname:             { usage: LABEL    ,description: Database name of this index }
     - idxname:             { usage: LABEL    ,description: Name of this index (full-qualified schema name) }
@@ -1569,7 +1380,7 @@ pg_func:
   desc: PostgreSQL function metrics
   query: SELECT CURRENT_CATALOG AS datname, schemaname || '.' || funcname AS funcname, sum(calls) AS calls, sum(total_time) AS total_time, sum(self_time) AS self_time FROM pg_stat_user_functions GROUP BY 2 ORDER BY 4 DESC LIMIT 128;
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   metrics:
     - datname:             { usage: LABEL    ,description: Name of belonged database }
     - funcname:            { usage: LABEL    ,description: Name of this function, may have multiple override }
@@ -1588,7 +1399,7 @@ pg_relkind:
     GROUP BY relkind;
   ttl: 60
   timeout: 1
-  min_version: 90000
+  min_version: 90100
   metrics:
     - datname: { usage: LABEL ,description: Database name }
     - relkind: { usage: LABEL ,description: Relation kind (r,i,S,t,v,c,...) }
@@ -1610,7 +1421,7 @@ pg_table_size:
 
   ttl: 300
   timeout: 2
-  min_version: 90000
+  min_version: 90100
   metrics:
     - datname:             { usage: LABEL    ,description: Database name of this table }
     - relname:             { usage: LABEL    ,description: Schema qualified table name }
@@ -2033,7 +1844,7 @@ pg_heartbeat:
     SELECT id AS cluster_name, extract(EPOCH FROM ts) AS ts, lsn, txid FROM monitor.heartbeat;
 
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   tags: [ "dbname:postgres", "schema:monitor" ]
   skip: true
   metrics:

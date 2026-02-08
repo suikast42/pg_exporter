@@ -1,11 +1,11 @@
 #==============================================================#
 # 0130 pg_setting
 #==============================================================#
-# Key PostgreSQL configuration parameters for PostgreSQL 9.0 - 9.6
+# Key PostgreSQL configuration parameters for PostgreSQL 9.1 - 9.6
 # Use scalar subquery on pg_settings for "missing_ok" semantics (return NULL if not exist)
 pg_setting:
   name: pg_setting
-  desc: PostgreSQL shared configuration parameters (legacy 9.0-9.6)
+  desc: PostgreSQL shared configuration parameters (legacy 9.1-9.6)
   query: |
     SELECT
       (SELECT setting::int FROM pg_settings WHERE name = 'max_connections')                   AS max_connections,
@@ -54,7 +54,7 @@ pg_setting:
         FROM pg_settings WHERE name = 'synchronous_commit')                                   AS synchronous_commit;
 
   ttl: 10
-  min_version: 90000
+  min_version: 90100
   tags: [ cluster ]
   metrics:
     - max_connections:                  { usage: GAUGE ,description: maximum number of concurrent connections to the database server }
