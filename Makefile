@@ -91,8 +91,8 @@ conf:
 
 # generate legacy merged config for PostgreSQL 9.1 - 9.6
 conf9:
-	rm -rf pg_exporter_pg9.yml
-	cat legacy/*.yml >> pg_exporter_pg9.yml
+	rm -rf legacy/pg_exporter.yml
+	cat legacy/config/*.yml >> legacy/pg_exporter.yml
 
 # Backward-compatible alias (deprecated)
 conf-pg9: conf9

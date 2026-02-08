@@ -37,7 +37,7 @@ Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which 
 ## Features
 
 - **Highly Customizable**: Define almost all metrics through declarative YAML configs
-- **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.25+) in single exporter
+- **Full Coverage**: Monitor PostgreSQL (10-18+) and pgBouncer (1.8-1.25+) in a single exporter
 - **Fine-grained Control**: Configure timeout, caching, skip conditions, and fatality per collector
 - **Dynamic Planning**: Define multiple query branches based on different conditions
 - **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.io/d/pgsql-exporter) for complete observability
@@ -45,6 +45,8 @@ Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which 
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
 - **Extension Support**: `timescaledb`, `citus`, `pg_stat_statements`, `pg_wait_sampling`,...
+
+> Also support PG 9.x with [legacy config bundle](legacy/).
 
 
 --------
@@ -63,6 +65,15 @@ curl http://localhost:9630/metrics   # access metrics
 There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_exporter_build_info`. 
 
 **All other metrics are defined in the [`pg_exporter.yml`](pg_exporter.yml) config file**.
+
+For legacy PostgreSQL **9.1 - 9.6** (EOL), use the legacy config bundle in [`legacy/`](legacy/):
+
+```bash
+make conf9
+PG_EXPORTER_CONFIG=legacy/pg_exporter.yml \
+PG_EXPORTER_URL='postgres://user:pass@host:port/postgres' \
+pg_exporter
+```
 
 There are two monitoring dashboards in the [`monitor/`](monitor/) directory.
 
@@ -222,6 +233,7 @@ Configs lie in the core of `pg_exporter`. Actually, this project contains more l
 * A monolith battery-included config file: [`pg_exporter.yml`](pg_exporter.yml)
 * Separated metrics definition in [`config/collector`](config/)
 * Example of how to write a config file:  [`doc.yml`](config/0000-doc.yml)
+* Legacy config bundle for PostgreSQL 9.1 - 9.6: [`legacy/`](legacy/) ([`legacy/README.md`](legacy/README.md))
 
 Current `pg_exporter` is shipped with the following metrics collector definition files
 

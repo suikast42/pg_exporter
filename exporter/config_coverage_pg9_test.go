@@ -7,14 +7,14 @@ import (
 	"testing"
 )
 
-// Ensure the legacy/ config covers PG9.1..PG9.6 without version gaps for
-// collectors that are supposed to work on legacy PG9.x.
-func TestConfigCoveragePG9(t *testing.T) {
+	// Ensure the legacy config (legacy/config) covers PG9.1..PG9.6 without version
+	// gaps for collectors that are supposed to work on legacy PG9.x.
+	func TestConfigCoveragePG9(t *testing.T) {
 	_, thisFile, _, ok := runtime.Caller(0)
 	if !ok {
 		t.Fatal("runtime.Caller failed")
 	}
-	configDir := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "legacy"))
+	configDir := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "legacy", "config"))
 	if _, err := os.Stat(configDir); err != nil {
 		t.Skipf("legacy config dir not found: %s: %v", configDir, err)
 	}
