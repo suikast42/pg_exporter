@@ -635,9 +635,12 @@ func (e *Exporter) RemoveServer(dbname string) {
 
 	if ok && srv != nil {
 		if srv.DB != nil {
-			if err := srv.Close(); err != nil {
-				logErrorf("fail closing removed database server %s: %s", dbname, err.Error())
-			}
+			// Close asynchronously to avoid blocking the scrape path.
+			go func(dbname string, srv *Server) {
+				if err := srv.Close(); err != nil {
+					logErrorf("fail closing removed database server %s: %s", dbname, err.Error())
+				}
+			}(dbname, srv)
 		}
 	}
 	logWarnf("database %s is removed due to auto-discovery", dbname)
