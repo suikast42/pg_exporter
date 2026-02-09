@@ -328,7 +328,7 @@ func (e *Exporter) collectServerMetrics(ch chan<- prometheus.Metric) {
 	}
 }
 
-// Explain is just yet another wrapper of server.ExplainHTML
+// Explain is a thin wrapper of server.Explain (plain text).
 func (e *Exporter) Explain() string {
 	return e.server.Explain()
 }
@@ -552,6 +552,10 @@ func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
 		if err := FinalizeQueries(e.queries, "<reader>"); err != nil {
 			return nil, fmt.Errorf("fail finalizing config: %w", err)
 		}
+	}
+
+	if err := validateConstLabelConflicts(e.constLabels, e.queries, e.disableIntro); err != nil {
+		return nil, fmt.Errorf("invalid constant labels: %w", err)
 	}
 
 	logDebugf("exporter init with %d queries", len(e.queries))
@@ -794,7 +798,9 @@ func currentExporter() *Exporter {
 
 // ExplainFunc expose explain document
 func (e *Exporter) ExplainFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	// The explain output is plain text. Serving it as text/plain avoids
+	// browsers interpreting config content as HTML.
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	target := currentExporter()
 	if target == nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -804,7 +810,7 @@ func (e *Exporter) ExplainFunc(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(target.Explain()))
 }
 
-// StatFunc expose html statistics
+// StatFunc exposes plain text runtime statistics.
 func (e *Exporter) StatFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	target := currentExporter()

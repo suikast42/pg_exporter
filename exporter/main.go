@@ -55,6 +55,10 @@ func Reload() error {
 		return fmt.Errorf("exporter unavailable")
 	}
 
+	if err := validateConstLabelConflicts(target.constLabels, queries, target.disableIntro); err != nil {
+		return fmt.Errorf("invalid configuration with current constant labels: %w", err)
+	}
+
 	// Block scrapes while we swap the query set and invalidate plans.
 	target.lock.Lock()
 	defer target.lock.Unlock()
