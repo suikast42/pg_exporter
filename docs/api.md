@@ -16,7 +16,7 @@ PG Exporter provides a comprehensive REST API for metrics collection, health che
 | [`/primary`](#traffic-routing) | GET    | Primary server check        |
 | [`/replica`](#traffic-routing) | GET    | Replica server check        |
 | [`/read`](#traffic-routing)    | GET    | Read traffic routing        |
-| [`/reload`](#operational)      | GET    | Reload configuration        |
+| [`/reload`](#operational)      | GET, POST | Reload configuration     |
 | [`/explain`](#operational)     | GET    | Explain query planning      |
 | [`/stat`](#operational)        | GET    | Runtime statistics          |
 
@@ -232,7 +232,7 @@ backend pg_read
 
 ## Operational Endpoints
 
-### POST /reload
+### GET, POST /reload
 
 Reload configuration without restarting the exporter.
 
@@ -244,12 +244,8 @@ curl -X POST http://localhost:9630/reload
 
 #### Response
 
-```json
-{
-  "status": "success",
-  "message": "Configuration reloaded successfully",
-  "timestamp": "2024-01-15T10:30:00Z"
-}
+```text
+server reloaded
 ```
 
 #### Response Codes

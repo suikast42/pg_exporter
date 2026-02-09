@@ -62,7 +62,7 @@ PG_EXPORTER_URL='postgres://user:pass@host:port/postgres' pg_exporter
 curl http://localhost:9630/metrics   # access metrics
 ```
 
-There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_exporter_build_info`. 
+There are built-in metrics such as `pg_up`, `pg_version`, `pg_in_recovery`, `pg_exporter_build_info`, and exporter self-metrics under `pg_exporter_*` (disable with `--disable-intro`).
 
 **All other metrics are defined in the [`pg_exporter.yml`](pg_exporter.yml) config file**.
 
