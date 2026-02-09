@@ -2,6 +2,7 @@ package exporter
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/alecthomas/kingpin/v2"
@@ -41,7 +42,9 @@ var (
 func ParseArgs() {
 	kingpin.Version(fmt.Sprintf("pg_exporter %s (built with %s on %s/%s)\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH))
 	kingpin.HelpFlag.Short('h')
-	kingpin.Parse()
+	// kingpin bool flags don't accept `--flag=false` (only `--no-flag`).
+	// Normalize common `=true/false` forms to avoid confusing "unexpected false" errors.
+	_ = kingpin.MustParse(kingpin.CommandLine.Parse(normalizeKingpinBoolEqualsArgs(os.Args[1:], kingpin.CommandLine.Model())))
 	Logger = configureLogger(*logLevel, *logFormat)
 	logDebugf("init pg_exporter, configPath=%v constLabels=%v disableCache=%v autoDiscovery=%v excludeDatabase=%v includeDatabase=%v connectTimeout=%vms webConfig=%v metricPath=%v",
 		*configPath, *constLabels, *disableCache, *autoDiscovery, *excludeDatabase, *includeDatabase, *connectTimeout, *webConfig.WebListenAddresses, *metricPath)
