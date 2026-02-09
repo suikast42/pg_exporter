@@ -68,6 +68,9 @@ func TestColumnAndMetricDescString(t *testing.T) {
 	if !strings.Contains(md.Name, "sample_value") {
 		t.Fatalf("metric desc name = %s", md.Name)
 	}
+	if !strings.Contains(md.Name, "{db}") {
+		t.Fatalf("metric desc should contain labels signature, got %s", md.Name)
+	}
 	if !strings.Contains(md.String(), "desc") {
 		t.Fatalf("metric desc string = %s", md.String())
 	}

@@ -29,6 +29,11 @@ func TestParseConstLabels(t *testing.T) {
 		t.Fatalf("parseConstLabels valid result = %v", labels)
 	}
 
+	labels = parseConstLabels("token=a=b=c")
+	if labels["token"] != "a=b=c" {
+		t.Fatalf("parseConstLabels should preserve '=' in value, got %q", labels["token"])
+	}
+
 	labels = parseConstLabels("bad,noeq=,=noval,ok=1")
 	if len(labels) != 1 || labels["ok"] != "1" {
 		t.Fatalf("parseConstLabels malformed handling = %v", labels)
@@ -61,6 +66,9 @@ func TestCastFloat64(t *testing.T) {
 	}
 	if got := castFloat64(nil, "", "2.5"); got != 2.5 {
 		t.Fatalf("nil default cast = %v, want 2.5", got)
+	}
+	if got := castFloat64(nil, "10", "2.5"); got != 25 {
+		t.Fatalf("nil default cast should apply scale: %v, want 25", got)
 	}
 
 	if got := castFloat64("abc", "", ""); !math.IsNaN(got) {

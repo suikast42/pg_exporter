@@ -59,7 +59,7 @@ func (c *Column) String() string {
 func (c *Column) MetricDesc(prefix string, labels []string) *MetricDesc {
 	metricName := fmt.Sprintf("%s_%s{%s}", prefix, c.Name, strings.Join(labels, ","))
 	if c.Rename != "" {
-		metricName = fmt.Sprintf("%s_%s{%s}", prefix, c.Rename, labels)
+		metricName = fmt.Sprintf("%s_%s{%s}", prefix, c.Rename, strings.Join(labels, ","))
 	}
 	return &MetricDesc{
 		metricName,

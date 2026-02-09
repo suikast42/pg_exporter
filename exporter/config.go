@@ -3,7 +3,7 @@ package exporter
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -108,7 +108,7 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 			if !(strings.HasSuffix(conf.Name(), ".yaml") || strings.HasSuffix(conf.Name(), ".yml")) && !conf.IsDir() { // depth = 1
 				continue // skip non yaml files
 			}
-			confFiles = append(confFiles, path.Join(configPath, conf.Name()))
+			confFiles = append(confFiles, filepath.Join(configPath, conf.Name()))
 		}
 
 		// make global config map and assign priority according to config file alphabetic orders

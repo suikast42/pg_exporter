@@ -124,7 +124,7 @@ func castFloat64(t interface{}, s string, d string) float64 {
 				logWarnf("invalid column default: %v", d)
 				return math.NaN()
 			}
-			return result
+			return result * scale
 		}
 		return math.NaN()
 	default:
@@ -170,7 +170,7 @@ func parseConstLabels(s string) prometheus.Labels {
 
 	parts := strings.Split(s, ",")
 	for _, p := range parts {
-		keyValue := strings.Split(strings.TrimSpace(p), "=")
+		keyValue := strings.SplitN(strings.TrimSpace(p), "=", 2)
 		if len(keyValue) != 2 {
 			logErrorf(`malformed labels format %q, should be "key=value"`, p)
 			continue
