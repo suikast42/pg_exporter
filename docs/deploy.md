@@ -49,7 +49,7 @@ Flags:
   -l, --label=""                 constant lables:comma separated list of label=value pair ($PG_EXPORTER_LABEL)
   -t, --tag=""                   tags,comma separated list of server tag ($PG_EXPORTER_TAG)
   -C, --[no-]disable-cache       force not using cache ($PG_EXPORTER_DISABLE_CACHE)
-  -m, --[no-]disable-intro       disable collector level introspection metrics ($PG_EXPORTER_DISABLE_INTRO)
+  -m, --[no-]disable-intro       disable internal/exporter self metrics ($PG_EXPORTER_DISABLE_INTRO)
   -a, --[no-]auto-discovery      automatically scrape all database for given server ($PG_EXPORTER_AUTO_DISCOVERY)
   -x, --exclude-database="template0,template1,postgres"
                                  excluded databases when enabling auto-discovery ($PG_EXPORTER_EXCLUDE_DATABASE)

@@ -85,6 +85,47 @@ func TestExporterDescribeAndCloseNoPanic(t *testing.T) {
 	e.Close()
 }
 
+func TestDisableIntroSuppressesInternalMetrics(t *testing.T) {
+	s := NewServer("postgresql://u:p@localhost:5432/postgres")
+	s.beforeScrape = func(s *Server) error {
+		s.UP = true
+		s.Version = 160000
+		s.Recovery = false
+		return nil
+	}
+	s.Planned = true
+	s.Collectors = []*Collector{makeCachedCollectorForServer(s, "q", 1)}
+	s.ResetStats()
+
+	e := &Exporter{
+		server:       s,
+		servers:      map[string]*Server{},
+		disableIntro: true,
+	}
+	e.setupInternalMetrics()
+
+	r := prometheus.NewRegistry()
+	if err := r.Register(e); err != nil {
+		t.Fatalf("register exporter failed: %v", err)
+	}
+	mfs, err := r.Gather()
+	if err != nil {
+		t.Fatalf("Gather failed: %v", err)
+	}
+
+	found := map[string]bool{}
+	for _, mf := range mfs {
+		found[mf.GetName()] = true
+	}
+	if !found["q_value"] {
+		t.Fatalf("expected query metric q_value to be present, got: %#v", found)
+	}
+	// Default internal metrics namespace for postgres is "pg".
+	if found["pg_up"] || found["pg_version"] || found["pg_in_recovery"] || found["pg_exporter_build_info"] || found["pg_exporter_up"] {
+		t.Fatalf("disable-intro should suppress internal metrics, got: %#v", found)
+	}
+}
+
 func TestServerIntrospectionHelpers(t *testing.T) {
 	s := NewServer("postgresql://u:p@localhost:5432/postgres")
 	c := makeCachedCollectorForServer(s, "q", 1)

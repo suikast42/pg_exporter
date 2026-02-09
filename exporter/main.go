@@ -1,15 +1,11 @@
 package exporter
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"sort"
-	"strings"
-	"syscall"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -43,114 +39,46 @@ func DryRun() {
 func Reload() error {
 	ReloadLock.Lock()
 	defer ReloadLock.Unlock()
-	logDebugf("reload request received, launch new exporter instance")
+	logDebugf("reload request received, reloading configuration")
 
-	// create a new exporter
-	newExporter, err := NewExporter(
-		*pgURL,
-		WithConfig(*configPath),
-		WithConstLabels(*constLabels),
-		WithCacheDisabled(*disableCache),
-		WithIntroDisabled(*disableIntro),
-		WithFailFast(*failFast),
-		WithNamespace(*exporterNamespace),
-		WithAutoDiscovery(*autoDiscovery),
-		WithExcludeDatabase(*excludeDatabase),
-		WithIncludeDatabase(*includeDatabase),
-		WithTags(*serverTags),
-		WithConnectTimeout(*connectTimeout),
-	)
-	// if launch new exporter failed, do nothing
+	if *configPath == "" {
+		return fmt.Errorf("no valid config path")
+	}
+	queries, err := LoadConfig(*configPath)
 	if err != nil {
-		logErrorf("fail to reload exporter: %s", err.Error())
-		return err
+		return fmt.Errorf("fail loading config %s: %w", *configPath, err)
 	}
 
-	logDebugf("shutdown old exporter instance")
-	// if older one exists, close and unregister it
-	oldExporter := PgExporter
-	if oldExporter != nil {
-		// DO NOT MANUALLY CLOSE OLD EXPORTER INSTANCE because the stupid implementation of sql.DB
-		// there connection will be automatically released after 1 min
-		// PgExporter.Close()
-		prometheus.Unregister(oldExporter)
+	target := PgExporter
+	if target == nil {
+		return fmt.Errorf("exporter unavailable")
 	}
-	if err := prometheus.Register(newExporter); err != nil {
-		// Best-effort rollback: keep the old exporter serving metrics.
-		if oldExporter != nil {
-			_ = prometheus.Register(oldExporter)
+
+	// Block scrapes while we swap the query set and invalidate plans.
+	target.lock.Lock()
+	defer target.lock.Unlock()
+
+	target.queries = queries
+
+	// Update queries for primary + discovered servers, and force re-plan on next scrape.
+	servers := target.IterateServer()
+	if target.server != nil {
+		servers = append(servers, target.server)
+	}
+	for _, s := range servers {
+		if s == nil {
+			continue
 		}
-		newExporter.Close()
-		return fmt.Errorf("fail to register reloaded exporter: %w", err)
+		s.lock.Lock()
+		s.queries = queries
+		s.Collectors = nil
+		s.Planned = false
+		s.ResetStats()
+		s.lock.Unlock()
 	}
-	if oldExporter != nil {
-		oldExporter.stopHealthLoop()
-	}
-	setCurrentExporter(newExporter)
-	runtime.GC()
-	logInfof("server reloaded")
+
+	logInfof("server reloaded, %d queries applied", len(queries))
 	return nil
-}
-
-// DummyServer response with a dummy metrics pg_up 0 or pgbouncer_up 0
-func DummyServer() (s *http.Server, exit <-chan bool) {
-	mux := http.NewServeMux()
-	namespace := `pg`
-	if ParseDatname(*pgURL) == `pgbouncer` {
-		namespace = `pgbouncer`
-	}
-	// setup pg_up / pgbouncer_up metrics
-	dummyMetricName := namespace + `_up`
-	mux.HandleFunc(*metricPath, func(w http.ResponseWriter, req *http.Request) {
-		userLabels := parseConstLabels(*constLabels)
-		output := fmt.Sprintf("# HELP %s last scrape was able to connect to the server: 1 for yes, 0 for no\n# TYPE %s gauge\n", dummyMetricName, dummyMetricName)
-		if len(userLabels) > 0 {
-			labelStrs := make([]string, 0, len(userLabels))
-			for k, v := range userLabels {
-				labelStrs = append(labelStrs, fmt.Sprintf("%s=%q", k, v))
-			}
-			output += fmt.Sprintf("%s{%s} 0\n", dummyMetricName, strings.Join(labelStrs, ","))
-		} else {
-			output += fmt.Sprintf("%s 0\n", dummyMetricName)
-		}
-
-		// setup build info metrics
-		buildInfoName := namespace + `_exporter_build_info`
-		output += fmt.Sprintf("# HELP %s A metric with a constant '1' value labeled with version, revision, branch, goversion, builddate, goos, and goarch from which %s_exporter was built.\n", buildInfoName, namespace)
-		output += fmt.Sprintf("# TYPE %s gauge\n", buildInfoName)
-		buildInfoLabels := map[string]string{
-			"version":   Version,
-			"revision":  Revision,
-			"branch":    Branch,
-			"goversion": GoVersion,
-			"builddate": BuildDate,
-			"goos":      GOOS,
-			"goarch":    GOARCH,
-		}
-		for k, v := range userLabels {
-			buildInfoLabels[k] = v
-		}
-		allLabelStrs := make([]string, 0, len(buildInfoLabels))
-		for k, v := range buildInfoLabels {
-			allLabelStrs = append(allLabelStrs, fmt.Sprintf("%s=%q", k, v))
-		}
-		output += fmt.Sprintf("%s{%s} 1\n", buildInfoName, strings.Join(allLabelStrs, ","))
-		_, _ = fmt.Fprint(w, output)
-	})
-
-	listenAddr := (*webConfig.WebListenAddresses)[0]
-	httpServer := &http.Server{
-		Addr:    listenAddr,
-		Handler: mux,
-	}
-	exitChan := make(chan bool, 1)
-	go func() {
-		if err := httpServer.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			logDebugf("shutdown dummy server")
-		}
-		exitChan <- true
-	}()
-	return httpServer, exitChan
 }
 
 // Run pg_exporter
@@ -192,13 +120,7 @@ func Run() {
 	}
 	listenAddr := (*webConfig.WebListenAddresses)[0]
 
-	// DummyServer will server a constant pg_up
-	// launch a dummy server to check listen address availability
-	// and fake a pg_up 0 metrics before PgExporter connecting to target instance
-	// otherwise, exporter API is not available until target instance online
-	dummySrv, closeChan := DummyServer()
-
-	// create exporter: if target is down, exporter creation will wait until it backup online
+	// Create exporter. It will connect on scrape and keep health probes running in background.
 	var err error
 	newExporter, err := NewExporter(
 		*pgURL,
@@ -230,15 +152,14 @@ func Run() {
 	prometheus.MustRegister(PgExporter)
 	defer PgExporter.Close()
 
-	// reload conf when receiving SIGHUP or SIGUSR1
+	// reload conf when receiving configured reload signals (SIGHUP, and SIGUSR1 on non-Windows)
 	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGHUP)
+	signal.Notify(sigs, reloadSignals...)
 	go func() {
 		for sig := range sigs {
-			switch sig {
-			case syscall.SIGHUP:
-				logInfof("%v received, reloading", sig)
-				_ = Reload()
+			logInfof("%v received, reloading", sig)
+			if err := Reload(); err != nil {
+				logErrorf("reload failed: %s", err.Error())
 			}
 		}
 	}()
@@ -271,9 +192,6 @@ func Run() {
 	http.HandleFunc("/read-only", PgExporter.ReplicaCheckFunc)
 	http.HandleFunc("/ro", PgExporter.ReplicaCheckFunc)
 
-	// metric
-	_ = dummySrv.Close()
-	<-closeChan
 	http.Handle(*metricPath, promhttp.Handler())
 
 	logInfof("pg_exporter for %s start, listen on %s%s", ShadowPGURL(*pgURL), listenAddr, *metricPath)

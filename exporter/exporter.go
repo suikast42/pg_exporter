@@ -30,7 +30,7 @@ type Exporter struct {
 	configPath      string            // config file path /directory
 	configReader    io.Reader         // reader to a config file, one of configPath or configReader must be set
 	disableCache    bool              // always execute query when been scraped
-	disableIntro    bool              // disable query level introspection metrics
+	disableIntro    bool              // disable internal/exporter self metrics (only expose query metrics)
 	autoDiscovery   bool              // discovery other database on primary server
 	pgbouncerMode   bool              // is primary server a pgbouncer ?
 	failFast        bool              // fail fast instead fof waiting during start-up ?
@@ -217,7 +217,9 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.lock.Lock()
 	defer e.lock.Unlock()
-	e.scrapeTotalCount.Add(1)
+	if !e.disableIntro {
+		e.scrapeTotalCount.Add(1)
+	}
 
 	e.scrapeBegin = time.Now()
 	// scrape primary server
@@ -230,30 +232,34 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	}
 	e.scrapeDone = time.Now()
 
-	e.lastScrapeTime.Set(float64(e.scrapeDone.Unix()))
-	e.scrapeDuration.Set(e.scrapeDone.Sub(e.scrapeBegin).Seconds())
+	if !e.disableIntro {
+		e.lastScrapeTime.Set(float64(e.scrapeDone.Unix()))
+		e.scrapeDuration.Set(e.scrapeDone.Sub(e.scrapeBegin).Seconds())
+	}
 	s.lock.RLock()
 	version := s.Version
 	up := s.UP
 	recovery := s.Recovery
 	s.lock.RUnlock()
 
-	e.version.Set(float64(version))
 	e.updateHealthState(up, recovery)
-	if up {
-		e.up.Set(1)
-		if recovery {
-			e.recovery.Set(1)
+	if !e.disableIntro {
+		e.version.Set(float64(version))
+		if up {
+			e.up.Set(1)
+			if recovery {
+				e.recovery.Set(1)
+			} else {
+				e.recovery.Set(0)
+			}
 		} else {
-			e.recovery.Set(0)
+			e.up.Set(0)
+			e.scrapeErrorCount.Add(1)
 		}
-	} else {
-		e.up.Set(0)
-		e.scrapeErrorCount.Add(1)
+		e.exporterUptime.Set(e.server.Uptime())
+		e.collectServerMetrics()
+		e.collectInternalMetrics(ch)
 	}
-	e.exporterUptime.Set(e.server.Uptime())
-	e.collectServerMetrics()
-	e.collectInternalMetrics(ch)
 }
 
 func (e *Exporter) collectServerMetrics() {
@@ -547,30 +553,19 @@ func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
 	}
 
 	logDebugf("check primary server connectivity")
-	// check server immediately, will hang/exit according to failFast
+	// Best-effort check: we don't block the exporter startup if the target is down.
+	// The actual scrape path will reconnect and re-plan when the target comes back.
 	if err = e.server.Check(); err != nil {
-		if !e.failFast {
-			logErrorf("fail connecting to primary server: %s, retrying in 10s", err.Error())
-			for err != nil {
-				time.Sleep(10 * time.Second)
-				if err = e.server.Check(); err != nil {
-					logErrorf("fail connecting to primary server: %s, retrying in 10s", err.Error())
-				}
-			}
-		} else {
-			logErrorf("fail connecting to primary server: %s, exit", err.Error())
+		if e.failFast {
+			return nil, fmt.Errorf("fail connecting to primary server: %w", err)
 		}
-	}
-	if err != nil {
-
-		e.server.Plan()
+		logErrorf("fail connecting to primary server: %s (startup will continue)", err.Error())
 	}
 	e.pgbouncerMode = e.server.PgbouncerMode
 	e.setupInternalMetrics()
 	e.updateHealthStateFromServer()
-	if err == nil {
-		e.startHealthLoop()
-	}
+	// Always start the health loop so probes can recover once the target becomes reachable.
+	e.startHealthLoop()
 
 	return
 }
@@ -797,7 +792,7 @@ func (e *Exporter) StatFunc(w http.ResponseWriter, r *http.Request) {
 
 // UpCheckFunc tells whether target instance is alive, 200 up 503 down
 func (e *Exporter) UpCheckFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	target := currentExporter()
 	if target == nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -817,7 +812,7 @@ func (e *Exporter) UpCheckFunc(w http.ResponseWriter, r *http.Request) {
 
 // PrimaryCheckFunc tells whether target instance is a primary, 200 yes 404 no 503 unknown
 func (e *Exporter) PrimaryCheckFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	target := currentExporter()
 	if target == nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -842,7 +837,7 @@ func (e *Exporter) PrimaryCheckFunc(w http.ResponseWriter, r *http.Request) {
 
 // ReplicaCheckFunc tells whether target instance is a replica, 200 yes 404 no 503 unknown
 func (e *Exporter) ReplicaCheckFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	target := currentExporter()
 	if target == nil {
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -867,7 +862,7 @@ func (e *Exporter) ReplicaCheckFunc(w http.ResponseWriter, r *http.Request) {
 
 // VersionFunc responding current pg_exporter version
 func VersionFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	payload := fmt.Sprintf("pg_exporter version %s\nrevision: %s\nbranch: %s\ngo version: %s\nbuild date: %s\ngoos: %s\ngoarch: %s",
 		Version, Revision, Branch, GoVersion, BuildDate, GOOS, GOARCH)
 	_, _ = w.Write([]byte(payload))
@@ -881,7 +876,7 @@ func TitleFunc(w http.ResponseWriter, r *http.Request) {
 
 // ReloadFunc handles reload request
 func ReloadFunc(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	if err := Reload(); err != nil {
 		w.WriteHeader(500)
 		_, _ = w.Write([]byte(fmt.Sprintf("fail to reload: %s", err.Error())))
