@@ -580,6 +580,9 @@ func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
 			return nil, fmt.Errorf("fail connecting to primary server: %w", err)
 		}
 		logErrorf("fail connecting to primary server: %s (startup will continue)", err.Error())
+		// NewExporter has named return values; make sure we don't propagate the
+		// precheck error when failFast is disabled.
+		err = nil
 	}
 	e.pgbouncerMode = e.server.PgbouncerMode
 	e.setupInternalMetrics()
