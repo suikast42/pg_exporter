@@ -31,6 +31,10 @@ type Server struct {
 	lock    sync.RWMutex // server scrape lock
 	err     error        // last error
 
+	// notice handling (primarily for pgbouncer, where SHOW VERSION may return via NOTICE)
+	noticeMu   sync.Mutex
+	lastNotice string
+
 	// hooks
 	beforeScrape     func(s *Server) error        // hook: execute before scrape
 	onDatabaseChange func(change map[string]bool) // hook: invoke when database list is changed
@@ -110,9 +114,12 @@ func (s *Server) Check() error {
 // It returns whether the database is reachable, whether it's in recovery,
 // and whether PostgreSQL is still starting up (SQLSTATE 57P03).
 func (s *Server) ProbeHealth() (up, recovery, starting bool, err error) {
+	// Snapshot pointers/flags quickly under lock to avoid races with first-time DB init.
+	s.lock.RLock()
 	db := s.DB
 	pgbouncerMode := s.PgbouncerMode
 	timeout := s.GetConnectTimeout()
+	s.lock.RUnlock()
 
 	if db == nil {
 		return false, false, false, errors.New("database connection is not initialized")
@@ -122,8 +129,9 @@ func (s *Server) ProbeHealth() (up, recovery, starting bool, err error) {
 	defer cancel()
 
 	if pgbouncerMode {
-		var one int
-		if err = db.QueryRowContext(ctx, `SELECT 1;`).Scan(&one); err != nil {
+		// lib/pq supports Ping via a lightweight ";" simple query.
+		// Using Ping avoids assumptions about what statements pgbouncer accepts.
+		if err = db.PingContext(ctx); err != nil {
 			return false, false, false, err
 		}
 		return true, false, false, nil
@@ -144,31 +152,68 @@ func isPostgresStartupError(err error) bool {
 
 // PgbouncerPrecheck checks pgbouncer connection before scrape
 func PgbouncerPrecheck(s *Server) (err error) {
-	if s.DB == nil { // if db is not initialized, create a new DB
-		if s.DB, err = sql.Open("postgres", s.dsn); err != nil {
+	if s.DB == nil { // if db is not initialized, create a new DB with a NOTICE handler
+		base, cerr := pq.NewConnector(s.dsn)
+		if cerr != nil {
 			s.UP = false
-			return
+			return cerr
 		}
+		connector := pq.ConnectorWithNoticeHandler(base, func(notice *pq.Error) {
+			s.noticeMu.Lock()
+			s.lastNotice = notice.Message
+			s.noticeMu.Unlock()
+		})
+		s.DB = sql.OpenDB(connector)
 		s.DB.SetMaxIdleConns(1)
 		s.DB.SetMaxOpenConns(1)
 		s.DB.SetConnMaxLifetime(connMaxLifeTime)
 	}
 
-	var version string
+	// Clear last notice before issuing SHOW VERSION so we can reliably parse it.
+	s.noticeMu.Lock()
+	s.lastNotice = ""
+	s.noticeMu.Unlock()
+
 	ctx, cancel := context.WithTimeout(context.Background(), s.GetConnectTimeout())
 	defer cancel()
-	if err = s.DB.QueryRowContext(ctx, `SHOW VERSION;`).Scan(&version); err != nil {
-		// TODO: since pgbouncer 1.12- using NOTICE to tell version, we just leave it blank here
-		logWarnf("server [%s] fail to get pgbouncer version", s.Name())
-		// return fmt.Errorf("fail fetching pgbouncer server version: %w", err)
-	} else {
-		s.Version = ParseSemver(version)
-		if s.Version != 0 {
-			logDebugf("server [%s] parse pgbouncer version from %s to %v", s.Name(), version, s.Version)
-		} else {
-			logWarnf("server [%s] fail to parse pgbouncer version from %v", s.Name(), version)
+
+	var versionStr string
+	qerr := s.DB.QueryRowContext(ctx, `SHOW VERSION;`).Scan(&versionStr)
+	if qerr != nil && !errors.Is(qerr, sql.ErrNoRows) {
+		// Connection/auth errors should fail precheck (and thus scrape).
+		s.UP = false
+		return fmt.Errorf("fail fetching pgbouncer version: %w", qerr)
+	}
+
+	s.UP = true
+
+	// Version may come from:
+	// 1) a normal 1-row resultset (older versions / some builds), or
+	// 2) a server NOTICE message (pgbouncer 1.12+).
+	newVer := 0
+	if qerr == nil {
+		newVer = ParseSemver(versionStr)
+	}
+	if newVer == 0 {
+		s.noticeMu.Lock()
+		notice := s.lastNotice
+		s.noticeMu.Unlock()
+		if notice != "" {
+			newVer = ParseSemver(notice)
 		}
 	}
+
+	if newVer != 0 {
+		if s.Version != newVer {
+			logInfof("server [%s] pgbouncer version changed: from [%d] to [%d]", s.Name(), s.Version, newVer)
+			s.Planned = false
+		}
+		s.Version = newVer
+	} else if qerr == nil || errors.Is(qerr, sql.ErrNoRows) {
+		// Connected, but couldn't parse version string.
+		logWarnf("server [%s] connected but failed to parse pgbouncer version (row=%q)", s.Name(), versionStr)
+	}
+
 	return nil
 }
 
