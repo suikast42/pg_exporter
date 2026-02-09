@@ -24,6 +24,8 @@ const pgSQLStateCannotConnectNow = "57P03"
 
 /* ================ Server ================ */
 
+var semverRe = regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)`)
+
 // Server represent a postgres connection, with additional fact, conf, runtime info
 type Server struct {
 	*sql.DB              // database instance (do not close this due to the stupid implementation in database/sql)
@@ -219,7 +221,6 @@ func PgbouncerPrecheck(s *Server) (err error) {
 
 // ParseSemver will turn semantic version string into integer
 func ParseSemver(semverStr string) int {
-	semverRe := regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)`)
 	semver := semverRe.FindStringSubmatch(semverStr)
 	logDebugf("parse pgbouncer semver string %s", semverStr)
 	if len(semver) != 4 {
@@ -393,13 +394,14 @@ func (s *Server) Plan(queries ...*Query) {
 
 // ResetStats will clear all statistic info
 func (s *Server) ResetStats() {
-	s.queryCacheTTL = make(map[string]float64, 0)
-	s.queryScrapeTotalCount = make(map[string]float64, 0)
-	s.queryScrapeHitCount = make(map[string]float64, 0)
-	s.queryScrapeErrorCount = make(map[string]float64, 0)
-	s.queryScrapePredicateSkipCount = make(map[string]float64, 0)
-	s.queryScrapeMetricCount = make(map[string]float64, 0)
-	s.queryScrapeDuration = make(map[string]float64, 0)
+	n := len(s.Collectors)
+	s.queryCacheTTL = make(map[string]float64, n)
+	s.queryScrapeTotalCount = make(map[string]float64, n)
+	s.queryScrapeHitCount = make(map[string]float64, n)
+	s.queryScrapeErrorCount = make(map[string]float64, n)
+	s.queryScrapePredicateSkipCount = make(map[string]float64, n)
+	s.queryScrapeMetricCount = make(map[string]float64, n)
+	s.queryScrapeDuration = make(map[string]float64, n)
 
 	for _, query := range s.Collectors {
 		s.queryCacheTTL[query.Name] = 0

@@ -64,18 +64,20 @@ type Exporter struct {
 	scrapeTotalCount prometheus.Counter // exporter level: total scrape count of this server
 	scrapeErrorCount prometheus.Counter // exporter level: error scrape count
 
-	serverScrapeDuration     *prometheus.GaugeVec // {datname} database level: how much time spend on server scrape?
-	serverScrapeTotalSeconds *prometheus.GaugeVec // {datname} database level: how much time spend on server scrape?
-	serverScrapeTotalCount   *prometheus.GaugeVec // {datname} database level how many metrics scraped from server
-	serverScrapeErrorCount   *prometheus.GaugeVec // {datname} database level: how many error occurs when scraping server
+	// Dynamic series (auto-discovered DBs, config reload) are emitted as const
+	// metrics on each scrape to avoid GaugeVec Reset() overhead and stale series.
+	serverScrapeDurationDesc     *prometheus.Desc // {datname} database level: last scrape duration
+	serverScrapeTotalSecondsDesc *prometheus.Desc // {datname} database level: cumulative scrape seconds
+	serverScrapeTotalCountDesc   *prometheus.Desc // {datname} database level: total scrape count
+	serverScrapeErrorCountDesc   *prometheus.Desc // {datname} database level: cumulative fatal scrape error count
 
-	queryCacheTTL                 *prometheus.GaugeVec // {datname,query} query cache ttl
-	queryScrapeTotalCount         *prometheus.GaugeVec // {datname,query} query level: how many errors the query triggers?
-	queryScrapeErrorCount         *prometheus.GaugeVec // {datname,query} query level: how many errors the query triggers?
-	queryScrapePredicateSkipCount *prometheus.GaugeVec // {datname,query} query level: how many times was the query skipped due to predicate
-	queryScrapeDuration           *prometheus.GaugeVec // {datname,query} query level: how many seconds the query spends?
-	queryScrapeMetricCount        *prometheus.GaugeVec // {datname,query} query level: how many metrics the query returns?
-	queryScrapeHitCount           *prometheus.GaugeVec // {datname,query} query level: how many errors the query triggers?
+	queryCacheTTLDesc                 *prometheus.Desc // {datname,query} query cache ttl
+	queryScrapeTotalCountDesc         *prometheus.Desc // {datname,query} query level: total executions
+	queryScrapeErrorCountDesc         *prometheus.Desc // {datname,query} query level: error count
+	queryScrapePredicateSkipCountDesc *prometheus.Desc // {datname,query} query level: predicate skip count
+	queryScrapeDurationDesc           *prometheus.Desc // {datname,query} query level: execution duration (seconds)
+	queryScrapeMetricCountDesc        *prometheus.Desc // {datname,query} query level: returned metric count
+	queryScrapeHitCountDesc           *prometheus.Desc // {datname,query} query level: cache hit count
 
 	// lock-free health snapshot for high-frequency probes
 	healthUp       atomic.Bool
@@ -210,7 +212,16 @@ func (e *Exporter) stopHealthLoop() {
 
 // Describe implement prometheus.Collector
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
-	e.server.Describe(ch)
+	// Intentionally leave this exporter "unchecked".
+	//
+	// Query metrics are dynamic:
+	// - config reload can add/remove collectors and metrics
+	// - auto-discovery can add/remove databases
+	//
+	// If we emitted any descriptors here, the Prometheus registry would enforce
+	// that Collect() only returns described metrics, which does not hold for a
+	// dynamic exporter. Exporter-toolkit and client_golang both support this
+	// pattern (Describe emits nothing).
 }
 
 // Collect implement prometheus.Collector
@@ -257,55 +268,63 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 			e.scrapeErrorCount.Add(1)
 		}
 		e.exporterUptime.Set(e.server.Uptime())
-		e.collectServerMetrics()
+		e.collectServerMetrics(ch)
 		e.collectInternalMetrics(ch)
 	}
 }
 
-func (e *Exporter) collectServerMetrics() {
-	e.serverScrapeDuration.Reset()
-	e.serverScrapeTotalSeconds.Reset()
-	e.serverScrapeTotalCount.Reset()
-	e.serverScrapeErrorCount.Reset()
-	e.queryCacheTTL.Reset()
-	e.queryScrapeTotalCount.Reset()
-	e.queryScrapeErrorCount.Reset()
-	e.queryScrapePredicateSkipCount.Reset()
-	e.queryScrapeDuration.Reset()
-	e.queryScrapeMetricCount.Reset()
-	e.queryScrapeHitCount.Reset()
-
+func (e *Exporter) collectServerMetrics(ch chan<- prometheus.Metric) {
 	servers := e.IterateServer()
-	servers = append(servers, e.server) // append primary server to extra server list
+	if e.server != nil {
+		servers = append(servers, e.server) // append primary server to extra server list
+	}
 	for _, s := range servers {
+		if s == nil {
+			continue
+		}
 		s.lock.RLock()
-		e.serverScrapeDuration.WithLabelValues(s.Database).Set(s.scrapeDone.Sub(s.scrapeBegin).Seconds())
-		e.serverScrapeTotalSeconds.WithLabelValues(s.Database).Set(s.totalTime)
-		e.serverScrapeTotalCount.WithLabelValues(s.Database).Set(s.totalCount)
-		e.serverScrapeErrorCount.WithLabelValues(s.Database).Set(s.errorCount)
+		datname := s.Database
+		scrapeDur := s.scrapeDone.Sub(s.scrapeBegin).Seconds()
+		totalSeconds := s.totalTime
+		totalCount := s.totalCount
+		errorCount := s.errorCount
 
-		for queryName, counter := range s.queryCacheTTL {
-			e.queryCacheTTL.WithLabelValues(s.Database, queryName).Set(counter)
-		}
-		for queryName, counter := range s.queryScrapeTotalCount {
-			e.queryScrapeTotalCount.WithLabelValues(s.Database, queryName).Set(counter)
-		}
-		for queryName, counter := range s.queryScrapeHitCount {
-			e.queryScrapeHitCount.WithLabelValues(s.Database, queryName).Set(counter)
-		}
-		for queryName, counter := range s.queryScrapeErrorCount {
-			e.queryScrapeErrorCount.WithLabelValues(s.Database, queryName).Set(counter)
-		}
-		for queryName, counter := range s.queryScrapePredicateSkipCount {
-			e.queryScrapePredicateSkipCount.WithLabelValues(s.Database, queryName).Set(counter)
-		}
-		for queryName, counter := range s.queryScrapeMetricCount {
-			e.queryScrapeMetricCount.WithLabelValues(s.Database, queryName).Set(counter)
-		}
-		for queryName, counter := range s.queryScrapeDuration {
-			e.queryScrapeDuration.WithLabelValues(s.Database, queryName).Set(counter)
-		}
+		// Snapshot query maps (they are replaced as a whole on ResetStats).
+		queryCacheTTL := s.queryCacheTTL
+		queryScrapeTotalCount := s.queryScrapeTotalCount
+		queryScrapeHitCount := s.queryScrapeHitCount
+		queryScrapeErrorCount := s.queryScrapeErrorCount
+		queryScrapePredicateSkipCount := s.queryScrapePredicateSkipCount
+		queryScrapeMetricCount := s.queryScrapeMetricCount
+		queryScrapeDuration := s.queryScrapeDuration
 		s.lock.RUnlock()
+
+		ch <- prometheus.MustNewConstMetric(e.serverScrapeDurationDesc, prometheus.GaugeValue, scrapeDur, datname)
+		ch <- prometheus.MustNewConstMetric(e.serverScrapeTotalSecondsDesc, prometheus.GaugeValue, totalSeconds, datname)
+		ch <- prometheus.MustNewConstMetric(e.serverScrapeTotalCountDesc, prometheus.GaugeValue, totalCount, datname)
+		ch <- prometheus.MustNewConstMetric(e.serverScrapeErrorCountDesc, prometheus.GaugeValue, errorCount, datname)
+
+		for queryName, v := range queryCacheTTL {
+			ch <- prometheus.MustNewConstMetric(e.queryCacheTTLDesc, prometheus.GaugeValue, v, datname, queryName)
+		}
+		for queryName, v := range queryScrapeTotalCount {
+			ch <- prometheus.MustNewConstMetric(e.queryScrapeTotalCountDesc, prometheus.GaugeValue, v, datname, queryName)
+		}
+		for queryName, v := range queryScrapeHitCount {
+			ch <- prometheus.MustNewConstMetric(e.queryScrapeHitCountDesc, prometheus.GaugeValue, v, datname, queryName)
+		}
+		for queryName, v := range queryScrapeErrorCount {
+			ch <- prometheus.MustNewConstMetric(e.queryScrapeErrorCountDesc, prometheus.GaugeValue, v, datname, queryName)
+		}
+		for queryName, v := range queryScrapePredicateSkipCount {
+			ch <- prometheus.MustNewConstMetric(e.queryScrapePredicateSkipCountDesc, prometheus.GaugeValue, v, datname, queryName)
+		}
+		for queryName, v := range queryScrapeMetricCount {
+			ch <- prometheus.MustNewConstMetric(e.queryScrapeMetricCountDesc, prometheus.GaugeValue, v, datname, queryName)
+		}
+		for queryName, v := range queryScrapeDuration {
+			ch <- prometheus.MustNewConstMetric(e.queryScrapeDurationDesc, prometheus.GaugeValue, v, datname, queryName)
+		}
 	}
 }
 
@@ -428,53 +447,64 @@ func (e *Exporter) setupInternalMetrics() {
 		Subsystem: "exporter", Name: "last_scrape_time", Help: "last scrape timestamp",
 	})
 
-	// exporter level metrics
-	e.serverScrapeDuration = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_server", Name: "scrape_duration", Help: "seconds exporter server spending on scraping last scrape",
-	}, []string{"datname"})
-	e.serverScrapeTotalSeconds = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_server", Name: "scrape_total_seconds", Help: "cumulative total seconds exporter server spending on scraping",
-	}, []string{"datname"})
-	e.serverScrapeTotalCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_server", Name: "scrape_total_count", Help: "times exporter server was scraped for metrics",
-	}, []string{"datname"})
-	e.serverScrapeErrorCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_server", Name: "scrape_error_count", Help: "cumulative times exporter server scrape failed (fatal scrape failures only)",
-	}, []string{"datname"})
+	// Dynamic per-server/per-query series.
+	// These are described via *prometheus.Desc and emitted as const metrics on each scrape.
+	e.serverScrapeDurationDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_server", "scrape_duration"),
+		"seconds exporter server spending on scraping last scrape",
+		[]string{"datname"}, e.constLabels,
+	)
+	e.serverScrapeTotalSecondsDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_server", "scrape_total_seconds"),
+		"cumulative total seconds exporter server spending on scraping",
+		[]string{"datname"}, e.constLabels,
+	)
+	e.serverScrapeTotalCountDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_server", "scrape_total_count"),
+		"times exporter server was scraped for metrics",
+		[]string{"datname"}, e.constLabels,
+	)
+	e.serverScrapeErrorCountDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_server", "scrape_error_count"),
+		"cumulative times exporter server scrape failed (fatal scrape failures only)",
+		[]string{"datname"}, e.constLabels,
+	)
 
-	// query level metrics
-	e.queryCacheTTL = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_query", Name: "cache_ttl", Help: "times to live of query cache",
-	}, []string{"datname", "query"})
-	e.queryScrapeTotalCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_query", Name: "scrape_total_count", Help: "times exporter server was scraped for metrics",
-	}, []string{"datname", "query"})
-	e.queryScrapeErrorCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_query", Name: "scrape_error_count", Help: "times the query failed",
-	}, []string{"datname", "query"})
-	e.queryScrapePredicateSkipCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_query", Name: "scrape_predicate_skip_count", Help: "times the query was skipped due to a predicate returning false",
-	}, []string{"datname", "query"})
-	e.queryScrapeDuration = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_query", Name: "scrape_duration", Help: "seconds query spending on scraping",
-	}, []string{"datname", "query"})
-	e.queryScrapeMetricCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_query", Name: "scrape_metric_count", Help: "numbers of metrics been scraped from this query",
-	}, []string{"datname", "query"})
-	e.queryScrapeHitCount = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: e.namespace, ConstLabels: e.constLabels,
-		Subsystem: "exporter_query", Name: "scrape_hit_count", Help: "numbers been scraped from this query",
-	}, []string{"datname", "query"})
+	e.queryCacheTTLDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_query", "cache_ttl"),
+		"times to live of query cache",
+		[]string{"datname", "query"}, e.constLabels,
+	)
+	e.queryScrapeTotalCountDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_query", "scrape_total_count"),
+		"times exporter server was scraped for metrics",
+		[]string{"datname", "query"}, e.constLabels,
+	)
+	e.queryScrapeErrorCountDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_query", "scrape_error_count"),
+		"times the query failed",
+		[]string{"datname", "query"}, e.constLabels,
+	)
+	e.queryScrapePredicateSkipCountDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_query", "scrape_predicate_skip_count"),
+		"times the query was skipped due to a predicate returning false",
+		[]string{"datname", "query"}, e.constLabels,
+	)
+	e.queryScrapeDurationDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_query", "scrape_duration"),
+		"seconds query spending on scraping",
+		[]string{"datname", "query"}, e.constLabels,
+	)
+	e.queryScrapeMetricCountDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_query", "scrape_metric_count"),
+		"numbers of metrics been scraped from this query",
+		[]string{"datname", "query"}, e.constLabels,
+	)
+	e.queryScrapeHitCountDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(e.namespace, "exporter_query", "scrape_hit_count"),
+		"numbers been scraped from this query",
+		[]string{"datname", "query"}, e.constLabels,
+	)
 
 	e.exporterUp.Set(1) // always be true
 	e.healthStatus.Store(healthStatusUnknown)
@@ -492,19 +522,6 @@ func (e *Exporter) collectInternalMetrics(ch chan<- prometheus.Metric) {
 	ch <- e.scrapeTotalCount
 	ch <- e.scrapeErrorCount
 	ch <- e.scrapeDuration
-
-	e.serverScrapeDuration.Collect(ch)
-	e.serverScrapeTotalSeconds.Collect(ch)
-	e.serverScrapeTotalCount.Collect(ch)
-	e.serverScrapeErrorCount.Collect(ch)
-
-	e.queryCacheTTL.Collect(ch)
-	e.queryScrapeTotalCount.Collect(ch)
-	e.queryScrapeErrorCount.Collect(ch)
-	e.queryScrapePredicateSkipCount.Collect(ch)
-	e.queryScrapeDuration.Collect(ch)
-	e.queryScrapeMetricCount.Collect(ch)
-	e.queryScrapeHitCount.Collect(ch)
 }
 
 /* ================ Exporter Creation ================ */
@@ -531,6 +548,9 @@ func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
 		}
 		if e.queries, err = ParseConfig(b); err != nil {
 			return nil, fmt.Errorf("fail parsing config file: %w", err)
+		}
+		if err := FinalizeQueries(e.queries, "<reader>"); err != nil {
+			return nil, fmt.Errorf("fail finalizing config: %w", err)
 		}
 	}
 
@@ -880,6 +900,12 @@ func TitleFunc(w http.ResponseWriter, r *http.Request) {
 // ReloadFunc handles reload request
 func ReloadFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	if r.Method != http.MethodPost && r.Method != http.MethodGet {
+		w.Header().Set("Allow", "GET, POST")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_, _ = w.Write([]byte("method not allowed"))
+		return
+	}
 	if err := Reload(); err != nil {
 		w.WriteHeader(500)
 		_, _ = w.Write([]byte(fmt.Sprintf("fail to reload: %s", err.Error())))

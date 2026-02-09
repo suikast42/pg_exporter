@@ -82,4 +82,3 @@ func TestConfigCoveragePG10To18(t *testing.T) {
 		}
 	}
 }
-

@@ -152,7 +152,7 @@ Here are `pg_exporter` REST APIs
 curl localhost:9630/metrics
 
 # Reload configuration
-curl localhost:9630/reload
+curl -X POST localhost:9630/reload
 
 # Explain configuration
 curl localhost:9630/explain
@@ -178,7 +178,6 @@ curl localhost:9630/rw
 ### 200 if in recovery, 404 if not in recovery, 503 if server is down
 curl localhost:9630/replica
 curl localhost:9630/standby
-curl localhost:9630/slave
 curl localhost:9630/read-only
 curl localhost:9630/ro
 

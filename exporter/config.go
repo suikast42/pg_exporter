@@ -39,23 +39,56 @@ func ParseConfig(content []byte) (queries map[string]*Query, err error) {
 	}
 
 	// parse additional fields
-	for name, query := range queries {
+	for branch, query := range queries {
+		if query == nil {
+			return nil, fmt.Errorf("query %q is null", branch)
+		}
+		query.Branch = branch
 		if query.Name == "" {
-			query.Name = name
+			query.Name = branch
+		}
+		if strings.TrimSpace(query.SQL) == "" {
+			return nil, fmt.Errorf("query %q has empty SQL", branch)
+		}
+		if query.TTL < 0 {
+			return nil, fmt.Errorf("query %q has negative ttl: %v", branch, query.TTL)
+		}
+		for i, pq := range query.PredicateQueries {
+			if strings.TrimSpace(pq.SQL) == "" {
+				return nil, fmt.Errorf("query %q has empty predicate_query at index %d", branch, i)
+			}
+			if pq.TTL < 0 {
+				return nil, fmt.Errorf("query %q has negative predicate_queries[%d].ttl: %v", branch, i, pq.TTL)
+			}
+		}
+		if len(query.Metrics) == 0 {
+			return nil, fmt.Errorf("query %q has no metrics definition", branch)
 		}
 		// parse query column info
 		columns := make(map[string]*Column, len(query.Metrics))
 		var allColumns, labelColumns, metricColumns []string
 		for _, colMap := range query.Metrics {
+			if len(colMap) == 0 {
+				return nil, fmt.Errorf("query %q has an empty metrics entry", branch)
+			}
 			for colName, column := range colMap { // one-entry map
+				if column == nil {
+					return nil, fmt.Errorf("query %q has null column definition for %q", branch, colName)
+				}
 				if column.Name == "" {
 					column.Name = colName
 				}
-				usage := strings.ToUpper(column.Usage)
+				usage := strings.ToUpper(strings.TrimSpace(column.Usage))
+				if usage == "" {
+					return nil, fmt.Errorf("query %q column %q has empty usage", branch, colName)
+				}
 				if _, isValid := ColumnUsage[usage]; !isValid {
-					return nil, fmt.Errorf("column %s have unsupported usage: %s", colName, column.Usage)
+					return nil, fmt.Errorf("query %q column %q has unsupported usage: %s", branch, colName, column.Usage)
 				}
 				column.Usage = usage
+				if err := column.parseNumbers(); err != nil {
+					return nil, fmt.Errorf("query %q column %q: %w", branch, colName, err)
+				}
 				switch column.Usage {
 				case LABEL:
 					labelColumns = append(labelColumns, column.Name)
@@ -63,12 +96,76 @@ func ParseConfig(content []byte) (queries map[string]*Query, err error) {
 					metricColumns = append(metricColumns, column.Name)
 				}
 				allColumns = append(allColumns, column.Name)
+				if _, exists := columns[column.Name]; exists {
+					return nil, fmt.Errorf("query %q has duplicate column name %q", branch, column.Name)
+				}
 				columns[column.Name] = column
 			}
 		}
+		if len(metricColumns) == 0 {
+			return nil, fmt.Errorf("query %q defines no GAUGE/COUNTER columns", branch)
+		}
 		query.Columns, query.ColumnNames, query.LabelNames, query.MetricNames = columns, allColumns, labelColumns, metricColumns
+
+		// Validate prometheus label names and metric names. This prevents panics at scrape time.
+		seenLabels := make(map[string]bool, len(query.LabelNames))
+		for _, labelColName := range query.LabelNames {
+			c := query.Columns[labelColName]
+			if c == nil {
+				return nil, fmt.Errorf("query %q missing label column %q", branch, labelColName)
+			}
+			lbl := c.Name
+			if c.Rename != "" {
+				lbl = c.Rename
+			}
+			if err := validatePromLabelName(lbl); err != nil {
+				return nil, fmt.Errorf("query %q label %q: %w", branch, lbl, err)
+			}
+			if seenLabels[lbl] {
+				return nil, fmt.Errorf("query %q has duplicate label name %q", branch, lbl)
+			}
+			seenLabels[lbl] = true
+		}
+
+		seenMetrics := make(map[string]bool, len(query.MetricNames))
+		for _, metricColName := range query.MetricNames {
+			c := query.Columns[metricColName]
+			if c == nil {
+				return nil, fmt.Errorf("query %q missing metric column %q", branch, metricColName)
+			}
+			suffix := c.Name
+			if c.Rename != "" {
+				suffix = c.Rename
+			}
+			metricName := fmt.Sprintf("%s_%s", query.Name, suffix)
+			if err := validatePromMetricName(metricName); err != nil {
+				return nil, fmt.Errorf("query %q metric %q: %w", branch, metricName, err)
+			}
+			if seenMetrics[metricName] {
+				return nil, fmt.Errorf("query %q has duplicate metric name %q", branch, metricName)
+			}
+			seenMetrics[metricName] = true
+		}
 	}
 	return
+}
+
+func FinalizeQueries(queries map[string]*Query, source string) error {
+	for branch, q := range queries {
+		if q == nil {
+			return fmt.Errorf("query %q is null", branch)
+		}
+		q.Path = source
+		// If timeout is not set, set to 100ms by default.
+		// If timeout is set to a negative number, set to 0 (disabled).
+		if q.Timeout == 0 {
+			q.Timeout = 0.1
+		}
+		if q.Timeout < 0 {
+			q.Timeout = 0
+		}
+	}
+	return nil
 }
 
 // ParseQuery generate a single query from config string
@@ -83,6 +180,9 @@ func ParseQuery(config string) (*Query, error) {
 	if len(queries) > 1 {
 		return nil, fmt.Errorf("multiple query definition found")
 	}
+	if err := FinalizeQueries(queries, "<inline>"); err != nil {
+		return nil, err
+	}
 	for _, q := range queries {
 		return q, nil // return the only query instance
 	}
@@ -96,7 +196,7 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid config path: %s: %w", configPath, err)
 	}
-	if stat.IsDir() { // recursively iterate conf files if a dir is given
+	if stat.IsDir() { // iterate conf files (non-recursive) if a dir is given
 		files, err := os.ReadDir(configPath)
 		if err != nil {
 			return nil, fmt.Errorf("fail reading config dir: %s: %w", configPath, err)
@@ -105,8 +205,11 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 		logDebugf("load config from dir: %s", configPath)
 		confFiles := make([]string, 0)
 		for _, conf := range files {
-			if !(strings.HasSuffix(conf.Name(), ".yaml") || strings.HasSuffix(conf.Name(), ".yml")) && !conf.IsDir() { // depth = 1
-				continue // skip non yaml files
+			if conf.IsDir() {
+				continue // skip subdirectories
+			}
+			if !(strings.HasSuffix(conf.Name(), ".yaml") || strings.HasSuffix(conf.Name(), ".yml")) {
+				continue // skip non-yaml files
 			}
 			confFiles = append(confFiles, filepath.Join(configPath, conf.Name()))
 		}
@@ -142,19 +245,10 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 	if err != nil {
 		return nil, err
 	}
-	for branch, q := range queries {
-		q.Path = stat.Name()
-		q.Branch = branch
-		// if timeout is not set, set to 100ms by default
-		// if timeout is set to a neg number, set to 0, so it's actually disabled
-		if q.Timeout == 0 {
-			q.Timeout = 0.1
-		}
-		if q.Timeout < 0 {
-			q.Timeout = 0
-		}
+	if err := FinalizeQueries(queries, stat.Name()); err != nil {
+		return nil, err
 	}
-	logDebugf("load %d queries from %s, ", len(queries), configPath)
+	logDebugf("load %d queries from %s", len(queries), configPath)
 	return queries, nil
 
 }

@@ -2,6 +2,7 @@ package exporter
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -14,16 +15,15 @@ const (
 	LABEL     = "LABEL"     // Use this column as a label
 	COUNTER   = "COUNTER"   // Use this column as a counter
 	GAUGE     = "GAUGE"     // Use this column as a gauge
-	HISTOGRAM = "HISTOGRAM" // Use this column as a histogram
+	HISTOGRAM = "HISTOGRAM" // Use this column as a histogram (not implemented yet)
 )
 
 // ColumnUsage determine how to use query result column
 var ColumnUsage = map[string]bool{
-	DISCARD:   false,
-	LABEL:     false,
-	COUNTER:   true,
-	GAUGE:     true,
-	HISTOGRAM: true,
+	DISCARD: false,
+	LABEL:   false,
+	COUNTER: true,
+	GAUGE:   true,
 }
 
 // Column holds the metadata of query result
@@ -35,6 +35,32 @@ type Column struct {
 	Scale   string    `yaml:"scale,omitempty"`   // scale factor
 	Default string    `yaml:"default,omitempty"` // default value
 	Desc    string    `yaml:"description,omitempty"`
+
+	// Parsed numeric options (filled during config parsing).
+	scaleFactor  float64
+	hasScale     bool
+	defaultValue float64
+	hasDefault   bool
+}
+
+func (c *Column) parseNumbers() error {
+	if c.Scale != "" {
+		f, err := strconv.ParseFloat(c.Scale, 64)
+		if err != nil {
+			return fmt.Errorf("invalid scale %q: %w", c.Scale, err)
+		}
+		c.scaleFactor = f
+		c.hasScale = true
+	}
+	if c.Default != "" {
+		f, err := strconv.ParseFloat(c.Default, 64)
+		if err != nil {
+			return fmt.Errorf("invalid default %q: %w", c.Default, err)
+		}
+		c.defaultValue = f
+		c.hasDefault = true
+	}
+	return nil
 }
 
 // PrometheusValueType returns column's corresponding prometheus value type

@@ -34,13 +34,14 @@ func configureLogger(levelStr, formatStr string) *slog.Logger {
 	}
 
 	var handler slog.Handler
-	switch formatStr {
+	switch strings.ToLower(formatStr) {
 	case "json":
 		handler = slog.NewJSONHandler(os.Stderr, opts)
 	case "logfmt", "":
 		handler = slog.NewTextHandler(os.Stderr, opts)
 	default:
-		panic("unknown log format: " + formatStr)
+		// Be resilient to misconfiguration: fall back to logfmt.
+		handler = slog.NewTextHandler(os.Stderr, opts)
 	}
 
 	return slog.New(handler)
@@ -79,15 +80,12 @@ func logFatalf(format string, v ...interface{}) {
 
 /* ================ Auxiliaries ================ */
 
-// castFloat64 will cast datum into float64 with scale & default value
-func castFloat64(t interface{}, s string, d string) float64 {
-	var scale = 1.0
-	if s != "" {
-		if scaleFactor, err := strconv.ParseFloat(s, 64); err != nil {
-			logWarnf("invalid column scale: %v ", s)
-		} else {
-			scale = scaleFactor
-		}
+// castFloat64 will cast datum into float64 with Column scale & default value.
+// Column.Scale/Column.Default are parsed when loading config, so this is hot-path safe.
+func castFloat64(t interface{}, c *Column) float64 {
+	scale := 1.0
+	if c != nil && c.hasScale {
+		scale = c.scaleFactor
 	}
 
 	switch v := t.(type) {
@@ -118,13 +116,8 @@ func castFloat64(t interface{}, s string, d string) float64 {
 		}
 		return 0.0
 	case nil:
-		if d != "" {
-			result, err := strconv.ParseFloat(d, 64)
-			if err != nil {
-				logWarnf("invalid column default: %v", d)
-				return math.NaN()
-			}
-			return result * scale
+		if c != nil && c.hasDefault {
+			return c.defaultValue * scale
 		}
 		return math.NaN()
 	default:
@@ -178,6 +171,10 @@ func parseConstLabels(s string) prometheus.Labels {
 		key := strings.TrimSpace(keyValue[0])
 		value := strings.TrimSpace(keyValue[1])
 		if key == "" || value == "" {
+			continue
+		}
+		if err := validatePromLabelName(key); err != nil {
+			logWarnf("skip invalid const label name %q: %v", key, err)
 			continue
 		}
 		labels[key] = value

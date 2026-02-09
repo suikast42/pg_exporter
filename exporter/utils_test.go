@@ -43,42 +43,55 @@ func TestParseConstLabels(t *testing.T) {
 func TestCastFloat64(t *testing.T) {
 	now := time.Unix(1700000000, 0)
 
-	if got := castFloat64(int64(3), "2", ""); got != 6 {
+	withScale := func(scale, def string) *Column {
+		c := &Column{Scale: scale, Default: def}
+		if err := c.parseNumbers(); err != nil {
+			t.Fatalf("parseNumbers failed for scale=%q default=%q: %v", scale, def, err)
+		}
+		return c
+	}
+
+	if got := castFloat64(int64(3), withScale("2", "")); got != 6 {
 		t.Fatalf("int64 scale cast = %v, want 6", got)
 	}
-	if got := castFloat64(float64(1.5), "2", ""); got != 3 {
+	if got := castFloat64(float64(1.5), withScale("2", "")); got != 3 {
 		t.Fatalf("float64 scale cast = %v, want 3", got)
 	}
-	if got := castFloat64(now, "", ""); got != float64(now.Unix()) {
+	if got := castFloat64(now, nil); got != float64(now.Unix()) {
 		t.Fatalf("time cast = %v, want %v", got, now.Unix())
 	}
-	if got := castFloat64([]byte("3.25"), "10", ""); got != 32.5 {
+	if got := castFloat64([]byte("3.25"), withScale("10", "")); got != 32.5 {
 		t.Fatalf("[]byte cast = %v, want 32.5", got)
 	}
-	if got := castFloat64("2.5", "4", ""); got != 10 {
+	if got := castFloat64("2.5", withScale("4", "")); got != 10 {
 		t.Fatalf("string cast = %v, want 10", got)
 	}
-	if got := castFloat64(true, "", ""); got != 1 {
+	if got := castFloat64(true, nil); got != 1 {
 		t.Fatalf("bool true cast = %v, want 1", got)
 	}
-	if got := castFloat64(false, "", ""); got != 0 {
+	if got := castFloat64(false, nil); got != 0 {
 		t.Fatalf("bool false cast = %v, want 0", got)
 	}
-	if got := castFloat64(nil, "", "2.5"); got != 2.5 {
+	if got := castFloat64(nil, withScale("", "2.5")); got != 2.5 {
 		t.Fatalf("nil default cast = %v, want 2.5", got)
 	}
-	if got := castFloat64(nil, "10", "2.5"); got != 25 {
+	if got := castFloat64(nil, withScale("10", "2.5")); got != 25 {
 		t.Fatalf("nil default cast should apply scale: %v, want 25", got)
 	}
 
-	if got := castFloat64("abc", "", ""); !math.IsNaN(got) {
+	if got := castFloat64("abc", nil); !math.IsNaN(got) {
 		t.Fatalf("invalid string cast = %v, want NaN", got)
 	}
-	if got := castFloat64(nil, "", "bad"); !math.IsNaN(got) {
-		t.Fatalf("invalid default cast = %v, want NaN", got)
-	}
-	if got := castFloat64(struct{}{}, "", ""); !math.IsNaN(got) {
+	if got := castFloat64(struct{}{}, nil); !math.IsNaN(got) {
 		t.Fatalf("unknown type cast = %v, want NaN", got)
+	}
+
+	// Invalid numeric options should be rejected at parse time.
+	if err := (&Column{Scale: "bad"}).parseNumbers(); err == nil {
+		t.Fatal("parseNumbers should fail for invalid scale")
+	}
+	if err := (&Column{Default: "bad"}).parseNumbers(); err == nil {
+		t.Fatal("parseNumbers should fail for invalid default")
 	}
 }
 
@@ -111,11 +124,7 @@ func TestConfigureLogger(t *testing.T) {
 	if l := configureLogger("bad-level", "logfmt"); l == nil {
 		t.Fatal("configureLogger returned nil for fallback level")
 	}
-
-	defer func() {
-		if r := recover(); r == nil {
-			t.Fatal("configureLogger should panic on unknown format")
-		}
-	}()
-	_ = configureLogger("info", "unknown-format")
+	if l := configureLogger("info", "unknown-format"); l == nil {
+		t.Fatal("configureLogger returned nil for unknown format fallback")
+	}
 }

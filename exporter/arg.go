@@ -13,7 +13,7 @@ var (
 	pgURL             = kingpin.Flag("url", "postgres target url").Short('d').Short('u').String()
 	configPath        = kingpin.Flag("config", "path to config dir or file").Short('c').String()
 	webConfig         = kingpinflag.AddFlags(kingpin.CommandLine, ":9630")
-	constLabels       = kingpin.Flag("label", "constant lables:comma separated list of label=value pair").Short('l').Default("").Envar("PG_EXPORTER_LABEL").String()
+	constLabels       = kingpin.Flag("label", "constant labels: comma separated list of label=value pair").Short('l').Default("").Envar("PG_EXPORTER_LABEL").String()
 	serverTags        = kingpin.Flag("tag", "tags,comma separated list of server tag").Default("").Short('t').Envar("PG_EXPORTER_TAG").String()
 	disableCache      = kingpin.Flag("disable-cache", "force not using cache").Default("false").Short('C').Envar("PG_EXPORTER_DISABLE_CACHE").Bool()
 	disableIntro      = kingpin.Flag("disable-intro", "disable internal/exporter self metrics (only expose query metrics)").Short('m').Default("false").Envar("PG_EXPORTER_DISABLE_INTRO").Bool()
@@ -33,7 +33,7 @@ var (
 	explainOnly = kingpin.Flag("explain", "explain server planned queries").Default("false").Short('E').Bool()
 
 	// logger setting
-	logLevel  = kingpin.Flag("log.level", "log level: debug|info|warn|error]").Default("info").String()
+	logLevel  = kingpin.Flag("log.level", "log level: debug|info|warn|error").Default("info").String()
 	logFormat = kingpin.Flag("log.format", "log format: logfmt|json").Default("logfmt").String()
 )
 

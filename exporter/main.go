@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -137,7 +138,7 @@ func Run() {
 		WithConnectTimeout(*connectTimeout),
 	)
 	if err != nil {
-		logFatalf("fail creating pg_exporter: %s", err.Error())
+		logErrorf("fail creating pg_exporter: %s", err.Error())
 		os.Exit(2)
 	}
 	setCurrentExporter(newExporter)
@@ -196,7 +197,12 @@ func Run() {
 
 	logInfof("pg_exporter for %s start, listen on %s%s", ShadowPGURL(*pgURL), listenAddr, *metricPath)
 
-	srv := &http.Server{}
+	srv := &http.Server{
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       2 * time.Minute,
+	}
 	if err := web.ListenAndServe(srv, webConfig, Logger); err != nil {
 		logFatalf("http server failed: %s", err.Error())
 	}

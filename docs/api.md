@@ -186,9 +186,11 @@ Check if the server is a replica (standby) instance.
 #### Aliases
 
 - `/standby`
-- `/slave`
 - `/read-only`
 - `/ro`
+
+Deprecated alias:
+`/slave`
 
 #### Example
 

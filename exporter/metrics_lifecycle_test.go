@@ -77,8 +77,8 @@ func TestExporterDescribeAndCloseNoPanic(t *testing.T) {
 
 	descCh := make(chan *prometheus.Desc, 32)
 	e.Describe(descCh)
-	if len(descCh) == 0 {
-		t.Fatal("Describe should emit at least one descriptor")
+	if len(descCh) != 0 {
+		t.Fatalf("Describe should not emit descriptors for a dynamic/unchecked exporter, got %d", len(descCh))
 	}
 
 	// server DB pointers are nil in this synthetic test; Close should not panic.

@@ -14,6 +14,11 @@ import (
 
 /* ================ Collector ================ */
 
+type predicateCacheEntry struct {
+	at   time.Time
+	pass bool
+}
+
 // Collector holds runtime information of a Query running on a Server
 // It is deeply coupled with Server. Besides, it can be a collector itself
 type Collector struct {
@@ -28,6 +33,9 @@ type Collector struct {
 	predicateSkip string                      // if nonempty, predicate query caused skip of this scrape
 	err           error
 
+	// predicate cache. Entry i caches PredicateQueries[i] if it has a positive TTL.
+	predicateCache []predicateCacheEntry
+
 	// stats
 	lastScrape     time.Time     // SERVER's scrape start time (for cache window align)
 	scrapeBegin    time.Time     // execution begin time
@@ -41,6 +49,9 @@ func NewCollector(q *Query, s *Server) *Collector {
 		Query:  q,
 		Server: s,
 		result: make([]prometheus.Metric, 0),
+	}
+	if len(q.PredicateQueries) > 0 {
+		instance.predicateCache = make([]predicateCacheEntry, len(q.PredicateQueries))
 	}
 	instance.makeDescMap()
 	return instance
@@ -109,6 +120,22 @@ func (q *Collector) executePredicateQueries(ctx context.Context) bool {
 
 		msgPrefix := fmt.Sprintf("predicate query [%s] for query [%s] @ server [%s]", predicateQueryName, q.Name, q.Server.Database)
 
+		// Optional predicate cache (independent of main query cache).
+		if predicateQuery.TTL > 0 && len(q.predicateCache) == len(q.PredicateQueries) {
+			entry := q.predicateCache[i]
+			if !entry.at.IsZero() {
+				ttl := time.Duration(predicateQuery.TTL * float64(time.Second))
+				if q.scrapeBegin.Sub(entry.at) < ttl {
+					logDebugf("%s served from predicate cache (ttl=%vs, pass=%v)", msgPrefix, predicateQuery.TTL, entry.pass)
+					if entry.pass {
+						continue
+					}
+					// cached skip
+					return false
+				}
+			}
+		}
+
 		// Execute the predicate query.
 		logDebugf("%s executing predicate query", msgPrefix)
 		rows, err := q.Server.QueryContext(ctx, predicateQuery.SQL)
@@ -169,7 +196,11 @@ func (q *Collector) executePredicateQueries(ctx context.Context) bool {
 			q.err = fmt.Errorf("%s failed closing rows: %w", msgPrefix, err)
 			return false
 		}
-		if !(predicatePass.Valid && predicatePass.Bool) {
+		pass := predicatePass.Valid && predicatePass.Bool
+		if predicateQuery.TTL > 0 && len(q.predicateCache) == len(q.PredicateQueries) {
+			q.predicateCache[i] = predicateCacheEntry{at: q.scrapeBegin, pass: pass}
+		}
+		if !pass {
 			// successfully executed predicate query requested a skip
 			logDebugf("%s returned false, null or zero rows, skipping query", msgPrefix)
 			return false
@@ -269,7 +300,7 @@ func (q *Collector) execute() {
 					prometheus.MustNewConstMetric(
 						q.descriptors[metricName], // always find desc & column via name
 						q.Columns[metricName].PrometheusValueType(),
-						castFloat64(colData[dataIndex], q.Columns[metricName].Scale, q.Columns[metricName].Default),
+						castFloat64(colData[dataIndex], q.Columns[metricName]),
 						labels...,
 					))
 			} else {
