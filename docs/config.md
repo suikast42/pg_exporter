@@ -20,7 +20,7 @@ PG Exporter uses a declarative YAML configuration system that provides incredibl
 PG Exporter's configuration is centered around **collectors** - individual metric queries with associated metadata. The configuration can be:
 
 - A single monolithic YAML file (`pg_exporter.yml`)
-- A directory containing multiple YAML files (merged alphabetically)
+- A directory containing multiple YAML files (merged alphabetically, non-recursive)
 - Custom path specified via command-line or environment variable
 
 ## Configuration Loading
@@ -32,6 +32,8 @@ PG Exporter searches for configuration in the following order:
 3. Current directory: `./pg_exporter.yml`
 4. System config file: `/etc/pg_exporter.yml`
 5. System config directory: `/etc/pg_exporter/`
+
+Note: When `--config` points to a directory, PG Exporter only loads the YAML files in that directory (non-recursive). Subdirectories are ignored.
 
 ## Collector Structure
 

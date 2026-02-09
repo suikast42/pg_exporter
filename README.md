@@ -323,7 +323,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #==============================================================#
 # pg_exporter config could be a single YAML file, or a directory containing a series of separated YAML files.
 # Each YAML config file consists of one or more metrics Collector definition, which are top-level objects.
-# If a directory is provided, all YAML in that directory will be merged in alphabetic order.
+# If a directory is provided, all YAML files in that directory (non-recursive; subdirectories are ignored) will be merged in alphabetic order.
 # Collector definition examples are shown below.
 
 #==============================================================#

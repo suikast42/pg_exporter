@@ -173,6 +173,13 @@ PG_EXPORTER_URL='postgres://pgbouncer:password@localhost:6432/pgbouncer' \
 pg_exporter --config=/etc/pg_exporter.yml
 ```
 
+Note: if you see `unsupported startup parameter: extra_float_digits` in the exporter logs while connecting to pgBouncer, add the following to your `pgbouncer.ini`:
+
+```ini
+[pgbouncer]
+ignore_startup_parameters = extra_float_digits
+```
+
 The exporter automatically detects pgBouncer and:
 - Uses `pgbouncer` namespace for metrics
 - Executes pgBouncer-specific collectors (9xx series)
