@@ -131,10 +131,16 @@ func (s *Server) ProbeHealth() (up, recovery, starting bool, err error) {
 	defer cancel()
 
 	if pgbouncerMode {
-		// lib/pq supports Ping via a lightweight ";" simple query.
-		// Using Ping avoids assumptions about what statements pgbouncer accepts.
-		if err = db.PingContext(ctx); err != nil {
-			return false, false, false, err
+		// PgBouncer does NOT accept lib/pq Ping()'s lightweight ";" simple query:
+		// it will log "invalid command ';'" and return an error.
+		//
+		// For health probes we only need a cheap, universally supported PgBouncer
+		// admin command. Some PgBouncer versions return SHOW VERSION via NOTICE
+		// (thus no result rows), so treat sql.ErrNoRows as success.
+		var dummy string
+		qerr := db.QueryRowContext(ctx, `SHOW VERSION;`).Scan(&dummy)
+		if qerr != nil && !errors.Is(qerr, sql.ErrNoRows) {
+			return false, false, false, qerr
 		}
 		return true, false, false, nil
 	}
