@@ -16,7 +16,7 @@
 PG Exporter brings ultimate monitoring experience to your PostgreSQL with **declarative config**, **dynamic planning**, and **customizable collectors**. 
 It provides **600+** metrics and ~3K time series per instance, covers everything you'll need for PostgreSQL observability.
 
-Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
+Check [**https://demo.pigsty.io**](https://demo.pigsty.io/ui/) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
 
 <div align="center">
     <a href="https://pigsty.io/docs/pg_exporter">Docs</a> •    
@@ -26,7 +26,7 @@ Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which 
     <a href="#api">API</a> •
     <a href="#deployment">Deployment</a> •
     <a href="#collectors">Collectors</a> •
-    <a href="https://demo.pigsty.io">Demo</a>
+    <a href="https://demo.pigsty.io/ui/">Demo</a>
 </div><br>
 
 [![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.io)

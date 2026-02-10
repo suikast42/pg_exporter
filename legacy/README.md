@@ -1,6 +1,6 @@
-# Legacy Config Bundle (v1.19)
+# Legacy Config Bundle (for PG 9.1 - 9.6)
 
-This directory contains the **legacy pg_exporter configuration bundle v1.19** for **PostgreSQL 9.1 - 9.6** (EOL).
+This directory contains the **legacy pg_exporter config bundle** for **PostgreSQL 9.1 - 9.6** (EOL).
 
 - `pg_exporter.yml`: merged legacy config (ready to use)
 - `config/`: separated collector definitions (source of truth)
