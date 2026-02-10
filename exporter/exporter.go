@@ -181,6 +181,11 @@ func (e *Exporter) startHealthLoop() {
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 
+		// Health probing is intentionally decoupled from /metrics scraping so that:
+		// - HTTP health handlers never block on network calls
+		// - the exporter can recover health status even when scrapes are failing
+		//
+		// Keep Server.ProbeHealth cheap and log-noise-free: it runs once per second.
 		_ = e.probeAndUpdateHealthState()
 		for {
 			select {
@@ -832,6 +837,8 @@ func (e *Exporter) UpCheckFunc(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Note: /up reports the latest state from the background health loop.
+	// It does not actively probe the target on each HTTP request.
 	status := target.Status()
 	if target.Up() {
 		w.WriteHeader(200)
