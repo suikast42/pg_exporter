@@ -31,7 +31,7 @@ var (
 	PgExporter        *Exporter
 	currentExporterPt atomic.Pointer[Exporter]
 	ReloadLock        sync.RWMutex
-	Logger            *slog.Logger
+	Logger            = slog.Default()
 )
 
 func setCurrentExporter(e *Exporter) {

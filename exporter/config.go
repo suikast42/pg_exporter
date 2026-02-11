@@ -71,6 +71,9 @@ func ParseConfig(content []byte) (queries map[string]*Query, err error) {
 			if len(colMap) == 0 {
 				return nil, fmt.Errorf("query %q has an empty metrics entry", branch)
 			}
+			if len(colMap) != 1 {
+				return nil, fmt.Errorf("query %q has invalid metrics entry with %d columns, expect exactly 1", branch, len(colMap))
+			}
 			for colName, column := range colMap { // one-entry map
 				if column == nil {
 					return nil, fmt.Errorf("query %q has null column definition for %q", branch, colName)
@@ -218,9 +221,13 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 		// priority is an integer range from 1 to 999, where 1 - 99 is reserved for user
 		queries = make(map[string]*Query)
 		var queryCount, configCount int
+		var firstErr error
 		for _, confPath := range confFiles {
 			if singleQueries, err := LoadConfig(confPath); err != nil {
 				logWarnf("skip config %s due to error: %s", confPath, err.Error())
+				if firstErr == nil {
+					firstErr = err
+				}
 			} else {
 				configCount++
 				for name, query := range singleQueries {
@@ -231,6 +238,12 @@ func LoadConfig(configPath string) (queries map[string]*Query, err error) {
 					queries[name] = query // so the later one will overwrite former one
 				}
 			}
+		}
+		if len(confFiles) > 0 && len(queries) == 0 {
+			if firstErr != nil {
+				return nil, fmt.Errorf("no valid queries loaded from config dir %s (%d yaml files), first error: %w", configPath, len(confFiles), firstErr)
+			}
+			return nil, fmt.Errorf("no queries loaded from config dir %s (%d yaml files)", configPath, len(confFiles))
 		}
 		logDebugf("load %d of %d queries from %d config files", len(queries), queryCount, configCount)
 		return queries, nil

@@ -53,6 +53,16 @@ func TestParseDatnameAndReplaceDatname(t *testing.T) {
 	if got := ParseDatname(replaced); got != "otherdb" {
 		t.Fatalf("ParseDatname(replaced) = %q, want %q", got, "otherdb")
 	}
+
+	srcWithDbname := "postgresql://user:pass@localhost:5432?sslmode=disable&dbname=pgbouncer"
+	if got := ParseDatname(srcWithDbname); got != "pgbouncer" {
+		t.Fatalf("ParseDatname(dbname=) = %q, want %q", got, "pgbouncer")
+	}
+
+	replacedDbname := ReplaceDatname(srcWithDbname, "postgres")
+	if got := ParseDatname(replacedDbname); got != "postgres" {
+		t.Fatalf("ParseDatname(replaced dbname=) = %q, want %q", got, "postgres")
+	}
 }
 
 func TestRetrievePGURLPriority(t *testing.T) {

@@ -128,3 +128,15 @@ func TestConfigureLogger(t *testing.T) {
 		t.Fatal("configureLogger returned nil for unknown format fallback")
 	}
 }
+
+func TestLogHelpersWithNilLogger(t *testing.T) {
+	origin := Logger
+	Logger = nil
+	t.Cleanup(func() { Logger = origin })
+
+	logDebugf("debug %d", 1)
+	logInfof("info %d", 1)
+	logWarnf("warn %d", 1)
+	logErrorf("error %d", 1)
+	logError("plain error")
+}

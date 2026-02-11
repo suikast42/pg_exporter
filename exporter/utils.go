@@ -47,34 +47,41 @@ func configureLogger(levelStr, formatStr string) *slog.Logger {
 	return slog.New(handler)
 }
 
+func loggerOrDefault() *slog.Logger {
+	if Logger != nil {
+		return Logger
+	}
+	return slog.Default()
+}
+
 // logDebugf will log debug message
 func logDebugf(format string, v ...interface{}) {
-	Logger.Debug(fmt.Sprintf(format, v...))
+	loggerOrDefault().Debug(fmt.Sprintf(format, v...))
 }
 
 // logInfof will log info message
 func logInfof(format string, v ...interface{}) {
-	Logger.Info(fmt.Sprintf(format, v...))
+	loggerOrDefault().Info(fmt.Sprintf(format, v...))
 }
 
 // logWarnf will log warning message
 func logWarnf(format string, v ...interface{}) {
-	Logger.Warn(fmt.Sprintf(format, v...))
+	loggerOrDefault().Warn(fmt.Sprintf(format, v...))
 }
 
 // logErrorf will log error message
 func logErrorf(format string, v ...interface{}) {
-	Logger.Error(fmt.Sprintf(format, v...))
+	loggerOrDefault().Error(fmt.Sprintf(format, v...))
 }
 
 // logError will print error message directly
 func logError(msg string) {
-	Logger.Error(msg)
+	loggerOrDefault().Error(msg)
 }
 
 // logFatalf will log error message
 func logFatalf(format string, v ...interface{}) {
-	Logger.Error(fmt.Sprintf(format, v...))
+	loggerOrDefault().Error(fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 

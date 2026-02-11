@@ -52,6 +52,21 @@ bad_query:
 	}
 }
 
+func TestParseConfigRejectsMultiColumnMetricsEntry(t *testing.T) {
+	config := `
+bad_query:
+  query: SELECT 1 AS a, 2 AS b
+  metrics:
+    - a:
+        usage: gauge
+      b:
+        usage: gauge
+`
+	if _, err := ParseConfig([]byte(config)); err == nil {
+		t.Fatal("ParseConfig should fail when one metrics entry defines multiple columns")
+	}
+}
+
 func TestParseQueryErrors(t *testing.T) {
 	if _, err := ParseQuery(`{}`); err == nil {
 		t.Fatal("ParseQuery should fail when no query is defined")
@@ -121,6 +136,24 @@ q_extra:
 	}
 	if queries["q_extra"].Priority != 102 {
 		t.Fatalf("q_extra priority = %d, want 102", queries["q_extra"].Priority)
+	}
+}
+
+func TestLoadConfigDirectoryAllInvalidReturnsError(t *testing.T) {
+	dir := t.TempDir()
+	bad := `
+q_bad:
+  query: SELECT 1 AS metric
+  metrics:
+    - metric:
+        usage: bad_usage
+`
+	if err := os.WriteFile(filepath.Join(dir, "0100-bad.yml"), []byte(bad), 0o644); err != nil {
+		t.Fatalf("write config failed: %v", err)
+	}
+
+	if _, err := LoadConfig(dir); err == nil {
+		t.Fatal("LoadConfig should fail when no valid queries are loaded from a config directory")
 	}
 }
 

@@ -96,7 +96,13 @@ func ParseDatname(pgurl string) string {
 	if err != nil {
 		return ""
 	}
-	return strings.TrimLeft(u.Path, "/")
+	if datname := strings.TrimLeft(u.Path, "/"); datname != "" {
+		return datname
+	}
+	if datname := strings.TrimSpace(u.Query().Get("dbname")); datname != "" {
+		return datname
+	}
+	return ""
 }
 
 // ReplaceDatname will replace pgurl with new database name
@@ -105,6 +111,14 @@ func ReplaceDatname(pgurl, datname string) string {
 	if err != nil {
 		logErrorf("invalid url format %s", pgurl)
 		return ""
+	}
+	if strings.TrimLeft(u.Path, "/") == "" {
+		qs := u.Query()
+		if qs.Get("dbname") != "" {
+			qs.Set("dbname", datname)
+			u.RawQuery = qs.Encode()
+			return u.String()
+		}
 	}
 	u.Path = "/" + datname
 	return u.String()
