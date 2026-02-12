@@ -45,6 +45,7 @@ Check [**https://demo.pigsty.io**](https://demo.pigsty.io/ui/) for live demo, wh
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
 - **Extension Support**: `timescaledb`, `citus`, `pg_stat_statements`, `pg_wait_sampling`,...
+- **Local-first URL behavior**: Built for on-host deployment, with implicit local target fallback and automatic `sslmode=disable` when omitted
 
 > Also support PG 9.x with [legacy config bundle](legacy/).
 
@@ -119,7 +120,7 @@ Parameters could be given via command-line args or environment variables.
 
 | CLI Arg                | Environment Variable           | Default Value     |
 |------------------------|--------------------------------|-------------------|
-| `--url`                | `PG_EXPORTER_URL`              | `postgres:///`    |
+| `--url`                | `PG_EXPORTER_URL`              | `postgresql:///?sslmode=disable` |
 | `--config`             | `PG_EXPORTER_CONFIG`           | `pg_exporter.yml` |
 | `--label`              | `PG_EXPORTER_LABEL`            |                   |
 | `--tag`                | `PG_EXPORTER_TAG`              |                   |
@@ -137,6 +138,13 @@ Parameters could be given via command-line args or environment variables.
 | `--web.listen-address` |                                | `:9630`           |
 | `--web.config.file`    |                                | `""`              |
 | `--web.telemetry-path` | `PG_EXPORTER_TELEMETRY_PATH`   | `/metrics`        |
+
+### Connection URL Defaults
+
+- If `--url` / `PG_EXPORTER_URL` is not provided, pg_exporter falls back to a local-first default URL: `postgresql:///?sslmode=disable`.
+- If `sslmode` is not explicitly set in the URL, pg_exporter injects `sslmode=disable` by default.
+- This is an intentional design choice for common on-host deployments (`pg_exporter` and PostgreSQL/PgBouncer on the same machine), where loopback TLS adds overhead with little practical gain.
+- If you need TLS for remote targets, provide `sslmode` explicitly in the connection URL (for example: `sslmode=require`, `verify-ca`, `verify-full`).
 
 
 ------

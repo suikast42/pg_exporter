@@ -17,6 +17,10 @@ func GetPGURL() string {
 //  2. Environment PG_EXPORTER_URL
 //  3. From file specified via Environment PG_EXPORTER_URL_FILE
 //  4. Default url
+//
+// The default URL intentionally targets local libpq defaults. This is a
+// local-first behavior for on-host deployments, where pg_exporter usually
+// runs on the same machine as PostgreSQL/PgBouncer.
 func RetrievePGURL() (res string) {
 	// command line args
 	if *pgURL != "" {
@@ -48,7 +52,13 @@ func RetrievePGURL() (res string) {
 	return defaultPGURL
 }
 
-// ProcessPGURL will fix URL with default options
+// ProcessPGURL will fix URL with default options.
+//
+// Design decision:
+// If sslmode is omitted, force sslmode=disable. pg_exporter is typically
+// deployed as an on-host/local exporter, where TLS on loopback adds overhead
+// without meaningful security benefit. Users can always override by passing an
+// explicit sslmode in the URL.
 func ProcessPGURL(pgurl string) string {
 	u, err := url.Parse(pgurl)
 	if err != nil {
