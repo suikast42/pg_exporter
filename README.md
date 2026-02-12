@@ -67,15 +67,6 @@ There are built-in metrics such as `pg_up`, `pg_version`, `pg_in_recovery`, `pg_
 
 **All other metrics are defined in the [`pg_exporter.yml`](pg_exporter.yml) config file**.
 
-For legacy PostgreSQL **9.1 - 9.6** (EOL), use the legacy config bundle in [`legacy/`](legacy/):
-
-```bash
-make conf9
-PG_EXPORTER_CONFIG=legacy/pg_exporter.yml \
-PG_EXPORTER_URL='postgres://user:pass@host:port/postgres' \
-pg_exporter
-```
-
 There are two monitoring dashboards in the [`monitor/`](monitor/) directory.
 
 You can use [**Pigsty**](https://pigsty.io) to monitor existing PostgreSQL cluster or RDS, it will setup pg_exporter for you. 
@@ -118,26 +109,26 @@ Flags:
 
 Parameters could be given via command-line args or environment variables. 
 
-| CLI Arg                | Environment Variable           | Default Value     |
-|------------------------|--------------------------------|-------------------|
+| CLI Arg                | Environment Variable           | Default Value                    |
+|------------------------|--------------------------------|----------------------------------|
 | `--url`                | `PG_EXPORTER_URL`              | `postgresql:///?sslmode=disable` |
-| `--config`             | `PG_EXPORTER_CONFIG`           | `pg_exporter.yml` |
-| `--label`              | `PG_EXPORTER_LABEL`            |                   |
-| `--tag`                | `PG_EXPORTER_TAG`              |                   |
-| `--auto-discovery`     | `PG_EXPORTER_AUTO_DISCOVERY`   | `true`            |
-| `--disable-cache`      | `PG_EXPORTER_DISABLE_CACHE`    | `false`           |
-| `--fail-fast`          | `PG_EXPORTER_FAIL_FAST`        | `false`           |
-| `--exclude-database`   | `PG_EXPORTER_EXCLUDE_DATABASE` |                   |
-| `--include-database`   | `PG_EXPORTER_INCLUDE_DATABASE` |                   |
-| `--namespace`          | `PG_EXPORTER_NAMESPACE`        | `pg\|pgbouncer`   |
-| `--connect-timeout`    | `PG_EXPORTER_CONNECT_TIMEOUT`  | `100`             |
-| `--dry-run`            |                                | `false`           |
-| `--explain`            |                                | `false`           |
-| `--log.level`          |                                | `info`            |
-| `--log.format`         |                                | `logfmt`          |
-| `--web.listen-address` |                                | `:9630`           |
-| `--web.config.file`    |                                | `""`              |
-| `--web.telemetry-path` | `PG_EXPORTER_TELEMETRY_PATH`   | `/metrics`        |
+| `--config`             | `PG_EXPORTER_CONFIG`           | `pg_exporter.yml`                |
+| `--label`              | `PG_EXPORTER_LABEL`            |                                  |
+| `--tag`                | `PG_EXPORTER_TAG`              |                                  |
+| `--auto-discovery`     | `PG_EXPORTER_AUTO_DISCOVERY`   | `true`                           |
+| `--disable-cache`      | `PG_EXPORTER_DISABLE_CACHE`    | `false`                          |
+| `--fail-fast`          | `PG_EXPORTER_FAIL_FAST`        | `false`                          |
+| `--exclude-database`   | `PG_EXPORTER_EXCLUDE_DATABASE` |                                  |
+| `--include-database`   | `PG_EXPORTER_INCLUDE_DATABASE` |                                  |
+| `--namespace`          | `PG_EXPORTER_NAMESPACE`        | `pg\|pgbouncer`                  |
+| `--connect-timeout`    | `PG_EXPORTER_CONNECT_TIMEOUT`  | `100`                            |
+| `--dry-run`            |                                | `false`                          |
+| `--explain`            |                                | `false`                          |
+| `--log.level`          |                                | `info`                           |
+| `--log.format`         |                                | `logfmt`                         |
+| `--web.listen-address` |                                | `:9630`                          |
+| `--web.config.file`    |                                | `""`                             |
+| `--web.telemetry-path` | `PG_EXPORTER_TELEMETRY_PATH`   | `/metrics`                       |
 
 ### Connection URL Defaults
 
@@ -304,8 +295,7 @@ Current `pg_exporter` is shipped with the following metrics collector definition
 >
 > Supported version: PostgreSQL 10, 11, 12, 13, 14, 15, 16, 17, 18+
 >
-> But you can still get PostgreSQL 9.4, 9.5, 9.6 support by switching to the older version collector definition
-
+> But you can still get PostgreSQL 9.1 - 9.6 support by switching to the [`legacy/pg_exporter.yml`](legacy/pg_exporter.yml) config
 
 `pg_exporter` will generate approximately 600 metrics for a completely new database cluster.
 For a real-world database with 10 ~ 100 tables, it may generate several 1k ~ 10k metrics. 
