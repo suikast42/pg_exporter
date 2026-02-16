@@ -1,0 +1,27 @@
+#==============================================================#
+# 0230 pg_downstream
+#==============================================================#
+pg_downstream:
+  name: pg_downstream
+  desc: PostgreSQL replication client count (no state column on 9.1)
+  query: |-
+    SELECT 'connected' AS state, count(*) AS count FROM pg_stat_replication;
+  ttl: 10
+  min_version: 90100
+  max_version: 90200
+  tags: [ cluster ]
+  metrics:
+    - state: { usage: LABEL ,description: Replication client state }
+    - count: { usage: GAUGE ,description: Count of replication clients by state }
+
+pg_downstream_92:
+  name: pg_downstream
+  desc: PostgreSQL replication client count (group by state)
+  query: |-
+    SELECT state, count(*) AS count FROM pg_stat_replication GROUP BY state;
+  ttl: 10
+  min_version: 90200
+  tags: [ cluster ]
+  metrics:
+    - state: { usage: LABEL ,description: Replication client state }
+    - count: { usage: GAUGE ,description: Count of replication clients by state }

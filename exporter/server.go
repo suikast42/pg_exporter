@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -19,7 +20,11 @@ import (
 /* ================ Const ================ */
 const connMaxLifeTime = 1 * time.Minute // close connection after 1 minute to avoid conn leak
 
+const pgSQLStateCannotConnectNow = "57P03"
+
 /* ================ Server ================ */
+
+var semverRe = regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)`)
 
 // Server represent a postgres connection, with additional fact, conf, runtime info
 type Server struct {
@@ -27,6 +32,10 @@ type Server struct {
 	dsn     string       // data source name
 	lock    sync.RWMutex // server scrape lock
 	err     error        // last error
+
+	// notice handling (primarily for pgbouncer, where SHOW VERSION may return via NOTICE)
+	noticeMu   sync.Mutex
+	lastNotice string
 
 	// hooks
 	beforeScrape     func(s *Server) error        // hook: execute before scrape
@@ -64,7 +73,7 @@ type Server struct {
 	serverInit  time.Time // server init timestamp
 	scrapeBegin time.Time // server last scrape begin time
 	scrapeDone  time.Time // server last scrape done time
-	errorCount  float64   // total error count on this server
+	errorCount  float64   // total scrape error count on this server (fatal scrape failures only)
 	totalCount  float64   // total scrape count on this server
 	totalTime   float64   // total time spend on scraping
 
@@ -98,42 +107,130 @@ func (s *Server) Error() error {
 
 // Check will issue a connection and executing precheck hook function
 func (s *Server) Check() error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	return s.beforeScrape(s)
+}
+
+// ProbeHealth performs a lightweight probe for exporter health checks.
+// It returns whether the database is reachable, whether it's in recovery,
+// and whether PostgreSQL is still starting up (SQLSTATE 57P03).
+func (s *Server) ProbeHealth() (up, recovery, starting bool, err error) {
+	// Snapshot pointers/flags quickly under lock to avoid races with first-time DB init.
+	s.lock.RLock()
+	db := s.DB
+	pgbouncerMode := s.PgbouncerMode
+	timeout := s.GetConnectTimeout()
+	s.lock.RUnlock()
+
+	if db == nil {
+		return false, false, false, errors.New("database connection is not initialized")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	if pgbouncerMode {
+		// IMPORTANT: do NOT use db.PingContext() for PgBouncer.
+		//
+		// lib/pq implements Ping() by sending a simpleQuery(";") (empty command).
+		// PostgreSQL tolerates that, but PgBouncer rejects it with:
+		//   invalid command ';', use SHOW HELP;
+		// This becomes a log-spam regression once ProbeHealth is run periodically.
+		//
+		// For health probes we only need a cheap PgBouncer admin command.
+		// Some PgBouncer versions return SHOW VERSION via NOTICE (no result rows),
+		// so treat sql.ErrNoRows as success.
+		var dummy string
+		qerr := db.QueryRowContext(ctx, `SHOW VERSION;`).Scan(&dummy)
+		if qerr != nil && !errors.Is(qerr, sql.ErrNoRows) {
+			return false, false, false, qerr
+		}
+		return true, false, false, nil
+	}
+
+	if err = db.QueryRowContext(ctx, `SELECT pg_catalog.pg_is_in_recovery();`).Scan(&recovery); err != nil {
+		starting = isPostgresStartupError(err)
+		return false, false, starting, err
+	}
+
+	return true, recovery, false, nil
+}
+
+func isPostgresStartupError(err error) bool {
+	var pgErr *pq.Error
+	return errors.As(err, &pgErr) && string(pgErr.Code) == pgSQLStateCannotConnectNow
 }
 
 // PgbouncerPrecheck checks pgbouncer connection before scrape
 func PgbouncerPrecheck(s *Server) (err error) {
-	if s.DB == nil { // if db is not initialized, create a new DB
-		if s.DB, err = sql.Open("postgres", s.dsn); err != nil {
+	if s.DB == nil { // if db is not initialized, create a new DB with a NOTICE handler
+		base, cerr := pq.NewConnector(s.dsn)
+		if cerr != nil {
 			s.UP = false
-			return
+			return cerr
 		}
+		connector := pq.ConnectorWithNoticeHandler(base, func(notice *pq.Error) {
+			s.noticeMu.Lock()
+			s.lastNotice = notice.Message
+			s.noticeMu.Unlock()
+		})
+		s.DB = sql.OpenDB(connector)
 		s.DB.SetMaxIdleConns(1)
 		s.DB.SetMaxOpenConns(1)
 		s.DB.SetConnMaxLifetime(connMaxLifeTime)
 	}
 
-	var version string
+	// Clear last notice before issuing SHOW VERSION so we can reliably parse it.
+	s.noticeMu.Lock()
+	s.lastNotice = ""
+	s.noticeMu.Unlock()
+
 	ctx, cancel := context.WithTimeout(context.Background(), s.GetConnectTimeout())
 	defer cancel()
-	if err = s.DB.QueryRowContext(ctx, `SHOW VERSION;`).Scan(&version); err != nil {
-		// TODO: since pgbouncer 1.12- using NOTICE to tell version, we just leave it blank here
-		logWarnf("server [%s] fail to get pgbouncer version", s.Name())
-		// return fmt.Errorf("fail fetching pgbouncer server version: %w", err)
-	} else {
-		s.Version = ParseSemver(version)
-		if s.Version != 0 {
-			logDebugf("server [%s] parse pgbouncer version from %s to %v", s.Name(), version, s.Version)
-		} else {
-			logWarnf("server [%s] fail to parse pgbouncer version from %v", s.Name(), version)
+
+	var versionStr string
+	qerr := s.DB.QueryRowContext(ctx, `SHOW VERSION;`).Scan(&versionStr)
+	if qerr != nil && !errors.Is(qerr, sql.ErrNoRows) {
+		// Connection/auth errors should fail precheck (and thus scrape).
+		s.UP = false
+		return fmt.Errorf("fail fetching pgbouncer version: %w", qerr)
+	}
+
+	s.UP = true
+
+	// Version may come from:
+	// 1) a normal 1-row resultset (older versions / some builds), or
+	// 2) a server NOTICE message (pgbouncer 1.12+).
+	newVer := 0
+	if qerr == nil {
+		newVer = ParseSemver(versionStr)
+	}
+	if newVer == 0 {
+		s.noticeMu.Lock()
+		notice := s.lastNotice
+		s.noticeMu.Unlock()
+		if notice != "" {
+			newVer = ParseSemver(notice)
 		}
 	}
+
+	if newVer != 0 {
+		if s.Version != newVer {
+			logInfof("server [%s] pgbouncer version changed: from [%d] to [%d]", s.Name(), s.Version, newVer)
+			s.Planned = false
+		}
+		s.Version = newVer
+	} else if qerr == nil || errors.Is(qerr, sql.ErrNoRows) {
+		// Connected, but couldn't parse version string.
+		logWarnf("server [%s] connected but failed to parse pgbouncer version (row=%q)", s.Name(), versionStr)
+	}
+
 	return nil
 }
 
 // ParseSemver will turn semantic version string into integer
 func ParseSemver(semverStr string) int {
-	semverRe := regexp.MustCompile(`(\d+)\.(\d+)\.(\d+)`)
 	semver := semverRe.FindStringSubmatch(semverStr)
 	logDebugf("parse pgbouncer semver string %s", semverStr)
 	if len(semver) != 4 {
@@ -195,10 +292,11 @@ func PostgresPrecheck(s *Server) (err error) {
 	}
 	s.Version = version
 
-	// do not check here
-	if _, err = s.DB.Exec(`SET application_name = pg_exporter;`); err != nil {
+	ctxSet, cancelSet := context.WithTimeout(context.Background(), s.GetConnectTimeout())
+	defer cancelSet()
+	if _, err = s.DB.ExecContext(ctxSet, `SET application_name = pg_exporter;`); err != nil {
 		s.UP = false
-		return fmt.Errorf("fail settting application name: %w", err)
+		return fmt.Errorf("fail setting application name: %w", err)
 	}
 
 	// get important metadata
@@ -209,9 +307,9 @@ func PostgresPrecheck(s *Server) (err error) {
 	(SELECT pg_catalog.array_agg(d.datname)::text[] AS databases FROM pg_catalog.pg_database d WHERE d.datallowconn AND NOT d.datistemplate),
 	(SELECT pg_catalog.array_agg(n.nspname)::text[] AS namespaces FROM pg_catalog.pg_namespace n),
 	(SELECT pg_catalog.array_agg(e.extname)::text[] AS extensions FROM pg_catalog.pg_extension e);`
-	ctx, cancel2 := context.WithTimeout(context.Background(), s.GetConnectTimeout())
+	ctx2, cancel2 := context.WithTimeout(context.Background(), s.GetConnectTimeout())
 	defer cancel2()
-	if err = s.DB.QueryRowContext(ctx, precheckSQL).Scan(&datname, &username, &recovery, pq.Array(&databases), pq.Array(&namespaces), pq.Array(&extensions)); err != nil {
+	if err = s.DB.QueryRowContext(ctx2, precheckSQL).Scan(&datname, &username, &recovery, pq.Array(&databases), pq.Array(&namespaces), pq.Array(&extensions)); err != nil {
 		s.UP = false
 		return fmt.Errorf("fail fetching server version: %w", err)
 	}
@@ -306,13 +404,14 @@ func (s *Server) Plan(queries ...*Query) {
 
 // ResetStats will clear all statistic info
 func (s *Server) ResetStats() {
-	s.queryCacheTTL = make(map[string]float64, 0)
-	s.queryScrapeTotalCount = make(map[string]float64, 0)
-	s.queryScrapeHitCount = make(map[string]float64, 0)
-	s.queryScrapeErrorCount = make(map[string]float64, 0)
-	s.queryScrapePredicateSkipCount = make(map[string]float64, 0)
-	s.queryScrapeMetricCount = make(map[string]float64, 0)
-	s.queryScrapeDuration = make(map[string]float64, 0)
+	n := len(s.Collectors)
+	s.queryCacheTTL = make(map[string]float64, n)
+	s.queryScrapeTotalCount = make(map[string]float64, n)
+	s.queryScrapeHitCount = make(map[string]float64, n)
+	s.queryScrapeErrorCount = make(map[string]float64, n)
+	s.queryScrapePredicateSkipCount = make(map[string]float64, n)
+	s.queryScrapeMetricCount = make(map[string]float64, n)
+	s.queryScrapeDuration = make(map[string]float64, n)
 
 	for _, query := range s.Collectors {
 		s.queryCacheTTL[query.Name] = 0
@@ -425,6 +524,8 @@ func (s *Server) Compatible(query *Query) (res bool, reason string) {
 
 // Explain will print all queries that registered to server
 func (s *Server) Explain() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	var res []string
 	for _, i := range s.Collectors {
 		res = append(res, i.Explain())
@@ -434,6 +535,8 @@ func (s *Server) Explain() string {
 
 // Stat will turn Server internal stats into HTML
 func (s *Server) Stat() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	buf := new(bytes.Buffer)
 	//err := statsTemplate.Execute(buf, s)
 	//if err != nil {
@@ -458,6 +561,8 @@ func (s *Server) Stat() string {
 
 // ExplainHTML will print server stats in HTML format
 func (s *Server) ExplainHTML() string {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	var res []string
 	for _, i := range s.Collectors {
 		res = append(res, i.HTML())
@@ -467,6 +572,8 @@ func (s *Server) ExplainHTML() string {
 
 // Describe implement prometheus.Collector
 func (s *Server) Describe(ch chan<- *prometheus.Desc) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
 	for _, instance := range s.Collectors {
 		instance.Describe(ch)
 	}
@@ -479,7 +586,7 @@ func (s *Server) Collect(ch chan<- prometheus.Metric) {
 	s.scrapeBegin = time.Now() // This ts is used for cache expiration check
 
 	// check server conn, gathering fact
-	if s.err = s.Check(); s.err != nil {
+	if s.err = s.beforeScrape(s); s.err != nil {
 		logDebugf("fail establishing connection to %s: %s", s.Name(), s.err.Error())
 		goto final
 	}
@@ -563,8 +670,6 @@ func (s *Server) executeQuery(query *Collector, ch chan<- prometheus.Metric) err
 		skipped, _ := query.PredicateSkip()
 		if skipped {
 			s.queryScrapePredicateSkipCount[query.Name]++
-		} else {
-			s.queryScrapePredicateSkipCount[query.Name] = 0
 		}
 	}
 

@@ -1,0 +1,23 @@
+#==============================================================#
+# 0270 pg_origin
+#==============================================================#
+# skip by default, require additional privilege setup
+# GRANT SELECT ON pg_replication_origin, pg_replication_origin_status TO pg_monitor;
+pg_origin:
+  name: pg_origin
+  desc: PostgreSQL replay state (approximate) for a certain origin
+  query: |-
+    SELECT roname,
+      (('x' || lpad(split_part(remote_lsn::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+       + ('x' || lpad(split_part(remote_lsn::text, '/', 2), 8, '0'))::bit(32)::bigint) AS remote_lsn,
+      (('x' || lpad(split_part(local_lsn::text, '/', 1), 8, '0'))::bit(32)::bigint * 4294967296
+       + ('x' || lpad(split_part(local_lsn::text, '/', 2), 8, '0'))::bit(32)::bigint) AS local_lsn
+    FROM pg_replication_origin o LEFT JOIN pg_replication_origin_status os ON o.roident = os.local_id;
+  ttl: 10
+  min_version: 90500
+  skip: true
+  tags: [ cluster ]
+  metrics:
+    - roname:              { usage: LABEL     ,description: The external, user defined, name of a replication origin. }
+    - remote_lsn:          { usage: COUNTER   ,description: The origin node's LSN up to which data has been replicated. }
+    - local_lsn:           { usage: COUNTER   ,description: This node's LSN at which remote_lsn has been replicated. }

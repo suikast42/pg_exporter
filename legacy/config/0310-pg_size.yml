@@ -1,0 +1,15 @@
+#==============================================================#
+# 0310 pg_size
+#==============================================================#
+pg_size:
+  name: pg_size
+  desc: PostgreSQL database size (legacy 9.1-9.6)
+  query: |-
+    SELECT datname, pg_database_size(oid) AS bytes FROM pg_database;
+  ttl: 60
+  timeout: 1
+  min_version: 90100
+  tags: [ cluster ]
+  metrics:
+    - datname: { usage: LABEL ,description: Database name }
+    - bytes:   { usage: GAUGE ,description: Database size in bytes }

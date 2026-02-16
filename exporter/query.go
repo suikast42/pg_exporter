@@ -3,8 +3,9 @@ package exporter
 import (
 	"bytes"
 	"fmt"
+	htmltmpl "html/template"
 	"slices"
-	"text/template"
+	texttmpl "text/template"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -48,7 +49,7 @@ type PredicateQuery struct {
 	TTL  float64 `yaml:"ttl,omitempty"`   // How long to cache results for
 }
 
-var queryTemplate, _ = template.New("Query").Parse(`##
+var queryTemplate, _ = texttmpl.New("Query").Parse(`##
 # SYNOPSIS
 #       {{ .Name }}{{ if ne .Name .Branch }}.{{ .Branch }}{{ end }}_*
 #
@@ -72,7 +73,7 @@ var queryTemplate, _ = template.New("Query").Parse(`##
 {{.MarshalYAML -}}
 `)
 
-var htmlTemplate, _ = template.New("Query").Parse(`
+var htmlTemplate, _ = htmltmpl.New("Query").Parse(`
 <div style="border-style: solid; padding-left: 20px; padding-bottom: 10px;">
 
 <h2>{{ .Name }}</h2>
@@ -83,7 +84,7 @@ var htmlTemplate, _ = template.New("Query").Parse(`
 <thead><tr><th>Name</th> <th>SQL</th> <th>Cache TTL</th></tr></thead>
 <tbody>
 {{ range .PredicateQueries }}
-<tr><td>{{ .Name }}</td><td><code>{{ html .SQL }}</code></td><td>{{if ne .TTL 0}}{{ .TTL }}s{{else}}<i>not cached</i>{{end}}</td></tr>
+<tr><td>{{ .Name }}</td><td><code>{{ .SQL }}</code></td><td>{{if ne .TTL 0}}{{ .TTL }}s{{else}}<i>not cached</i>{{end}}</td></tr>
 {{ end }}
 </tbody></table>
 {{ end }}

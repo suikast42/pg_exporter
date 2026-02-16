@@ -4,12 +4,13 @@ import (
 	"log/slog"
 	"runtime"
 	"sync"
+	"sync/atomic"
 )
 
 /* ================ Parameters ================ */
 
 // Version is read by make build procedure
-var Version = "1.1.2"
+var Version = "1.2.0"
 
 // Build information. Populated at build-time.
 var (
@@ -27,7 +28,13 @@ var defaultPGURL = "postgresql:///?sslmode=disable"
 
 // PgExporter is the global singleton of Exporter
 var (
-	PgExporter *Exporter
-	ReloadLock sync.Mutex
-	Logger     *slog.Logger
+	PgExporter        *Exporter
+	currentExporterPt atomic.Pointer[Exporter]
+	ReloadLock        sync.RWMutex
+	Logger            = slog.Default()
 )
+
+func setCurrentExporter(e *Exporter) {
+	PgExporter = e
+	currentExporterPt.Store(e)
+}

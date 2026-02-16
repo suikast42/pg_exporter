@@ -1,0 +1,92 @@
+#==============================================================#
+# 0130 pg_setting
+#==============================================================#
+# Key PostgreSQL configuration parameters for PostgreSQL 9.1 - 9.6
+# Use scalar subquery on pg_settings for "missing_ok" semantics (return NULL if not exist)
+pg_setting:
+  name: pg_setting
+  desc: PostgreSQL shared configuration parameters (legacy 9.1-9.6)
+  query: |
+    SELECT
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_connections')                   AS max_connections,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_prepared_transactions')         AS max_prepared_transactions,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_locks_per_transaction')         AS max_locks_per_transaction,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_worker_processes')              AS max_worker_processes,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_parallel_workers')              AS max_parallel_workers,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_parallel_workers_per_gather')   AS max_parallel_workers_per_gather,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_parallel_maintenance_workers')  AS max_parallel_maintenance_workers,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_replication_slots')             AS max_replication_slots,
+      (SELECT setting::int FROM pg_settings WHERE name = 'max_wal_senders')                   AS max_wal_senders,
+      (SELECT setting::int FROM pg_settings WHERE name = 'block_size')                        AS block_size,
+      (SELECT setting::int FROM pg_settings WHERE name = 'wal_block_size')                    AS wal_block_size,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'segment_size')                                        AS segment_size,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'wal_segment_size')                                    AS wal_segment_size,
+      (SELECT CASE setting WHEN 'on' THEN 1 ELSE 0 END FROM pg_settings WHERE name = 'data_checksums') AS data_checksums,
+      (SELECT CASE setting WHEN 'on' THEN 1 ELSE 0 END FROM pg_settings WHERE name = 'wal_log_hints')  AS wal_log_hints,
+      (SELECT CASE setting WHEN 'on' THEN 1 ELSE 0 END FROM pg_settings WHERE name = 'fsync')          AS fsync,
+      (SELECT CASE setting WHEN 'on' THEN 1 ELSE 0 END FROM pg_settings WHERE name = 'full_page_writes') AS full_page_writes,
+      (SELECT CASE setting WHEN 'minimal' THEN 1 WHEN 'archive' THEN 2 WHEN 'hot_standby' THEN 3 ELSE 0 END FROM pg_settings WHERE name = 'wal_level') AS wal_level,
+      (SELECT setting::int FROM pg_settings WHERE name = 'checkpoint_segments')               AS checkpoint_segments,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'min_wal_size')                                        AS min_wal_size,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'max_wal_size')                                        AS max_wal_size,
+      (SELECT setting::int FROM pg_settings WHERE name = 'wal_keep_segments')                 AS wal_keep_segments,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'shared_buffers')                                      AS shared_buffers,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'work_mem')                                            AS work_mem,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'maintenance_work_mem')                                AS maintenance_work_mem,
+      (SELECT setting::bigint * CASE unit WHEN '8kB' THEN 8192 WHEN 'kB' THEN 1024 WHEN 'MB' THEN 1048576 WHEN 'GB' THEN 1073741824 ELSE 1 END
+         FROM pg_settings WHERE name = 'effective_cache_size')                                AS effective_cache_size,
+      (SELECT CASE setting WHEN 'off' THEN 0 WHEN 'on' THEN 1 WHEN 'always' THEN 2 ELSE -1 END FROM pg_settings WHERE name = 'archive_mode') AS archive_mode,
+      (SELECT CASE setting WHEN 'on' THEN 1 ELSE 0 END FROM pg_settings WHERE name = 'autovacuum') AS autovacuum,
+      (SELECT setting::int FROM pg_settings WHERE name = 'autovacuum_max_workers')            AS autovacuum_max_workers,
+      (SELECT setting::int FROM pg_settings WHERE name = 'checkpoint_timeout')                AS checkpoint_timeout,
+      (SELECT setting::float FROM pg_settings WHERE name = 'checkpoint_completion_target')    AS checkpoint_completion_target,
+      (SELECT CASE setting WHEN 'on' THEN 1 ELSE 0 END FROM pg_settings WHERE name = 'hot_standby') AS hot_standby,
+      (SELECT CASE setting
+        WHEN 'off' THEN 0 WHEN 'local' THEN 1 WHEN 'remote_write' THEN 2
+        WHEN 'on' THEN 3 WHEN 'remote_apply' THEN 4 ELSE -1 END
+        FROM pg_settings WHERE name = 'synchronous_commit')                                   AS synchronous_commit;
+
+  ttl: 10
+  min_version: 90100
+  tags: [ cluster ]
+  metrics:
+    - max_connections:                  { usage: GAUGE ,description: maximum number of concurrent connections to the database server }
+    - max_prepared_transactions:        { usage: GAUGE ,description: maximum number of transactions that can be in the prepared state simultaneously }
+    - max_locks_per_transaction:        { usage: GAUGE ,description: maximum number of locks per transaction }
+    - max_worker_processes:             { usage: GAUGE ,description: maximum number of background processes (9.4+) }
+    - max_parallel_workers:             { usage: GAUGE ,description: maximum number of parallel workers that can be active at one time (9.6+) }
+    - max_parallel_workers_per_gather:  { usage: GAUGE ,description: maximum number of parallel workers per Gather node (9.6+) }
+    - max_parallel_maintenance_workers: { usage: GAUGE ,description: maximum number of parallel maintenance workers (NULL on 9.x) }
+    - max_replication_slots:            { usage: GAUGE ,description: maximum number of replication slots (9.4+) }
+    - max_wal_senders:                  { usage: GAUGE ,description: maximum number of concurrent WAL sender connections }
+    - block_size:                       { usage: GAUGE ,description: database block size in bytes (default 8192) }
+    - wal_block_size:                   { usage: GAUGE ,description: WAL block size in bytes }
+    - segment_size:                     { usage: GAUGE ,description: database file segment size in bytes }
+    - wal_segment_size:                 { usage: GAUGE ,description: WAL segment size in bytes }
+    - data_checksums:                   { usage: GAUGE ,description: data checksums enabled, 1=on 0=off (9.3+) }
+    - wal_log_hints:                    { usage: GAUGE ,description: WAL log hints enabled, 1=on 0=off (9.4+) }
+    - fsync:                            { usage: GAUGE ,description: fsync enabled (CRITICAL for data safety), 1=on 0=off }
+    - full_page_writes:                 { usage: GAUGE ,description: full page writes enabled, 1=on 0=off }
+    - wal_level:                        { usage: GAUGE ,description: WAL level, 1=minimal 2=archive 3=hot_standby }
+    - checkpoint_segments:              { usage: GAUGE ,description: number of checkpoint segments (pre-9.5) }
+    - min_wal_size:                     { usage: GAUGE ,description: minimum WAL size in bytes (9.5+) }
+    - max_wal_size:                     { usage: GAUGE ,description: maximum WAL size in bytes (9.5+) }
+    - wal_keep_segments:                { usage: GAUGE ,description: WAL segments kept for standby replication (pg_basebackup/streaming) }
+    - shared_buffers:                   { usage: GAUGE ,description: shared buffer size in bytes }
+    - work_mem:                         { usage: GAUGE ,description: work memory size in bytes }
+    - maintenance_work_mem:             { usage: GAUGE ,description: maintenance work memory size in bytes }
+    - effective_cache_size:             { usage: GAUGE ,description: planner's assumption about effective OS cache size in bytes }
+    - archive_mode:                     { usage: GAUGE ,description: archive mode, 0=off 1=on 2=always }
+    - autovacuum:                       { usage: GAUGE ,description: autovacuum enabled, 1=on 0=off }
+    - autovacuum_max_workers:           { usage: GAUGE ,description: maximum number of autovacuum worker processes }
+    - checkpoint_timeout:               { usage: GAUGE ,description: checkpoint timeout in seconds }
+    - checkpoint_completion_target:     { usage: GAUGE ,description: checkpoint completion target (0.0-1.0) }
+    - hot_standby:                      { usage: GAUGE ,description: hot standby mode enabled, 1=on 0=off }
+    - synchronous_commit:               { usage: GAUGE ,description: synchronous commit level, 0=off 1=local 2=remote_write 3=on 4=remote_apply }

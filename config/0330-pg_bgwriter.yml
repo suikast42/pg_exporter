@@ -17,7 +17,7 @@ pg_bgwriter_17:
 
 pg_bgwriter_10:
   name: pg_bgwriter
-  desc: "PostgreSQL background writer metrics (PG17-)"
+  desc: "PostgreSQL background writer metrics (PG 9.4-16)"
   query: SELECT checkpoints_timed, checkpoints_req, checkpoint_write_time, checkpoint_sync_time, buffers_checkpoint, buffers_clean, buffers_backend, maxwritten_clean, buffers_backend_fsync, buffers_alloc, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_bgwriter;
   ttl: 10
   min_version: 090400
@@ -35,5 +35,4 @@ pg_bgwriter_10:
     - buffers_backend_fsync: { usage: COUNTER              ,description: Number of times a backend had to execute its own fsync call }
     - buffers_alloc:         { usage: COUNTER              ,description: Number of buffers allocated }
     - reset_time:            { usage: GAUGE                ,description: Time at which bgwriter statistics were last reset }
-
 

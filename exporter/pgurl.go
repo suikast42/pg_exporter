@@ -17,6 +17,10 @@ func GetPGURL() string {
 //  2. Environment PG_EXPORTER_URL
 //  3. From file specified via Environment PG_EXPORTER_URL_FILE
 //  4. Default url
+//
+// The default URL intentionally targets local libpq defaults. This is a
+// local-first behavior for on-host deployments, where pg_exporter usually
+// runs on the same machine as PostgreSQL/PgBouncer.
 func RetrievePGURL() (res string) {
 	// command line args
 	if *pgURL != "" {
@@ -25,19 +29,18 @@ func RetrievePGURL() (res string) {
 	}
 	// env PG_EXPORTER_URL
 	if res = os.Getenv("PG_EXPORTER_URL"); res != "" {
-		logInfof("retrieve target url %s from PG_EXPORTER_URL", ShadowPGURL(*pgURL))
+		logInfof("retrieve target url %s from PG_EXPORTER_URL", ShadowPGURL(res))
 		return res
 	}
 	// env PGURL
 	if res = os.Getenv("PGURL"); res != "" {
-		logInfof("retrieve target url %s from PGURL", ShadowPGURL(*pgURL))
+		logInfof("retrieve target url %s from PGURL", ShadowPGURL(res))
 		return res
 	}
 	// file content from file PG_EXPORTER_URL_FILE
 	if filename := os.Getenv("PG_EXPORTER_URL_FILE"); filename != "" {
 		if fileContents, err := os.ReadFile(filename); err != nil {
-			logFatalf("PG_EXPORTER_URL_FILE=%s is specified, fail loading url, exit", err.Error())
-			os.Exit(-1)
+			logFatalf("PG_EXPORTER_URL_FILE=%s is specified, fail loading url: %s", filename, err.Error())
 		} else {
 			res = strings.TrimSpace(string(fileContents))
 			logInfof("retrieve target url %s from PG_EXPORTER_URL_FILE", ShadowPGURL(res))
@@ -49,7 +52,13 @@ func RetrievePGURL() (res string) {
 	return defaultPGURL
 }
 
-// ProcessPGURL will fix URL with default options
+// ProcessPGURL will fix URL with default options.
+//
+// Design decision:
+// If sslmode is omitted, force sslmode=disable. pg_exporter is typically
+// deployed as an on-host/local exporter, where TLS on loopback adds overhead
+// without meaningful security benefit. Users can always override by passing an
+// explicit sslmode in the URL.
 func ProcessPGURL(pgurl string) string {
 	u, err := url.Parse(pgurl)
 	if err != nil {
@@ -62,19 +71,7 @@ func ProcessPGURL(pgurl string) string {
 	if sslmode := qs.Get(`sslmode`); sslmode == "" {
 		qs.Set(`sslmode`, `disable`)
 	}
-	var buf strings.Builder
-	for k, v := range qs {
-		if len(v) == 0 {
-			continue
-		}
-		if buf.Len() > 0 {
-			buf.WriteByte('&')
-		}
-		buf.WriteString(k)
-		buf.WriteByte('=')
-		buf.WriteString(v[0])
-	}
-	u.RawQuery = buf.String()
+	u.RawQuery = qs.Encode()
 	return u.String()
 }
 
@@ -84,7 +81,6 @@ func ShadowPGURL(pgurl string) string {
 	// That means we got a bad connection string. Fail early
 	if err != nil {
 		logFatalf("Could not parse connection string %s", err.Error())
-		os.Exit(-1)
 	}
 
 	// We need to handle two cases:
@@ -92,23 +88,15 @@ func ShadowPGURL(pgurl string) string {
 	// 2. The password is in the format postgresql://<user>:<pass>@localhost:5432/postgres?sslmode=disable
 
 	qs := parsedURL.Query()
-	var buf strings.Builder
-	for k, v := range qs {
-		if len(v) == 0 {
-			continue
-		}
-		if buf.Len() > 0 {
-			buf.WriteByte('&')
-		}
-		buf.WriteString(k)
-		buf.WriteByte('=')
-		if strings.ToLower(k) == "password" {
-			buf.WriteString("xxxxx")
-		} else {
-			buf.WriteString(v[0])
+	for k, values := range qs {
+		if strings.EqualFold(k, "password") {
+			for i := range values {
+				values[i] = "xxxxx"
+			}
+			qs[k] = values
 		}
 	}
-	parsedURL.RawQuery = buf.String()
+	parsedURL.RawQuery = qs.Encode()
 	return parsedURL.Redacted()
 }
 
@@ -118,7 +106,13 @@ func ParseDatname(pgurl string) string {
 	if err != nil {
 		return ""
 	}
-	return strings.TrimLeft(u.Path, "/")
+	if datname := strings.TrimLeft(u.Path, "/"); datname != "" {
+		return datname
+	}
+	if datname := strings.TrimSpace(u.Query().Get("dbname")); datname != "" {
+		return datname
+	}
+	return ""
 }
 
 // ReplaceDatname will replace pgurl with new database name
@@ -127,6 +121,14 @@ func ReplaceDatname(pgurl, datname string) string {
 	if err != nil {
 		logErrorf("invalid url format %s", pgurl)
 		return ""
+	}
+	if strings.TrimLeft(u.Path, "/") == "" {
+		qs := u.Query()
+		if qs.Get("dbname") != "" {
+			qs.Set("dbname", datname)
+			u.RawQuery = qs.Encode()
+			return u.String()
+		}
 	}
 	u.Path = "/" + datname
 	return u.String()

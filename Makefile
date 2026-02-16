@@ -2,9 +2,9 @@
 # File      :   Makefile
 # Mtime     :   2025-08-14
 # License   :   Apache-2.0 @ https://github.com/pgsty/pg_exporter
-# Copyright :   2018-2025  Ruohang Feng / Vonng (rh@vonng.com)
+# Copyright :   2018-2026  Ruohang Feng / Vonng (rh@vonng.com)
 #==============================================================#
-VERSION      ?= v1.1.2
+VERSION      ?= v1.2.0
 BUILD_DATE   := $(shell date '+%Y%m%d%H%M%S')
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
 GIT_REVISION := $(shell git rev-parse --short HEAD 2>/dev/null  || echo "HEAD")
@@ -88,6 +88,14 @@ darwin-arm64: clean build-darwin-arm64
 conf:
 	rm -rf pg_exporter.yml
 	cat config/*.yml >> pg_exporter.yml
+
+# generate legacy merged config for PostgreSQL 9.1 - 9.6
+conf9:
+	rm -rf legacy/pg_exporter.yml
+	cat legacy/config/*.yml >> legacy/pg_exporter.yml
+
+# Backward-compatible alias (deprecated)
+conf-pg9: conf9
 
 
 ###############################################################

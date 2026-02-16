@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +13,11 @@ import (
 )
 
 /* ================ Collector ================ */
+
+type predicateCacheEntry struct {
+	at   time.Time
+	pass bool
+}
 
 // Collector holds runtime information of a Query running on a Server
 // It is deeply coupled with Server. Besides, it can be a collector itself
@@ -27,6 +33,9 @@ type Collector struct {
 	predicateSkip string                      // if nonempty, predicate query caused skip of this scrape
 	err           error
 
+	// predicate cache. Entry i caches PredicateQueries[i] if it has a positive TTL.
+	predicateCache []predicateCacheEntry
+
 	// stats
 	lastScrape     time.Time     // SERVER's scrape start time (for cache window align)
 	scrapeBegin    time.Time     // execution begin time
@@ -40,6 +49,9 @@ func NewCollector(q *Query, s *Server) *Collector {
 		Query:  q,
 		Server: s,
 		result: make([]prometheus.Metric, 0),
+	}
+	if len(q.PredicateQueries) > 0 {
+		instance.predicateCache = make([]predicateCacheEntry, len(q.PredicateQueries))
 	}
 	instance.makeDescMap()
 	return instance
@@ -108,6 +120,22 @@ func (q *Collector) executePredicateQueries(ctx context.Context) bool {
 
 		msgPrefix := fmt.Sprintf("predicate query [%s] for query [%s] @ server [%s]", predicateQueryName, q.Name, q.Server.Database)
 
+		// Optional predicate cache (independent of main query cache).
+		if predicateQuery.TTL > 0 && len(q.predicateCache) == len(q.PredicateQueries) {
+			entry := q.predicateCache[i]
+			if !entry.at.IsZero() {
+				ttl := time.Duration(predicateQuery.TTL * float64(time.Second))
+				if q.scrapeBegin.Sub(entry.at) < ttl {
+					logDebugf("%s served from predicate cache (ttl=%vs, pass=%v)", msgPrefix, predicateQuery.TTL, entry.pass)
+					if entry.pass {
+						continue
+					}
+					// cached skip
+					return false
+				}
+			}
+		}
+
 		// Execute the predicate query.
 		logDebugf("%s executing predicate query", msgPrefix)
 		rows, err := q.Server.QueryContext(ctx, predicateQuery.SQL)
@@ -122,35 +150,57 @@ func (q *Collector) executePredicateQueries(ctx context.Context) bool {
 			}
 			return false
 		}
-		defer rows.Close() // TODO: defer in a for loop
 
 		// The predicate passes if it returns exactly one row with one column
 		// that is a boolean true.
 		colTypes, err := rows.ColumnTypes()
 		if err != nil {
 			q.err = fmt.Errorf("%s failed to get column types: %w", msgPrefix, err)
+			_ = rows.Close()
+			return false
 		}
 		if len(colTypes) != 1 {
 			q.err = fmt.Errorf("%s failed because it returned %d columns, expected 1", msgPrefix, len(colTypes))
+			_ = rows.Close()
+			return false
 		}
-		if colTypes[0].DatabaseTypeName() != "BOOL" {
+		typeName := strings.ToUpper(colTypes[0].DatabaseTypeName())
+		if typeName != "BOOL" && typeName != "BOOLEAN" {
 			q.err = fmt.Errorf("%s failed because it returned a column of type %s, expect bool. consider a cast(colname as boolean) or colname::boolean in the query", msgPrefix, colTypes[0].DatabaseTypeName())
+			_ = rows.Close()
+			return false
 		}
+
 		firstRow := true
 		predicatePass := sql.NullBool{}
 		for rows.Next() {
 			if !firstRow {
 				q.err = fmt.Errorf("%s failed because it returned more than one row", msgPrefix)
+				_ = rows.Close()
 				return false
 			}
 			firstRow = false
 			err = rows.Scan(&predicatePass)
 			if err != nil {
 				q.err = fmt.Errorf("%s failed scanning in expected 1-row 1-column nullable boolean result: %w", msgPrefix, err)
+				_ = rows.Close()
 				return false
 			}
 		}
-		if !(predicatePass.Valid && predicatePass.Bool) {
+		if err = rows.Err(); err != nil {
+			q.err = fmt.Errorf("%s failed while iterating rows: %w", msgPrefix, err)
+			_ = rows.Close()
+			return false
+		}
+		if err = rows.Close(); err != nil {
+			q.err = fmt.Errorf("%s failed closing rows: %w", msgPrefix, err)
+			return false
+		}
+		pass := predicatePass.Valid && predicatePass.Bool
+		if predicateQuery.TTL > 0 && len(q.predicateCache) == len(q.PredicateQueries) {
+			q.predicateCache[i] = predicateCacheEntry{at: q.scrapeBegin, pass: pass}
+		}
+		if !pass {
 			// successfully executed predicate query requested a skip
 			logDebugf("%s returned false, null or zero rows, skipping query", msgPrefix)
 			return false
@@ -165,6 +215,8 @@ func (q *Collector) executePredicateQueries(ctx context.Context) bool {
 // execute will run this query to registered server, result and err are registered
 func (q *Collector) execute() {
 	q.result = q.result[:0] // reset cache
+	q.err = nil
+	q.predicateSkip = ""
 	var rows *sql.Rows
 	var err error
 
@@ -175,7 +227,7 @@ func (q *Collector) execute() {
 		ctx, cancel = context.WithTimeout(context.Background(), q.TimeoutDuration())
 		defer cancel()
 	} else {
-		logDebugf("query [%s] @ server [%s] executing begin", q.Server.Database, q.Name)
+		logDebugf("query [%s] @ server [%s] executing begin", q.Name, q.Server.Database)
 	}
 
 	// check predicate queries if any
@@ -248,13 +300,17 @@ func (q *Collector) execute() {
 					prometheus.MustNewConstMetric(
 						q.descriptors[metricName], // always find desc & column via name
 						q.Columns[metricName].PrometheusValueType(),
-						castFloat64(colData[dataIndex], q.Columns[metricName].Scale, q.Columns[metricName].Default),
+						castFloat64(colData[dataIndex], q.Columns[metricName]),
 						labels...,
 					))
 			} else {
 				logWarnf("missing metric column %s.%s in result", q.Name, metricName)
 			}
 		}
+	}
+	if err = rows.Err(); err != nil {
+		q.err = fmt.Errorf("query [%s] failed while iterating rows: %w", q.Name, err)
+		return
 	}
 	q.err = nil
 	logDebugf("query [%s] executing complete in %v, metrics count: %d",

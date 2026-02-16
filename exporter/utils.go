@@ -34,60 +34,65 @@ func configureLogger(levelStr, formatStr string) *slog.Logger {
 	}
 
 	var handler slog.Handler
-	switch formatStr {
+	switch strings.ToLower(formatStr) {
 	case "json":
 		handler = slog.NewJSONHandler(os.Stderr, opts)
 	case "logfmt", "":
 		handler = slog.NewTextHandler(os.Stderr, opts)
 	default:
-		panic("unknown log format: " + formatStr)
+		// Be resilient to misconfiguration: fall back to logfmt.
+		handler = slog.NewTextHandler(os.Stderr, opts)
 	}
 
 	return slog.New(handler)
 }
 
+func loggerOrDefault() *slog.Logger {
+	if Logger != nil {
+		return Logger
+	}
+	return slog.Default()
+}
+
 // logDebugf will log debug message
 func logDebugf(format string, v ...interface{}) {
-	Logger.Debug(fmt.Sprintf(format, v...))
+	loggerOrDefault().Debug(fmt.Sprintf(format, v...))
 }
 
 // logInfof will log info message
 func logInfof(format string, v ...interface{}) {
-	Logger.Info(fmt.Sprintf(format, v...))
+	loggerOrDefault().Info(fmt.Sprintf(format, v...))
 }
 
 // logWarnf will log warning message
 func logWarnf(format string, v ...interface{}) {
-	Logger.Warn(fmt.Sprintf(format, v...))
+	loggerOrDefault().Warn(fmt.Sprintf(format, v...))
 }
 
 // logErrorf will log error message
 func logErrorf(format string, v ...interface{}) {
-	Logger.Error(fmt.Sprintf(format, v...))
+	loggerOrDefault().Error(fmt.Sprintf(format, v...))
 }
 
 // logError will print error message directly
 func logError(msg string) {
-	Logger.Error(msg)
+	loggerOrDefault().Error(msg)
 }
 
 // logFatalf will log error message
 func logFatalf(format string, v ...interface{}) {
-	Logger.Error(fmt.Sprintf(format, v...))
+	loggerOrDefault().Error(fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
 /* ================ Auxiliaries ================ */
 
-// castFloat64 will cast datum into float64 with scale & default value
-func castFloat64(t interface{}, s string, d string) float64 {
-	var scale = 1.0
-	if s != "" {
-		if scaleFactor, err := strconv.ParseFloat(s, 64); err != nil {
-			logWarnf("invalid column scale: %v ", s)
-		} else {
-			scale = scaleFactor
-		}
+// castFloat64 will cast datum into float64 with Column scale & default value.
+// Column.Scale/Column.Default are parsed when loading config, so this is hot-path safe.
+func castFloat64(t interface{}, c *Column) float64 {
+	scale := 1.0
+	if c != nil && c.hasScale {
+		scale = c.scaleFactor
 	}
 
 	switch v := t.(type) {
@@ -118,13 +123,8 @@ func castFloat64(t interface{}, s string, d string) float64 {
 		}
 		return 0.0
 	case nil:
-		if d != "" {
-			result, err := strconv.ParseFloat(d, 64)
-			if err != nil {
-				logWarnf("invalid column default: %v", d)
-				return math.NaN()
-			}
-			return result
+		if c != nil && c.hasDefault {
+			return c.defaultValue * scale
 		}
 		return math.NaN()
 	default:
@@ -170,7 +170,7 @@ func parseConstLabels(s string) prometheus.Labels {
 
 	parts := strings.Split(s, ",")
 	for _, p := range parts {
-		keyValue := strings.Split(strings.TrimSpace(p), "=")
+		keyValue := strings.SplitN(strings.TrimSpace(p), "=", 2)
 		if len(keyValue) != 2 {
 			logErrorf(`malformed labels format %q, should be "key=value"`, p)
 			continue
@@ -178,6 +178,10 @@ func parseConstLabels(s string) prometheus.Labels {
 		key := strings.TrimSpace(keyValue[0])
 		value := strings.TrimSpace(keyValue[1])
 		if key == "" || value == "" {
+			continue
+		}
+		if err := validatePromLabelName(key); err != nil {
+			logWarnf("skip invalid const label name %q: %v", key, err)
 			continue
 		}
 		labels[key] = value

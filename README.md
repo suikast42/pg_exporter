@@ -6,7 +6,7 @@
 
 [![Webite: https://pigsty.io/docs/pg_exporter](https://img.shields.io/badge/website-pigsty.io/docs/pg_exporter-slategray?style=flat&logo=cilium&logoColor=white)](https://pigsty.io/docs/pg_exporter)
 [![DockerHub: pgsty/pg_exporter](https://img.shields.io/badge/docker-pgsty/pg_exporter-slategray?style=flat&logo=docker&logoColor=white)](https://hub.docker.com/r/pgsty/pg_exporter)
-[![Version: 1.1.2](https://img.shields.io/badge/version-1.1.2-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.1.2)
+[![Version: 1.2.0](https://img.shields.io/badge/version-1.2.0-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.2.0)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pgsty/pg_exporter)](https://goreportcard.com/report/github.com/pgsty/pg_exporter)
@@ -16,7 +16,7 @@
 PG Exporter brings ultimate monitoring experience to your PostgreSQL with **declarative config**, **dynamic planning**, and **customizable collectors**. 
 It provides **600+** metrics and ~3K time series per instance, covers everything you'll need for PostgreSQL observability.
 
-Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
+Check [**https://demo.pigsty.io**](https://demo.pigsty.io/ui/) for live demo, which is built upon this exporter by [**Pigsty**](https://pigsty.io).
 
 <div align="center">
     <a href="https://pigsty.io/docs/pg_exporter">Docs</a> •    
@@ -26,7 +26,7 @@ Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which 
     <a href="#api">API</a> •
     <a href="#deployment">Deployment</a> •
     <a href="#collectors">Collectors</a> •
-    <a href="https://demo.pigsty.io">Demo</a>
+    <a href="https://demo.pigsty.io/ui/">Demo</a>
 </div><br>
 
 [![pigsty-dashboard](https://pigsty.io/img/pigsty/dashboard.jpg)](https://demo.pigsty.io)
@@ -37,7 +37,7 @@ Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which 
 ## Features
 
 - **Highly Customizable**: Define almost all metrics through declarative YAML configs
-- **Full Coverage**: Monitor both PostgreSQL (10-18+) and pgBouncer (1.8-1.25+) in single exporter
+- **Full Coverage**: Monitor PostgreSQL (10-18+) and pgBouncer (1.8-1.25+) in a single exporter
 - **Fine-grained Control**: Configure timeout, caching, skip conditions, and fatality per collector
 - **Dynamic Planning**: Define multiple query branches based on different conditions
 - **Self-monitoring**: Rich metrics about pg_exporter [itself](https://demo.pigsty.io/d/pgsql-exporter) for complete observability
@@ -45,6 +45,9 @@ Check [**https://demo.pigsty.io**](https://demo.pigsty.io) for live demo, which 
 - **Auto-discovery**: Automatically discover and monitor multiple databases within an instance
 - **Health Check APIs**: Comprehensive HTTP endpoints for service health and traffic routing
 - **Extension Support**: `timescaledb`, `citus`, `pg_stat_statements`, `pg_wait_sampling`,...
+- **Local-first URL behavior**: Built for on-host deployment, with implicit local target fallback and automatic `sslmode=disable` when omitted
+
+> Also support PG 9.x with [legacy config bundle](legacy/).
 
 
 --------
@@ -60,7 +63,7 @@ PG_EXPORTER_URL='postgres://user:pass@host:port/postgres' pg_exporter
 curl http://localhost:9630/metrics   # access metrics
 ```
 
-There are 4 built-in metrics `pg_up`, `pg_version`, `pg_in_recovery`, `pg_exporter_build_info`. 
+There are built-in metrics such as `pg_up`, `pg_version`, `pg_in_recovery`, `pg_exporter_build_info`, and exporter self-metrics under `pg_exporter_*` (disable with `--disable-intro`).
 
 **All other metrics are defined in the [`pg_exporter.yml`](pg_exporter.yml) config file**.
 
@@ -87,7 +90,7 @@ Flags:
   -l, --label=""             constant lables:comma separated list of label=value pair ($PG_EXPORTER_LABEL)
   -t, --tag=""               tags,comma separated list of server tag ($PG_EXPORTER_TAG)
   -C, --[no-]disable-cache   force not using cache ($PG_EXPORTER_DISABLE_CACHE)
-  -m, --[no-]disable-intro   disable collector level introspection metrics ($PG_EXPORTER_DISABLE_INTRO)
+  -m, --[no-]disable-intro   disable internal/exporter self metrics ($PG_EXPORTER_DISABLE_INTRO)
   -a, --[no-]auto-discovery  automatically scrape all database for given server ($PG_EXPORTER_AUTO_DISCOVERY)
   -x, --exclude-database="template0,template1,postgres"  
                              excluded databases when enabling auto-discovery ($PG_EXPORTER_EXCLUDE_DATABASE)
@@ -106,26 +109,33 @@ Flags:
 
 Parameters could be given via command-line args or environment variables. 
 
-| CLI Arg                | Environment Variable           | Default Value     |
-|------------------------|--------------------------------|-------------------|
-| `--url`                | `PG_EXPORTER_URL`              | `postgres:///`    |
-| `--config`             | `PG_EXPORTER_CONFIG`           | `pg_exporter.yml` |
-| `--label`              | `PG_EXPORTER_LABEL`            |                   |
-| `--tag`                | `PG_EXPORTER_TAG`              |                   |
-| `--auto-discovery`     | `PG_EXPORTER_AUTO_DISCOVERY`   | `true`            |
-| `--disable-cache`      | `PG_EXPORTER_DISABLE_CACHE`    | `false`           |
-| `--fail-fast`          | `PG_EXPORTER_FAIL_FAST`        | `false`           |
-| `--exclude-database`   | `PG_EXPORTER_EXCLUDE_DATABASE` |                   |
-| `--include-database`   | `PG_EXPORTER_INCLUDE_DATABASE` |                   |
-| `--namespace`          | `PG_EXPORTER_NAMESPACE`        | `pg\|pgbouncer`   |
-| `--connect-timeout`    | `PG_EXPORTER_CONNECT_TIMEOUT`  | `100`             |
-| `--dry-run`            |                                | `false`           |
-| `--explain`            |                                | `false`           |
-| `--log.level`          |                                | `info`            |
-| `--log.format`         |                                | `logfmt`          |
-| `--web.listen-address` |                                | `:9630`           |
-| `--web.config.file`    |                                | `""`              |
-| `--web.telemetry-path` | `PG_EXPORTER_TELEMETRY_PATH`   | `/metrics`        |
+| CLI Arg                | Environment Variable           | Default Value                    |
+|------------------------|--------------------------------|----------------------------------|
+| `--url`                | `PG_EXPORTER_URL`              | `postgresql:///?sslmode=disable` |
+| `--config`             | `PG_EXPORTER_CONFIG`           | `pg_exporter.yml`                |
+| `--label`              | `PG_EXPORTER_LABEL`            |                                  |
+| `--tag`                | `PG_EXPORTER_TAG`              |                                  |
+| `--auto-discovery`     | `PG_EXPORTER_AUTO_DISCOVERY`   | `true`                           |
+| `--disable-cache`      | `PG_EXPORTER_DISABLE_CACHE`    | `false`                          |
+| `--fail-fast`          | `PG_EXPORTER_FAIL_FAST`        | `false`                          |
+| `--exclude-database`   | `PG_EXPORTER_EXCLUDE_DATABASE` |                                  |
+| `--include-database`   | `PG_EXPORTER_INCLUDE_DATABASE` |                                  |
+| `--namespace`          | `PG_EXPORTER_NAMESPACE`        | `pg\|pgbouncer`                  |
+| `--connect-timeout`    | `PG_EXPORTER_CONNECT_TIMEOUT`  | `100`                            |
+| `--dry-run`            |                                | `false`                          |
+| `--explain`            |                                | `false`                          |
+| `--log.level`          |                                | `info`                           |
+| `--log.format`         |                                | `logfmt`                         |
+| `--web.listen-address` |                                | `:9630`                          |
+| `--web.config.file`    |                                | `""`                             |
+| `--web.telemetry-path` | `PG_EXPORTER_TELEMETRY_PATH`   | `/metrics`                       |
+
+### Connection URL Defaults
+
+- If `--url` / `PG_EXPORTER_URL` is not provided, pg_exporter falls back to a local-first default URL: `postgresql:///?sslmode=disable`.
+- If `sslmode` is not explicitly set in the URL, pg_exporter injects `sslmode=disable` by default.
+- This is an intentional design choice for common on-host deployments (`pg_exporter` and PostgreSQL/PgBouncer on the same machine), where loopback TLS adds overhead with little practical gain.
+- If you need TLS for remote targets, provide `sslmode` explicitly in the connection URL (for example: `sslmode=require`, `verify-ca`, `verify-full`).
 
 
 ------
@@ -141,7 +151,7 @@ Here are `pg_exporter` REST APIs
 curl localhost:9630/metrics
 
 # Reload configuration
-curl localhost:9630/reload
+curl -X POST localhost:9630/reload
 
 # Explain configuration
 curl localhost:9630/explain
@@ -167,7 +177,6 @@ curl localhost:9630/rw
 ### 200 if in recovery, 404 if not in recovery, 503 if server is down
 curl localhost:9630/replica
 curl localhost:9630/standby
-curl localhost:9630/slave
 curl localhost:9630/read-only
 curl localhost:9630/ro
 
@@ -222,6 +231,7 @@ Configs lie in the core of `pg_exporter`. Actually, this project contains more l
 * A monolith battery-included config file: [`pg_exporter.yml`](pg_exporter.yml)
 * Separated metrics definition in [`config/collector`](config/)
 * Example of how to write a config file:  [`doc.yml`](config/0000-doc.yml)
+* Legacy config bundle for PostgreSQL 9.1 - 9.6: [`legacy/`](legacy/) ([`legacy/README.md`](legacy/README.md))
 
 Current `pg_exporter` is shipped with the following metrics collector definition files
 
@@ -285,8 +295,7 @@ Current `pg_exporter` is shipped with the following metrics collector definition
 >
 > Supported version: PostgreSQL 10, 11, 12, 13, 14, 15, 16, 17, 18+
 >
-> But you can still get PostgreSQL 9.4, 9.5, 9.6 support by switching to the older version collector definition
-
+> But you can still get PostgreSQL 9.1 - 9.6 support by switching to the [`legacy/pg_exporter.yml`](legacy/pg_exporter.yml) config
 
 `pg_exporter` will generate approximately 600 metrics for a completely new database cluster.
 For a real-world database with 10 ~ 100 tables, it may generate several 1k ~ 10k metrics. 
@@ -312,7 +321,7 @@ Config files are using YAML format, there are lots of examples in the [conf](htt
 #==============================================================#
 # pg_exporter config could be a single YAML file, or a directory containing a series of separated YAML files.
 # Each YAML config file consists of one or more metrics Collector definition, which are top-level objects.
-# If a directory is provided, all YAML in that directory will be merged in alphabetic order.
+# If a directory is provided, all YAML files in that directory (non-recursive; subdirectories are ignored) will be merged in alphabetic order.
 # Collector definition examples are shown below.
 
 #==============================================================#

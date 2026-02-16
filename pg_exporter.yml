@@ -6,7 +6,7 @@
 # Homepage  :   https://pigsty.io
 # Author    :   Ruohang Feng (rh@vonng.com)
 # License   :   Apache-2.0 @ https://github.com/pgsty/pg_exporter
-# Copyright :   2018-2025  Ruohang Feng / Vonng (rh@vonng.com)
+# Copyright :   2018-2026  Ruohang Feng / Vonng (rh@vonng.com)
 #==============================================================#
 
 
@@ -321,7 +321,7 @@ pg_replica_only:
 #==============================================================#
 pg_meta_13:
   name: pg_meta
-  desc: PostgreSQL meta info for pg 13, with extra primary conninfo
+  desc: PostgreSQL meta info for pg 13+, with extra primary conninfo
   query: |
     SELECT 
       (SELECT system_identifier FROM pg_control_system()) AS cluster_id,
@@ -395,7 +395,6 @@ pg_meta_10:
     - extensions:        { usage: LABEL ,description: server installed preload libraries }
     - primary_conninfo:  { usage: LABEL ,description: connection string to upstream (do not set password here) }
     - info:              { usage: GAUGE ,description: constant 1 }
-
 
 #==============================================================#
 # 0130 pg_setting
@@ -823,7 +822,7 @@ pg_recv_13:
       coalesce(sender_host, (regexp_match(conninfo, '.*host=(\S+).*'))[1]) AS sender_host, coalesce(sender_port::TEXT, (regexp_match(conninfo, '.*port=(\S+).*'))[1]) AS sender_port, coalesce(slot_name, 'NULL') AS slot_name,
       pid, CASE status WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
       receive_start_lsn - '0/0' AS init_lsn,receive_start_tli AS init_tli,
-      flushed_lsn - '0/0' AS flush_lsn,written_lsn - '0/0'AS write_lsn, received_tli AS flush_tli, latest_end_lsn - '0/0' AS reported_lsn,
+      flushed_lsn - '0/0' AS flush_lsn,written_lsn - '0/0' AS write_lsn, received_tli AS flush_tli, latest_end_lsn - '0/0' AS reported_lsn,
       last_msg_send_time AS msg_send_time,last_msg_receipt_time AS msg_recv_time,latest_end_time AS reported_time,now() AS time FROM pg_stat_wal_receiver;
 
   ttl: 10
@@ -848,7 +847,7 @@ pg_recv_13:
 
 pg_recv_11:
   name: pg_recv
-  desc: PostgreSQL walreceiver metrics v11+
+  desc: PostgreSQL walreceiver metrics (11-12)
   query: |-
     SELECT 
       coalesce(sender_host, (regexp_match(conninfo, '.*host=(\S+).*'))[1]) AS sender_host, coalesce(sender_port::TEXT, (regexp_match(conninfo, '.*port=(\S+).*'))[1]) AS sender_port, coalesce(slot_name, 'NULL') AS slot_name,
@@ -879,7 +878,7 @@ pg_recv_11:
 
 pg_recv_10:
   name: pg_recv
-  desc: PostgreSQL walreceiver metrics v10+
+  desc: PostgreSQL walreceiver metrics (10)
   query: |-
     SELECT 
       (regexp_match(conninfo, '.*host=(\S+).*'))[1] AS sender_host, (regexp_match(conninfo, '.*port=(\S+).*'))[1] AS sender_port, coalesce(slot_name, 'NULL') AS slot_name,
@@ -907,7 +906,6 @@ pg_recv_10:
     - msg_recv_time:       { usage: GAUGE   ,description: Receipt time of last message received from origin WAL sender }
     - reported_time:       { usage: GAUGE   ,description: Time of last write-ahead log location reported to origin WAL sender }
     - time:                { usage: GAUGE   ,description: Time of current snapshot }
-
 
 #==============================================================#
 # 0260 pg_sub
@@ -1157,7 +1155,7 @@ pg_bgwriter_17:
 
 pg_bgwriter_10:
   name: pg_bgwriter
-  desc: "PostgreSQL background writer metrics (PG17-)"
+  desc: "PostgreSQL background writer metrics (PG 9.4-16)"
   query: SELECT checkpoints_timed, checkpoints_req, checkpoint_write_time, checkpoint_sync_time, buffers_checkpoint, buffers_clean, buffers_backend, maxwritten_clean, buffers_backend_fsync, buffers_alloc, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_bgwriter;
   ttl: 10
   min_version: 090400
@@ -1175,7 +1173,6 @@ pg_bgwriter_10:
     - buffers_backend_fsync: { usage: COUNTER              ,description: Number of times a backend had to execute its own fsync call }
     - buffers_alloc:         { usage: COUNTER              ,description: Number of buffers allocated }
     - reset_time:            { usage: GAUGE                ,description: Time at which bgwriter statistics were last reset }
-
 
 #==============================================================#
 # 0331 pg_checkpointer
@@ -1202,7 +1199,7 @@ pg_checkpointer_18:
 
 pg_checkpointer_17:
   name: pg_checkpointer
-  desc: "PostgreSQL checkpointer stat metrics for pg 17+"
+  desc: "PostgreSQL checkpointer stat metrics for pg 17"
   query: SELECT num_timed, num_requested, restartpoints_timed, restartpoints_req, restartpoints_done, write_time, sync_time, buffers_written, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_checkpointer;
   ttl: 10
   min_version: 170000
@@ -1221,7 +1218,7 @@ pg_checkpointer_17:
 
 pg_checkpointer_10:
   name: pg_checkpointer
-  desc: "PostgreSQL checkpointer stat metrics for pg 9.4-17"
+  desc: "PostgreSQL checkpointer stat metrics for pg 9.4-16"
   query: SELECT checkpoints_timed, checkpoints_req, checkpoint_write_time, checkpoint_sync_time, buffers_checkpoint, extract(EPOCH FROM stats_reset) AS reset_time FROM pg_stat_bgwriter;
   ttl: 10
   min_version: 090400
@@ -1234,7 +1231,6 @@ pg_checkpointer_10:
     - checkpoint_sync_time:  { usage: COUNTER ,rename: sync_time  ,scale: 1e-3 ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds }
     - buffers_checkpoint:    { usage: COUNTER ,rename: buffers_written         ,description: Number of buffers written during checkpoints and restartpoints }
     - reset_time:            { usage: GAUGE                                    ,description: Time at which checkpointer statistics were last reset }
-
 
 #==============================================================#
 # 0340 pg_ssl
