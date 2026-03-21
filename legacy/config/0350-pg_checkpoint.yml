@@ -33,22 +33,24 @@ pg_checkpoint:
   min_version: 90600
   tags: [ cluster ]
   metrics:
-    - checkpoint_lsn:       { usage: COUNTER ,description: Latest checkpoint location }
-    - redo_lsn:             { usage: COUNTER ,description: Latest checkpoint's REDO location }
-    - tli:                  { usage: COUNTER ,description: Latest checkpoint's TimeLineID }
-    - prev_tli:             { usage: COUNTER ,description: Latest checkpoint's PrevTimeLineID }
-    - full_page_writes:     { usage: GAUGE   ,description: Latest checkpoint's full_page_writes enabled }
-    - next_xid_epoch:       { usage: COUNTER ,description: Latest checkpoint's NextXID epoch }
-    - next_xid:             { usage: COUNTER ,description: Latest checkpoint's NextXID xid }
-    - next_oid:             { usage: COUNTER ,description: Latest checkpoint's NextOID }
-    - next_multixact_id:    { usage: COUNTER ,description: Latest checkpoint's NextMultiXactId }
-    - next_multi_offset:    { usage: COUNTER ,description: Latest checkpoint's NextMultiOffset }
-    - oldest_xid:           { usage: COUNTER ,description: Latest checkpoint's oldestXID }
-    - oldest_xid_dbid:      { usage: GAUGE   ,description: Latest checkpoint's oldestXID's DB OID }
-    - oldest_active_xid:    { usage: COUNTER ,description: Latest checkpoint's oldestActiveXID }
-    - oldest_multi_xid:     { usage: COUNTER ,description: Latest checkpoint's oldestMultiXid }
-    - oldest_multi_dbid:    { usage: GAUGE   ,description: Latest checkpoint's oldestMulti's DB OID }
-    - oldest_commit_ts_xid: { usage: COUNTER ,description: Latest checkpoint's oldestCommitTsXid }
-    - newest_commit_ts_xid: { usage: COUNTER ,description: Latest checkpoint's newestCommitTsXid }
-    - time:                 { usage: COUNTER ,description: Time of latest checkpoint }
-    - elapse:               { usage: GAUGE   ,description: Seconds elapsed since latest checkpoint in seconds }
+    - checkpoint_lsn:       { usage: COUNTER ,description: "Latest checkpoint location" }
+    - redo_lsn:             { usage: COUNTER ,description: "Latest checkpoint's REDO location" }
+    - tli:                  { usage: COUNTER ,description: "Latest checkpoint's TimeLineID" }
+    - prev_tli:             { usage: COUNTER ,description: "Latest checkpoint's PrevTimeLineID" }
+    - full_page_writes:     { usage: GAUGE   ,description: "Latest checkpoint's full_page_writes enabled" }
+    - next_xid_epoch:       { usage: COUNTER ,description: "Latest checkpoint's NextXID epoch" }
+    - next_xid:             { usage: COUNTER ,description: "Latest checkpoint's NextXID xid" }
+    - next_oid:             { usage: COUNTER ,description: "Latest checkpoint's NextOID" }
+    - next_multixact_id:    { usage: COUNTER ,description: "Latest checkpoint's NextMultiXactId" }
+    - next_multi_offset:    { usage: COUNTER ,description: "Latest checkpoint's NextMultiOffset" }
+    - oldest_xid:           { usage: COUNTER ,description: "Latest checkpoint's oldestXID" }
+    - oldest_xid_dbid:      { usage: GAUGE   ,description: "Latest checkpoint's oldestXID's DB OID" }
+    - oldest_active_xid:    { usage: COUNTER ,description: "Latest checkpoint's oldestActiveXID" }
+    - oldest_multi_xid:     { usage: COUNTER ,description: "Latest checkpoint's oldestMultiXid" }
+    - oldest_multi_dbid:    { usage: GAUGE   ,description: "Latest checkpoint's oldestMulti's DB OID" }
+    - oldest_commit_ts_xid: { usage: COUNTER ,description: "Latest checkpoint's oldestCommitTsXid" }
+    - newest_commit_ts_xid: { usage: COUNTER ,description: "Latest checkpoint's newestCommitTsXid" }
+    - time:                 { usage: COUNTER ,description: "Time of latest checkpoint" }
+    - elapse:               { usage: GAUGE   ,description: "Seconds elapsed since latest checkpoint in seconds" }
+
+

@@ -13,12 +13,12 @@ pg_activity_92:
   min_version: 90200
   tags: [ cluster ]
   metrics:
-    - datname:           { usage: LABEL ,description: Name of the database this backend is connected to }
-    - state:             { usage: LABEL ,description: Current overall state of this backend. }
-    - count:             { usage: GAUGE ,description: Count of connection among (datname,state) }
-    - max_duration:      { usage: GAUGE ,description: Max duration since last state change among (datname, state) }
-    - max_tx_duration:   { usage: GAUGE ,description: Max transaction duration since state change among (datname, state) }
-    - max_conn_duration: { usage: GAUGE ,description: Max backend session duration since state change among (datname, state) }
+    - datname:           { usage: LABEL ,description: "Name of the database this backend is connected to" }
+    - state:             { usage: LABEL ,description: "Current overall state of this backend." }
+    - count:             { usage: GAUGE ,description: "Count of connection among (datname,state)" }
+    - max_duration:      { usage: GAUGE ,description: "Max duration since last state change among (datname, state)" }
+    - max_tx_duration:   { usage: GAUGE ,description: "Max transaction duration since state change among (datname, state)" }
+    - max_conn_duration: { usage: GAUGE ,description: "Max backend session duration since state change among (datname, state)" }
 
 pg_activity_91:
   name: pg_activity
@@ -40,9 +40,11 @@ pg_activity_91:
   max_version: 90200
   tags: [ cluster ]
   metrics:
-    - datname:           { usage: LABEL ,description: Name of the database this backend is connected to }
-    - state:             { usage: LABEL ,description: Current overall state of this backend (always active on 9.1) }
-    - count:             { usage: GAUGE ,description: Count of connection among (datname,state) }
-    - max_duration:      { usage: GAUGE ,description: Max duration since query start among (datname) }
-    - max_tx_duration:   { usage: GAUGE ,description: Max transaction duration among (datname) }
-    - max_conn_duration: { usage: GAUGE ,description: Max backend session duration among (datname) }
+    - datname:           { usage: LABEL ,description: "Name of the database this backend is connected to" }
+    - state:             { usage: LABEL ,description: "Current overall state of this backend (always active on 9.1)" }
+    - count:             { usage: GAUGE ,description: "Count of connection among (datname,state)" }
+    - max_duration:      { usage: GAUGE ,description: "Max duration since query start among (datname)" }
+    - max_tx_duration:   { usage: GAUGE ,description: "Max transaction duration among (datname)" }
+    - max_conn_duration: { usage: GAUGE ,description: "Max backend session duration among (datname)" }
+
+

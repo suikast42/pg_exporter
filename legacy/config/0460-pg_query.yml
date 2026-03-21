@@ -15,16 +15,16 @@ pg_query_94:
   max_version: 130000
   tags: [ cluster, "extension:pg_stat_statements" ]
   metrics:
-    - datname:      { usage: LABEL   ,description: Name of database }
-    - query:        { usage: LABEL   ,description: QueryID generated from internal hash code, computed from the statement's parse tree }
-    - calls:        { usage: COUNTER ,description: Number of times the statement was executed }
-    - rows:         { usage: COUNTER ,description: Total number of rows retrieved or affected by the statement }
-    - exec_time:    { usage: COUNTER ,scale: 1e-3 ,description: Total time spent executing the statement, in seconds }
-    - io_time:      { usage: COUNTER ,scale: 1e-3 ,description: Total time the statement spent reading and writing blocks, in seconds }
-    - sblk_hit:     { usage: COUNTER ,description: Total number of shared block cache hits by the statement }
-    - sblk_read:    { usage: COUNTER ,description: Total number of shared blocks read by the statement }
-    - sblk_dirtied: { usage: COUNTER ,description: Total number of shared blocks dirtied by the statement }
-    - sblk_written: { usage: COUNTER ,description: Total number of shared blocks written by the statement }
+    - datname:      { usage: LABEL   ,description: "Name of database" }
+    - query:        { usage: LABEL   ,description: "QueryID generated from internal hash code, computed from the statement's parse tree" }
+    - calls:        { usage: COUNTER ,description: "Number of times the statement was executed" }
+    - rows:         { usage: COUNTER ,description: "Total number of rows retrieved or affected by the statement" }
+    - exec_time:    { usage: COUNTER ,scale: 1e-3 ,description: "Total time spent executing the statement, in seconds" }
+    - io_time:      { usage: COUNTER ,scale: 1e-3 ,description: "Total time the statement spent reading and writing blocks, in seconds" }
+    - sblk_hit:     { usage: COUNTER ,description: "Total number of shared block cache hits by the statement" }
+    - sblk_read:    { usage: COUNTER ,description: "Total number of shared blocks read by the statement" }
+    - sblk_dirtied: { usage: COUNTER ,description: "Total number of shared blocks dirtied by the statement" }
+    - sblk_written: { usage: COUNTER ,description: "Total number of shared blocks written by the statement" }
 
 pg_query_91:
   name: pg_query
@@ -40,13 +40,15 @@ pg_query_91:
   max_version: 90400
   tags: [ cluster, "extension:pg_stat_statements" ]
   metrics:
-    - datname:      { usage: LABEL   ,description: Name of database }
-    - query:        { usage: LABEL   ,description: MD5 hash of query text (no queryid before 9.4) }
-    - calls:        { usage: COUNTER ,description: Number of times the statement was executed }
-    - rows:         { usage: COUNTER ,description: Total number of rows retrieved or affected by the statement }
-    - exec_time:    { usage: COUNTER ,scale: 1e-3 ,description: Total time spent executing the statement, in seconds }
-    - io_time:      { usage: COUNTER ,scale: 1e-3 ,description: Total time the statement spent reading and writing blocks, in seconds (N/A before 9.4, always 0) }
-    - sblk_hit:     { usage: COUNTER ,description: Total number of shared block cache hits by the statement }
-    - sblk_read:    { usage: COUNTER ,description: Total number of shared blocks read by the statement }
-    - sblk_dirtied: { usage: COUNTER ,description: Total number of shared blocks dirtied by the statement (N/A before 9.4, always 0) }
-    - sblk_written: { usage: COUNTER ,description: Total number of shared blocks written by the statement }
+    - datname:      { usage: LABEL   ,description: "Name of database" }
+    - query:        { usage: LABEL   ,description: "MD5 hash of query text (no queryid before 9.4)" }
+    - calls:        { usage: COUNTER ,description: "Number of times the statement was executed" }
+    - rows:         { usage: COUNTER ,description: "Total number of rows retrieved or affected by the statement" }
+    - exec_time:    { usage: COUNTER ,scale: 1e-3 ,description: "Total time spent executing the statement, in seconds" }
+    - io_time:      { usage: COUNTER ,scale: 1e-3 ,description: "Total time the statement spent reading and writing blocks, in seconds (N/A before 9.4, always 0)" }
+    - sblk_hit:     { usage: COUNTER ,description: "Total number of shared block cache hits by the statement" }
+    - sblk_read:    { usage: COUNTER ,description: "Total number of shared blocks read by the statement" }
+    - sblk_dirtied: { usage: COUNTER ,description: "Total number of shared blocks dirtied by the statement (N/A before 9.4, always 0)" }
+    - sblk_written: { usage: COUNTER ,description: "Total number of shared blocks written by the statement" }
+
+

@@ -23,14 +23,16 @@ pg_index:
   timeout: 1
   min_version: 90100
   metrics:
-    - datname:             { usage: LABEL    ,description: Database name of this index }
-    - idxname:             { usage: LABEL    ,description: Name of this index (full-qualified schema name) }
-    - relname:             { usage: LABEL    ,description: Name of the table for this index (full-qualified schema name) }
-    - relid:               { usage: LABEL    ,description: Relation oid of this index }
-    - relpages:            { usage: GAUGE    ,description: Size of the on-disk representation of this index in pages }
-    - reltuples:           { usage: GAUGE    ,description: Estimate relation tuples }
-    - idx_scan:            { usage: COUNTER  ,description: Number of index scans initiated on this index }
-    - idx_tup_read:        { usage: COUNTER  ,description: Number of index entries returned by scans on this index }
-    - idx_tup_fetch:       { usage: COUNTER  ,description: Number of live table rows fetched by simple index scans using this index }
-    - idx_blks_read:       { usage: COUNTER  ,description: Number of disk blocks read from this index }
-    - idx_blks_hit:        { usage: COUNTER  ,description: Number of buffer hits in this index }
+    - datname:             { usage: LABEL    ,description: "Database name of this index" }
+    - idxname:             { usage: LABEL    ,description: "Name of this index (full-qualified schema name)" }
+    - relname:             { usage: LABEL    ,description: "Name of the table for this index (full-qualified schema name)" }
+    - relid:               { usage: LABEL    ,description: "Relation oid of this index" }
+    - relpages:            { usage: GAUGE    ,description: "Size of the on-disk representation of this index in pages" }
+    - reltuples:           { usage: GAUGE    ,description: "Estimate relation tuples" }
+    - idx_scan:            { usage: COUNTER  ,description: "Number of index scans initiated on this index" }
+    - idx_tup_read:        { usage: COUNTER  ,description: "Number of index entries returned by scans on this index" }
+    - idx_tup_fetch:       { usage: COUNTER  ,description: "Number of live table rows fetched by simple index scans using this index" }
+    - idx_blks_read:       { usage: COUNTER  ,description: "Number of disk blocks read from this index" }
+    - idx_blks_hit:        { usage: COUNTER  ,description: "Number of buffer hits in this index" }
+
+

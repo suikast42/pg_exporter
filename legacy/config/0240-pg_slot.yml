@@ -26,19 +26,19 @@ pg_slot_96:
   max_version: 100000
   tags: [ cluster, primary ]
   metrics:
-    - slot_name:      { usage: LABEL    ,description: A unique, cluster-wide identifier for the replication slot }
-    - slot_type:      { usage: LABEL    ,description: The slot type, physical or logical }
-    - plugin:         { usage: LABEL    ,description: The base name of the shared object containing the output plugin this logical slot is using, or null for physical slots. }
-    - datname:        { usage: LABEL    ,description: The name of the database this slot is associated with, logical slots only, null for physical slot }
-    - datoid:         { usage: GAUGE    ,description: The OID of the database this slot is associated with, logical slots only, null for physical slot }
-    - active_pid:     { usage: GAUGE    ,description: The process ID of the session streaming data for this slot. NULL if inactive. }
-    - active:         { usage: GAUGE    ,description: True(1) if this slot is currently actively being used }
-    - temporary:      { usage: GAUGE    ,description: True(1) if this is a temporary replication slot (N/A on 9.x, always 0) }
-    - xmin:           { usage: COUNTER  ,description: The oldest transaction that this slot needs the database to retain. }
-    - catalog_xmin:   { usage: COUNTER  ,description: The oldest transaction affecting the system catalogs that this slot needs the database to retain. }
-    - restart_lsn:    { usage: COUNTER  ,description: The address (LSN) of oldest WAL which still might be required by the consumer of this slot }
-    - confirm_lsn:    { usage: COUNTER  ,description: The address (LSN) up to which the logical slot's consumer has confirmed receiving data. }
-    - retained_bytes: { usage: GAUGE    ,description: Size of bytes that retained for this slot }
+    - slot_name:      { usage: LABEL    ,description: "A unique, cluster-wide identifier for the replication slot" }
+    - slot_type:      { usage: LABEL    ,description: "The slot type, physical or logical" }
+    - plugin:         { usage: LABEL    ,description: "The base name of the shared object containing the output plugin this logical slot is using, or null for physical slots." }
+    - datname:        { usage: LABEL    ,description: "The name of the database this slot is associated with, logical slots only, null for physical slot" }
+    - datoid:         { usage: GAUGE    ,description: "The OID of the database this slot is associated with, logical slots only, null for physical slot" }
+    - active_pid:     { usage: GAUGE    ,description: "The process ID of the session streaming data for this slot. NULL if inactive." }
+    - active:         { usage: GAUGE    ,description: "True(1) if this slot is currently actively being used" }
+    - temporary:      { usage: GAUGE    ,description: "True(1) if this is a temporary replication slot (N/A on 9.x, always 0)" }
+    - xmin:           { usage: COUNTER  ,description: "The oldest transaction that this slot needs the database to retain." }
+    - catalog_xmin:   { usage: COUNTER  ,description: "The oldest transaction affecting the system catalogs that this slot needs the database to retain." }
+    - restart_lsn:    { usage: COUNTER  ,description: "The address (LSN) of oldest WAL which still might be required by the consumer of this slot" }
+    - confirm_lsn:    { usage: COUNTER  ,description: "The address (LSN) up to which the logical slot's consumer has confirmed receiving data." }
+    - retained_bytes: { usage: GAUGE    ,description: "Size of bytes that retained for this slot" }
 
 pg_slot_95:
   name: pg_slot
@@ -64,19 +64,19 @@ pg_slot_95:
   max_version: 90600
   tags: [ cluster, primary ]
   metrics:
-    - slot_name:      { usage: LABEL    ,description: A unique, cluster-wide identifier for the replication slot }
-    - slot_type:      { usage: LABEL    ,description: The slot type, physical or logical }
-    - plugin:         { usage: LABEL    ,description: The base name of the shared object containing the output plugin this logical slot is using, or null for physical slots. }
-    - datname:        { usage: LABEL    ,description: The name of the database this slot is associated with, logical slots only, null for physical slot }
-    - datoid:         { usage: GAUGE    ,description: The OID of the database this slot is associated with, logical slots only, null for physical slot }
-    - active_pid:     { usage: GAUGE    ,description: The process ID of the session streaming data for this slot. NULL if inactive. }
-    - active:         { usage: GAUGE    ,description: True(1) if this slot is currently actively being used }
-    - temporary:      { usage: GAUGE    ,description: True(1) if this is a temporary replication slot (N/A on 9.x, always 0) }
-    - xmin:           { usage: COUNTER  ,description: The oldest transaction that this slot needs the database to retain. }
-    - catalog_xmin:   { usage: COUNTER  ,description: The oldest transaction affecting the system catalogs that this slot needs the database to retain. }
-    - restart_lsn:    { usage: COUNTER  ,description: The address (LSN) of oldest WAL which still might be required by the consumer of this slot }
-    - confirm_lsn:    { usage: COUNTER  ,description: Confirmed flush lsn (N/A before 9.6, always 0) }
-    - retained_bytes: { usage: GAUGE    ,description: Size of bytes that retained for this slot }
+    - slot_name:      { usage: LABEL    ,description: "A unique, cluster-wide identifier for the replication slot" }
+    - slot_type:      { usage: LABEL    ,description: "The slot type, physical or logical" }
+    - plugin:         { usage: LABEL    ,description: "The base name of the shared object containing the output plugin this logical slot is using, or null for physical slots." }
+    - datname:        { usage: LABEL    ,description: "The name of the database this slot is associated with, logical slots only, null for physical slot" }
+    - datoid:         { usage: GAUGE    ,description: "The OID of the database this slot is associated with, logical slots only, null for physical slot" }
+    - active_pid:     { usage: GAUGE    ,description: "The process ID of the session streaming data for this slot. NULL if inactive." }
+    - active:         { usage: GAUGE    ,description: "True(1) if this slot is currently actively being used" }
+    - temporary:      { usage: GAUGE    ,description: "True(1) if this is a temporary replication slot (N/A on 9.x, always 0)" }
+    - xmin:           { usage: COUNTER  ,description: "The oldest transaction that this slot needs the database to retain." }
+    - catalog_xmin:   { usage: COUNTER  ,description: "The oldest transaction affecting the system catalogs that this slot needs the database to retain." }
+    - restart_lsn:    { usage: COUNTER  ,description: "The address (LSN) of oldest WAL which still might be required by the consumer of this slot" }
+    - confirm_lsn:    { usage: COUNTER  ,description: "Confirmed flush lsn (N/A before 9.6, always 0)" }
+    - retained_bytes: { usage: GAUGE    ,description: "Size of bytes that retained for this slot" }
 
 pg_slot_94:
   name: pg_slot
@@ -102,16 +102,18 @@ pg_slot_94:
   max_version: 90500
   tags: [ cluster, primary ]
   metrics:
-    - slot_name:      { usage: LABEL    ,description: A unique, cluster-wide identifier for the replication slot }
-    - slot_type:      { usage: LABEL    ,description: The slot type, physical or logical }
-    - plugin:         { usage: LABEL    ,description: The base name of the shared object containing the output plugin this logical slot is using, or null for physical slots. }
-    - datname:        { usage: LABEL    ,description: The name of the database this slot is associated with, logical slots only, null for physical slot }
-    - datoid:         { usage: GAUGE    ,description: The OID of the database this slot is associated with, logical slots only, null for physical slot }
-    - active_pid:     { usage: GAUGE    ,description: Process ID is not available before 9.5 (NULL) }
-    - active:         { usage: GAUGE    ,description: True(1) if this slot is currently actively being used }
-    - temporary:      { usage: GAUGE    ,description: True(1) if this is a temporary replication slot (N/A on 9.x, always 0) }
-    - xmin:           { usage: COUNTER  ,description: The oldest transaction that this slot needs the database to retain. }
-    - catalog_xmin:   { usage: COUNTER  ,description: The oldest transaction affecting the system catalogs that this slot needs the database to retain. }
-    - restart_lsn:    { usage: COUNTER  ,description: The address (LSN) of oldest WAL which still might be required by the consumer of this slot }
-    - confirm_lsn:    { usage: COUNTER  ,description: Confirmed flush lsn (N/A before 9.6, always 0) }
-    - retained_bytes: { usage: GAUGE    ,description: Size of bytes that retained for this slot }
+    - slot_name:      { usage: LABEL    ,description: "A unique, cluster-wide identifier for the replication slot" }
+    - slot_type:      { usage: LABEL    ,description: "The slot type, physical or logical" }
+    - plugin:         { usage: LABEL    ,description: "The base name of the shared object containing the output plugin this logical slot is using, or null for physical slots." }
+    - datname:        { usage: LABEL    ,description: "The name of the database this slot is associated with, logical slots only, null for physical slot" }
+    - datoid:         { usage: GAUGE    ,description: "The OID of the database this slot is associated with, logical slots only, null for physical slot" }
+    - active_pid:     { usage: GAUGE    ,description: "Process ID is not available before 9.5 (NULL)" }
+    - active:         { usage: GAUGE    ,description: "True(1) if this slot is currently actively being used" }
+    - temporary:      { usage: GAUGE    ,description: "True(1) if this is a temporary replication slot (N/A on 9.x, always 0)" }
+    - xmin:           { usage: COUNTER  ,description: "The oldest transaction that this slot needs the database to retain." }
+    - catalog_xmin:   { usage: COUNTER  ,description: "The oldest transaction affecting the system catalogs that this slot needs the database to retain." }
+    - restart_lsn:    { usage: COUNTER  ,description: "The address (LSN) of oldest WAL which still might be required by the consumer of this slot" }
+    - confirm_lsn:    { usage: COUNTER  ,description: "Confirmed flush lsn (N/A before 9.6, always 0)" }
+    - retained_bytes: { usage: GAUGE    ,description: "Size of bytes that retained for this slot" }
+
+
