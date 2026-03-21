@@ -1,5 +1,10 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.26-alpine AS builder-env
+FROM golang:1.26.1-alpine AS builder-env
+
+ARG GOPROXY=https://proxy.golang.org,direct
+ARG GOSUMDB=sum.golang.org
+ENV GOPROXY=${GOPROXY}
+ENV GOSUMDB=${GOSUMDB}
 
 # Build a self-contained pg_exporter container with a clean environment and no
 # dependencies.
