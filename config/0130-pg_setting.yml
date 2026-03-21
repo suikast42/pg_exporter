@@ -53,42 +53,42 @@ pg_setting:
   min_version: 100000
   tags: [ cluster ]
   metrics:
-    - max_connections:                  { usage: GAUGE ,description: maximum number of concurrent connections to the database server }
-    - max_prepared_transactions:        { usage: GAUGE ,description: maximum number of transactions that can be in the prepared state simultaneously }
-    - max_locks_per_transaction:        { usage: GAUGE ,description: maximum number of locks per transaction }
-    - max_worker_processes:             { usage: GAUGE ,description: maximum number of background processes }
-    - max_parallel_workers:             { usage: GAUGE ,description: maximum number of parallel workers that can be active at one time }
-    - max_parallel_workers_per_gather:  { usage: GAUGE ,description: maximum number of parallel workers per Gather node }
-    - max_parallel_maintenance_workers: { usage: GAUGE ,description: maximum number of parallel maintenance workers (PG11+, NULL on older) }
-    - max_replication_slots:            { usage: GAUGE ,description: maximum number of replication slots }
-    - max_wal_senders:                  { usage: GAUGE ,description: maximum number of concurrent WAL sender connections }
-    - block_size:                       { usage: GAUGE ,description: database block size in bytes (default 8192) }
-    - wal_block_size:                   { usage: GAUGE ,description: WAL block size in bytes }
-    - segment_size:                     { usage: GAUGE ,description: database file segment size in bytes }
-    - wal_segment_size:                 { usage: GAUGE ,description: WAL segment size in bytes }
-    - data_checksums:                   { usage: GAUGE ,description: data checksums enabled, 1=on 0=off }
-    - wal_log_hints:                    { usage: GAUGE ,description: WAL log hints enabled, 1=on 0=off }
-    - fsync:                            { usage: GAUGE ,description: fsync enabled (CRITICAL for data safety), 1=on 0=off }
-    - full_page_writes:                 { usage: GAUGE ,description: full page writes enabled, 1=on 0=off }
-    - wal_level:                        { usage: GAUGE ,description: WAL level, 1=minimal 2=replica 3=logical }
-    - min_wal_size:                     { usage: GAUGE ,description: minimum WAL size in bytes }
-    - max_wal_size:                     { usage: GAUGE ,description: maximum WAL size in bytes }
-    - max_slot_wal_keep_size:           { usage: GAUGE ,description: maximum WAL size retained by replication slots in bytes (PG13+, NULL on older) }
-    - shared_buffers:                   { usage: GAUGE ,description: shared buffer size in bytes }
-    - work_mem:                         { usage: GAUGE ,description: work memory size in bytes }
-    - maintenance_work_mem:             { usage: GAUGE ,description: maintenance work memory size in bytes }
-    - effective_cache_size:             { usage: GAUGE ,description: planner's assumption about effective OS cache size in bytes }
-    - shared_memory_size:               { usage: GAUGE ,description: total shared memory size in bytes (PG13+, NULL on older) }
-    - hugepage_status:                  { usage: GAUGE ,description: huge pages status, 1=on 0=off -1=unknown NULL=unavailable (PG14+) }
-    - hugepage_count:                   { usage: GAUGE ,description: number of huge pages needed for shared memory (PG14+, NULL on older) }
-    - archive_mode:                     { usage: GAUGE ,description: archive mode, 0=off 1=on 2=always }
-    - autovacuum:                       { usage: GAUGE ,description: autovacuum enabled, 1=on 0=off }
-    - autovacuum_max_workers:           { usage: GAUGE ,description: maximum number of autovacuum worker processes }
-    - checkpoint_timeout:               { usage: GAUGE ,description: checkpoint timeout in seconds }
-    - checkpoint_completion_target:     { usage: GAUGE ,description: checkpoint completion target (0.0-1.0) }
-    - hot_standby:                      { usage: GAUGE ,description: hot standby mode enabled, 1=on 0=off }
-    - synchronous_commit:               { usage: GAUGE ,description: synchronous commit level, 0=off 1=local 2=remote_write 3=on 4=remote_apply }
-    - io_method:                         { usage: GAUGE ,description: I/O method (PG18+), 0=sync 1=worker 2=io_uring NULL=unavailable }
+    - max_connections:                  { usage: GAUGE ,description: "maximum number of concurrent connections to the database server" }
+    - max_prepared_transactions:        { usage: GAUGE ,description: "maximum number of transactions that can be in the prepared state simultaneously" }
+    - max_locks_per_transaction:        { usage: GAUGE ,description: "maximum number of locks per transaction" }
+    - max_worker_processes:             { usage: GAUGE ,description: "maximum number of background processes" }
+    - max_parallel_workers:             { usage: GAUGE ,description: "maximum number of parallel workers that can be active at one time" }
+    - max_parallel_workers_per_gather:  { usage: GAUGE ,description: "maximum number of parallel workers per Gather node" }
+    - max_parallel_maintenance_workers: { usage: GAUGE ,description: "maximum number of parallel maintenance workers (PG11+, NULL on older)" }
+    - max_replication_slots:            { usage: GAUGE ,description: "maximum number of replication slots" }
+    - max_wal_senders:                  { usage: GAUGE ,description: "maximum number of concurrent WAL sender connections" }
+    - block_size:                       { usage: GAUGE ,description: "database block size in bytes (default 8192)" }
+    - wal_block_size:                   { usage: GAUGE ,description: "WAL block size in bytes" }
+    - segment_size:                     { usage: GAUGE ,description: "database file segment size in bytes" }
+    - wal_segment_size:                 { usage: GAUGE ,description: "WAL segment size in bytes" }
+    - data_checksums:                   { usage: GAUGE ,description: "data checksums enabled, 1=on 0=off" }
+    - wal_log_hints:                    { usage: GAUGE ,description: "WAL log hints enabled, 1=on 0=off" }
+    - fsync:                            { usage: GAUGE ,description: "fsync enabled (CRITICAL for data safety), 1=on 0=off" }
+    - full_page_writes:                 { usage: GAUGE ,description: "full page writes enabled, 1=on 0=off" }
+    - wal_level:                        { usage: GAUGE ,description: "WAL level, 1=minimal 2=replica 3=logical" }
+    - min_wal_size:                     { usage: GAUGE ,description: "minimum WAL size in bytes" }
+    - max_wal_size:                     { usage: GAUGE ,description: "maximum WAL size in bytes" }
+    - max_slot_wal_keep_size:           { usage: GAUGE ,description: "maximum WAL size retained by replication slots in bytes (PG13+, NULL on older)" }
+    - shared_buffers:                   { usage: GAUGE ,description: "shared buffer size in bytes" }
+    - work_mem:                         { usage: GAUGE ,description: "work memory size in bytes" }
+    - maintenance_work_mem:             { usage: GAUGE ,description: "maintenance work memory size in bytes" }
+    - effective_cache_size:             { usage: GAUGE ,description: "planner's assumption about effective OS cache size in bytes" }
+    - shared_memory_size:               { usage: GAUGE ,description: "total shared memory size in bytes (PG13+, NULL on older)" }
+    - hugepage_status:                  { usage: GAUGE ,description: "huge pages status, 1=on 0=off -1=unknown NULL=unavailable (PG14+)" }
+    - hugepage_count:                   { usage: GAUGE ,description: "number of huge pages needed for shared memory (PG14+, NULL on older)" }
+    - archive_mode:                     { usage: GAUGE ,description: "archive mode, 0=off 1=on 2=always" }
+    - autovacuum:                       { usage: GAUGE ,description: "autovacuum enabled, 1=on 0=off" }
+    - autovacuum_max_workers:           { usage: GAUGE ,description: "maximum number of autovacuum worker processes" }
+    - checkpoint_timeout:               { usage: GAUGE ,description: "checkpoint timeout in seconds" }
+    - checkpoint_completion_target:     { usage: GAUGE ,description: "checkpoint completion target (0.0-1.0)" }
+    - hot_standby:                      { usage: GAUGE ,description: "hot standby mode enabled, 1=on 0=off" }
+    - synchronous_commit:               { usage: GAUGE ,description: "synchronous commit level, 0=off 1=local 2=remote_write 3=on 4=remote_apply" }
+    - io_method:                         { usage: GAUGE ,description: "I/O method (PG18+), 0=sync 1=worker 2=io_uring NULL=unavailable" }
 
 
 

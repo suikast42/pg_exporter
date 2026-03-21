@@ -9,11 +9,11 @@ pg_wal_18:
   tags: [ cluster ]
   min_version: 180000
   metrics:
-    - records:      { usage: COUNTER              ,description: Total number of WAL records generated }
-    - fpi:          { usage: COUNTER              ,description: Total number of WAL full page images generated }
-    - bytes:        { usage: COUNTER              ,description: Total amount of WAL generated in bytes }
-    - buffers_full: { usage: COUNTER              ,description: Number of times WAL data was written to disk because WAL buffers became full }
-    - reset_time:   { usage: GAUGE                ,description: When statistics were last reset }
+    - records:      { usage: COUNTER              ,description: "Total number of WAL records generated" }
+    - fpi:          { usage: COUNTER              ,description: "Total number of WAL full page images generated" }
+    - bytes:        { usage: COUNTER              ,description: "Total amount of WAL generated in bytes" }
+    - buffers_full: { usage: COUNTER              ,description: "Number of times WAL data was written to disk because WAL buffers became full" }
+    - reset_time:   { usage: GAUGE                ,description: "When statistics were last reset" }
 
 pg_wal_14:
   name: pg_wal
@@ -24,14 +24,14 @@ pg_wal_14:
   min_version: 140000
   max_version: 180000
   metrics:
-    - records:      { usage: COUNTER              ,description: Total number of WAL records generated }
-    - fpi:          { usage: COUNTER              ,description: Total number of WAL full page images generated }
-    - bytes:        { usage: COUNTER              ,description: Total amount of WAL generated in bytes }
-    - buffers_full: { usage: COUNTER              ,description: Number of times WAL data was written to disk because WAL buffers became full }
-    - write:        { usage: COUNTER              ,description: Number of times WAL buffers were written out to disk via XLogWrite request. }
-    - sync:         { usage: COUNTER              ,description: Number of times WAL files were synced to disk via issue_xlog_fsync request }
-    - write_time:   { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent writing WAL buffers to disk via XLogWrite request in seconds }
-    - sync_time:    { usage: COUNTER ,scale: 1e-3 ,description: Total amount of time spent syncing WAL files to disk via issue_xlog_fsync request, in seconds }
-    - reset_time:   { usage: GAUGE                ,description: When statistics were last reset }
+    - records:      { usage: COUNTER              ,description: "Total number of WAL records generated" }
+    - fpi:          { usage: COUNTER              ,description: "Total number of WAL full page images generated" }
+    - bytes:        { usage: COUNTER              ,description: "Total amount of WAL generated in bytes" }
+    - buffers_full: { usage: COUNTER              ,description: "Number of times WAL data was written to disk because WAL buffers became full" }
+    - write:        { usage: COUNTER              ,description: "Number of times WAL buffers were written out to disk via XLogWrite request." }
+    - sync:         { usage: COUNTER              ,description: "Number of times WAL files were synced to disk via issue_xlog_fsync request" }
+    - write_time:   { usage: COUNTER ,scale: 1e-3 ,description: "Total amount of time spent writing WAL buffers to disk via XLogWrite request in seconds" }
+    - sync_time:    { usage: COUNTER ,scale: 1e-3 ,description: "Total amount of time spent syncing WAL files to disk via issue_xlog_fsync request, in seconds" }
+    - reset_time:   { usage: GAUGE                ,description: "When statistics were last reset" }
 
 

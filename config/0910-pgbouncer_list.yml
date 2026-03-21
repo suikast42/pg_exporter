@@ -11,7 +11,7 @@ pgbouncer_list:
   fatal: true
   tags: [ pgbouncer ]
   metrics:
-    - list:                { usage: LABEL                 ,description: Pgbouncer internal list name }
-    - items:               { usage: GAUGE                 ,description: Number of corresponding pgbouncer object }
+    - list:                { usage: LABEL                 ,description: "Pgbouncer internal list name" }
+    - items:               { usage: GAUGE                 ,description: "Number of corresponding pgbouncer object" }
 
 

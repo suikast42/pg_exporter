@@ -11,9 +11,9 @@ pg_table_bloat:
   min_version: 090400
   skip: true
   metrics:
-    - datname:             { usage: LABEL    ,description: Database name of this table }
-    - relname:             { usage: LABEL    ,description: Schema qualified name of this table }
-    - size:                { usage: GAUGE    ,description: Total bytes of this table }
-    - ratio:               { usage: GAUGE    ,description: Estimated bloat ratio of this table from 0 to 1 }
+    - datname:             { usage: LABEL    ,description: "Database name of this table" }
+    - relname:             { usage: LABEL    ,description: "Schema qualified name of this table" }
+    - size:                { usage: GAUGE    ,description: "Total bytes of this table" }
+    - ratio:               { usage: GAUGE    ,description: "Estimated bloat ratio of this table from 0 to 1" }
 
 

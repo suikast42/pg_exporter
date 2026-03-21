@@ -15,11 +15,11 @@ pg_recovery:
   min_version: 090600
   tags: [ cluster, replica ]
   metrics:
-    - min_timeline:      { usage: COUNTER ,description: Min recovery ending loc's timeline }
-    - min_lsn:           { usage: COUNTER ,description: Minimum recovery ending location }
-    - backup_start_lsn:  { usage: COUNTER ,description: Backup start location }
-    - backup_end_lsn:    { usage: COUNTER ,description: Backup end location }
-    - require_record:    { usage: GAUGE   ,description: End-of-backup record required }
+    - min_timeline:      { usage: COUNTER ,description: "Min recovery ending loc's timeline" }
+    - min_lsn:           { usage: COUNTER ,description: "Minimum recovery ending location" }
+    - backup_start_lsn:  { usage: COUNTER ,description: "Backup start location" }
+    - backup_end_lsn:    { usage: COUNTER ,description: "Backup end location" }
+    - require_record:    { usage: GAUGE   ,description: "End-of-backup record required" }
 
 pg_recovery_prefetch:
   name: pg_recovery_prefetch
@@ -29,15 +29,15 @@ pg_recovery_prefetch:
   min_version: 150000
   tags: [ cluster, replica ]
   metrics:
-    - prefetch:       { usage: COUNTER ,description: Number of blocks prefetched because they were not in the buffer pool }
-    - hit:            { usage: COUNTER ,description: Number of blocks not prefetched because they were already in the buffer pool }
-    - skip_init:      { usage: COUNTER ,description: Number of blocks not prefetched because they would be zero-initialized }
-    - skip_new:       { usage: COUNTER ,description: Number of blocks not prefetched because they didn't exist yet }
-    - skip_fpw:       { usage: COUNTER ,description: Number of blocks not prefetched because a full page image was included in the WAL }
-    - skip_rep:       { usage: COUNTER ,description: Number of blocks not prefetched because they were already recently prefetched }
-    - wal_distance:   { usage: GAUGE   ,description: How many bytes ahead the prefetcher is looking }
-    - block_distance: { usage: GAUGE   ,description: How many blocks ahead the prefetcher is looking }
-    - io_depth:       { usage: GAUGE   ,description: How many prefetches have been initiated but are not yet known to have completed }
-    - reset_time:     { usage: GAUGE   ,description: Time at which these recovery prefetch statistics were last reset }
+    - prefetch:       { usage: COUNTER ,description: "Number of blocks prefetched because they were not in the buffer pool" }
+    - hit:            { usage: COUNTER ,description: "Number of blocks not prefetched because they were already in the buffer pool" }
+    - skip_init:      { usage: COUNTER ,description: "Number of blocks not prefetched because they would be zero-initialized" }
+    - skip_new:       { usage: COUNTER ,description: "Number of blocks not prefetched because they didn't exist yet" }
+    - skip_fpw:       { usage: COUNTER ,description: "Number of blocks not prefetched because a full page image was included in the WAL" }
+    - skip_rep:       { usage: COUNTER ,description: "Number of blocks not prefetched because they were already recently prefetched" }
+    - wal_distance:   { usage: GAUGE   ,description: "How many bytes ahead the prefetcher is looking" }
+    - block_distance: { usage: GAUGE   ,description: "How many blocks ahead the prefetcher is looking" }
+    - io_depth:       { usage: GAUGE   ,description: "How many prefetches have been initiated but are not yet known to have completed" }
+    - reset_time:     { usage: GAUGE   ,description: "Time at which these recovery prefetch statistics were last reset" }
 
 

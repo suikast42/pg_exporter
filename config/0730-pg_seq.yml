@@ -7,10 +7,10 @@ pg_seq:
   ttl: 10
   min_version: 100000
   metrics:
-    - datname:             { usage: LABEL    ,description: Database name of this sequence }
-    - seqname:             { usage: LABEL    ,description: Fully schema qualified sequence name }
-    - last_value:          { usage: COUNTER  ,description: The last sequence value written to disk }
-    - blks_read:           { usage: COUNTER  ,description: Number of disk blocks read from this sequence }
-    - blks_hit:            { usage: COUNTER  ,description: Number of buffer hits in this sequence }
+    - datname:             { usage: LABEL    ,description: "Database name of this sequence" }
+    - seqname:             { usage: LABEL    ,description: "Fully schema qualified sequence name" }
+    - last_value:          { usage: COUNTER  ,description: "The last sequence value written to disk" }
+    - blks_read:           { usage: COUNTER  ,description: "Number of disk blocks read from this sequence" }
+    - blks_hit:            { usage: COUNTER  ,description: "Number of buffer hits in this sequence" }
 
 

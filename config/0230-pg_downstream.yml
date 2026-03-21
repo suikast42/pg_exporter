@@ -10,7 +10,7 @@ pg_downstream:
   min_version: 090400
   tags: [ cluster ]
   metrics:
-    - state:             { usage: LABEL ,description: Replication client state, could be one of startup|catchup|streaming|backup|stopping }
-    - count:             { usage: GAUGE ,description: Count of corresponding state }
+    - state:             { usage: LABEL ,description: "Replication client state, could be one of startup|catchup|streaming|backup|stopping" }
+    - count:             { usage: GAUGE ,description: "Count of corresponding state" }
 
 

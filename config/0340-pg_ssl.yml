@@ -10,7 +10,7 @@ pg_ssl:
   min_version: 090500
   tags: [ cluster ]
   metrics:
-    - enabled:            { usage: GAUGE   ,description: Number of client connection that use ssl }
-    - disabled:           { usage: GAUGE   ,description: Number of client connection that does not use ssl }
+    - enabled:            { usage: GAUGE   ,description: "Number of client connection that use ssl" }
+    - disabled:           { usage: GAUGE   ,description: "Number of client connection that does not use ssl" }
 
 

@@ -9,17 +9,17 @@ pg_checkpointer_18:
   min_version: 180000
   tags: [ cluster ]
   metrics:
-    - num_timed:             { usage: COUNTER ,rename: timed ,description: Number of scheduled checkpoints that have been performed }
-    - num_requested:         { usage: COUNTER ,rename: req   ,description: Number of requested checkpoints that have been performed }
-    - num_done:              { usage: COUNTER ,rename: done  ,description: Number of checkpoints that have been performed }
-    - restartpoints_timed:   { usage: COUNTER                ,description: Number of scheduled restartpoints due to timeout or after a failed attempt to perform it }
-    - restartpoints_req:     { usage: COUNTER                ,description: Number of requested restartpoints }
-    - restartpoints_done:    { usage: COUNTER                ,description: Number of restartpoints that have been performed }
-    - write_time:            { usage: COUNTER ,scale: 1e-3   ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in seconds }
-    - sync_time:             { usage: COUNTER ,scale: 1e-3   ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds }
-    - buffers_written:       { usage: COUNTER                ,description: Number of buffers written during checkpoints and restartpoints }
-    - slru_written:          { usage: COUNTER                ,description: Number of SLRU buffers written during checkpoints and restartpoints }
-    - reset_time:            { usage: GAUGE                  ,description: Time at which checkpointer statistics were last reset }
+    - num_timed:             { usage: COUNTER ,rename: timed ,description: "Number of scheduled checkpoints that have been performed" }
+    - num_requested:         { usage: COUNTER ,rename: req   ,description: "Number of requested checkpoints that have been performed" }
+    - num_done:              { usage: COUNTER ,rename: done  ,description: "Number of checkpoints that have been performed" }
+    - restartpoints_timed:   { usage: COUNTER                ,description: "Number of scheduled restartpoints due to timeout or after a failed attempt to perform it" }
+    - restartpoints_req:     { usage: COUNTER                ,description: "Number of requested restartpoints" }
+    - restartpoints_done:    { usage: COUNTER                ,description: "Number of restartpoints that have been performed" }
+    - write_time:            { usage: COUNTER ,scale: 1e-3   ,description: "Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in seconds" }
+    - sync_time:             { usage: COUNTER ,scale: 1e-3   ,description: "Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds" }
+    - buffers_written:       { usage: COUNTER                ,description: "Number of buffers written during checkpoints and restartpoints" }
+    - slru_written:          { usage: COUNTER                ,description: "Number of SLRU buffers written during checkpoints and restartpoints" }
+    - reset_time:            { usage: GAUGE                  ,description: "Time at which checkpointer statistics were last reset" }
 
 pg_checkpointer_17:
   name: pg_checkpointer
@@ -30,15 +30,15 @@ pg_checkpointer_17:
   max_version: 180000
   tags: [ cluster ]
   metrics:
-    - num_timed:             { usage: COUNTER ,rename: timed ,description: Number of scheduled checkpoints that have been performed }
-    - num_requested:         { usage: COUNTER ,rename: req   ,description: Number of requested checkpoints that have been performed }
-    - restartpoints_timed:   { usage: COUNTER                ,description: Number of scheduled restartpoints due to timeout or after a failed attempt to perform it }
-    - restartpoints_req:     { usage: COUNTER                ,description: Number of requested restartpoints }
-    - restartpoints_done:    { usage: COUNTER                ,description: Number of restartpoints that have been performed }
-    - write_time:            { usage: COUNTER ,scale: 1e-3   ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in seconds }
-    - sync_time:             { usage: COUNTER ,scale: 1e-3   ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds }
-    - buffers_written:       { usage: COUNTER                ,description: Number of buffers written during checkpoints and restartpoints }
-    - reset_time:            { usage: GAUGE                  ,description: Time at which checkpointer statistics were last reset }
+    - num_timed:             { usage: COUNTER ,rename: timed ,description: "Number of scheduled checkpoints that have been performed" }
+    - num_requested:         { usage: COUNTER ,rename: req   ,description: "Number of requested checkpoints that have been performed" }
+    - restartpoints_timed:   { usage: COUNTER                ,description: "Number of scheduled restartpoints due to timeout or after a failed attempt to perform it" }
+    - restartpoints_req:     { usage: COUNTER                ,description: "Number of requested restartpoints" }
+    - restartpoints_done:    { usage: COUNTER                ,description: "Number of restartpoints that have been performed" }
+    - write_time:            { usage: COUNTER ,scale: 1e-3   ,description: "Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in seconds" }
+    - sync_time:             { usage: COUNTER ,scale: 1e-3   ,description: "Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds" }
+    - buffers_written:       { usage: COUNTER                ,description: "Number of buffers written during checkpoints and restartpoints" }
+    - reset_time:            { usage: GAUGE                  ,description: "Time at which checkpointer statistics were last reset" }
 
 pg_checkpointer_10:
   name: pg_checkpointer
@@ -49,10 +49,10 @@ pg_checkpointer_10:
   max_version: 170000
   tags: [ cluster ]
   metrics:
-    - checkpoints_timed:     { usage: COUNTER ,rename: timed                   ,description: Number of scheduled checkpoints that have been performed }
-    - checkpoints_req:       { usage: COUNTER ,rename: req                     ,description: Number of requested checkpoints that have been performed }
-    - checkpoint_write_time: { usage: COUNTER ,rename: write_time ,scale: 1e-3 ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in seconds }
-    - checkpoint_sync_time:  { usage: COUNTER ,rename: sync_time  ,scale: 1e-3 ,description: Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds }
-    - buffers_checkpoint:    { usage: COUNTER ,rename: buffers_written         ,description: Number of buffers written during checkpoints and restartpoints }
-    - reset_time:            { usage: GAUGE                                    ,description: Time at which checkpointer statistics were last reset }
+    - checkpoints_timed:     { usage: COUNTER ,rename: timed                   ,description: "Number of scheduled checkpoints that have been performed" }
+    - checkpoints_req:       { usage: COUNTER ,rename: req                     ,description: "Number of requested checkpoints that have been performed" }
+    - checkpoint_write_time: { usage: COUNTER ,rename: write_time ,scale: 1e-3 ,description: "Total amount of time that has been spent in the portion of checkpoint processing where files are written to disk, in seconds" }
+    - checkpoint_sync_time:  { usage: COUNTER ,rename: sync_time  ,scale: 1e-3 ,description: "Total amount of time that has been spent in the portion of checkpoint processing where files are synchronized to disk, in seconds" }
+    - buffers_checkpoint:    { usage: COUNTER ,rename: buffers_written         ,description: "Number of buffers written during checkpoints and restartpoints" }
+    - reset_time:            { usage: GAUGE                                    ,description: "Time at which checkpointer statistics were last reset" }
 

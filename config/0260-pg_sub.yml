@@ -24,16 +24,16 @@ pg_sub_16:
   min_version: 160000
   tags: [ cluster ]
   metrics:
-    - subname:             { usage: LABEL   ,description: Name of this subscription }
-    - id:                  { usage: GAUGE   ,description: OID of the subscription }
-    - pid:                 { usage: GAUGE   ,description: Process ID of the subscription leader apply worker }
-    - received_lsn:        { usage: COUNTER ,description: Last write-ahead log location received }
-    - reported_lsn:        { usage: COUNTER ,description: Last write-ahead log location reported to origin WAL sender }
-    - msg_send_time:       { usage: GAUGE   ,description: Send time of last message received from origin WAL sender }
-    - msg_recv_time:       { usage: GAUGE   ,description: Receipt time of last message received from origin WAL sender }
-    - reported_time:       { usage: GAUGE   ,description: Time of last write-ahead log location reported to origin WAL sender }
-    - apply_error_count:   { usage: COUNTER ,description: Number of times an error occurred while applying changes }
-    - sync_error_count:    { usage: COUNTER ,description: Number of times an error occurred during the initial table synchronization }
+    - subname:             { usage: LABEL   ,description: "Name of this subscription" }
+    - id:                  { usage: GAUGE   ,description: "OID of the subscription" }
+    - pid:                 { usage: GAUGE   ,description: "Process ID of the subscription leader apply worker" }
+    - received_lsn:        { usage: COUNTER ,description: "Last write-ahead log location received" }
+    - reported_lsn:        { usage: COUNTER ,description: "Last write-ahead log location reported to origin WAL sender" }
+    - msg_send_time:       { usage: GAUGE   ,description: "Send time of last message received from origin WAL sender" }
+    - msg_recv_time:       { usage: GAUGE   ,description: "Receipt time of last message received from origin WAL sender" }
+    - reported_time:       { usage: GAUGE   ,description: "Time of last write-ahead log location reported to origin WAL sender" }
+    - apply_error_count:   { usage: COUNTER ,description: "Number of times an error occurred while applying changes" }
+    - sync_error_count:    { usage: COUNTER ,description: "Number of times an error occurred during the initial table synchronization" }
 
 pg_sub_15:
   name: pg_sub
@@ -58,16 +58,16 @@ pg_sub_15:
   max_version: 160000
   tags: [ cluster ]
   metrics:
-    - subname:             { usage: LABEL   ,description: Name of this subscription }
-    - id:                  { usage: GAUGE   ,description: OID of the subscription }
-    - pid:                 { usage: GAUGE   ,description: Process ID of the subscription main apply worker process }
-    - received_lsn:        { usage: COUNTER ,description: Last write-ahead log location received }
-    - reported_lsn:        { usage: COUNTER ,description: Last write-ahead log location reported to origin WAL sender }
-    - msg_send_time:       { usage: GAUGE   ,description: Send time of last message received from origin WAL sender }
-    - msg_recv_time:       { usage: GAUGE   ,description: Receipt time of last message received from origin WAL sender }
-    - reported_time:       { usage: GAUGE   ,description: Time of last write-ahead log location reported to origin WAL sender }
-    - apply_error_count:   { usage: COUNTER ,description: Number of times an error occurred while applying changes. }
-    - sync_error_count:    { usage: COUNTER ,description: Number of times an error occurred during the initial table synchronization }
+    - subname:             { usage: LABEL   ,description: "Name of this subscription" }
+    - id:                  { usage: GAUGE   ,description: "OID of the subscription" }
+    - pid:                 { usage: GAUGE   ,description: "Process ID of the subscription main apply worker process" }
+    - received_lsn:        { usage: COUNTER ,description: "Last write-ahead log location received" }
+    - reported_lsn:        { usage: COUNTER ,description: "Last write-ahead log location reported to origin WAL sender" }
+    - msg_send_time:       { usage: GAUGE   ,description: "Send time of last message received from origin WAL sender" }
+    - msg_recv_time:       { usage: GAUGE   ,description: "Receipt time of last message received from origin WAL sender" }
+    - reported_time:       { usage: GAUGE   ,description: "Time of last write-ahead log location reported to origin WAL sender" }
+    - apply_error_count:   { usage: COUNTER ,description: "Number of times an error occurred while applying changes." }
+    - sync_error_count:    { usage: COUNTER ,description: "Number of times an error occurred during the initial table synchronization" }
 
 pg_sub_10:
   name: pg_sub
@@ -86,13 +86,13 @@ pg_sub_10:
   max_version: 150000
   tags: [ cluster ]
   metrics:
-    - subname:             { usage: LABEL   ,description: Name of this subscription }
-    - id:                  { usage: GAUGE   ,description: OID of the subscription }
-    - pid:                 { usage: GAUGE   ,description: Process ID of the subscription main apply worker process }
-    - received_lsn:        { usage: COUNTER ,description: Last write-ahead log location received }
-    - reported_lsn:        { usage: COUNTER ,description: Last write-ahead log location reported to origin WAL sender }
-    - msg_send_time:       { usage: GAUGE   ,description: Send time of last message received from origin WAL sender }
-    - msg_recv_time:       { usage: GAUGE   ,description: Receipt time of last message received from origin WAL sender }
-    - reported_time:       { usage: GAUGE   ,description: Time of last write-ahead log location reported to origin WAL sender }
+    - subname:             { usage: LABEL   ,description: "Name of this subscription" }
+    - id:                  { usage: GAUGE   ,description: "OID of the subscription" }
+    - pid:                 { usage: GAUGE   ,description: "Process ID of the subscription main apply worker process" }
+    - received_lsn:        { usage: COUNTER ,description: "Last write-ahead log location received" }
+    - reported_lsn:        { usage: COUNTER ,description: "Last write-ahead log location reported to origin WAL sender" }
+    - msg_send_time:       { usage: GAUGE   ,description: "Send time of last message received from origin WAL sender" }
+    - msg_recv_time:       { usage: GAUGE   ,description: "Receipt time of last message received from origin WAL sender" }
+    - reported_time:       { usage: GAUGE   ,description: "Time of last write-ahead log location reported to origin WAL sender" }
 
 

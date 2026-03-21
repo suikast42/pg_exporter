@@ -13,11 +13,11 @@ pg_activity:
   min_version: 090400
   tags: [ cluster ]
   metrics:
-    - datname:           { usage: LABEL ,description: Name of the database this backend is connected to }
-    - state:             { usage: LABEL ,description: Current overall state of this backend. }
-    - count:             { usage: GAUGE ,description: Count of connection among (datname,state) }
-    - max_duration:      { usage: GAUGE ,description: Max duration since last state change among (datname, state) }
-    - max_tx_duration:   { usage: GAUGE ,description: Max transaction duration since state change among (datname, state) }
-    - max_conn_duration: { usage: GAUGE ,description: Max backend session duration since state change among (datname, state) }
+    - datname:           { usage: LABEL ,description: "Name of the database this backend is connected to" }
+    - state:             { usage: LABEL ,description: "Current overall state of this backend." }
+    - count:             { usage: GAUGE ,description: "Count of connection among (datname,state)" }
+    - max_duration:      { usage: GAUGE ,description: "Max duration since last state change among (datname, state)" }
+    - max_tx_duration:   { usage: GAUGE ,description: "Max transaction duration since state change among (datname, state)" }
+    - max_conn_duration: { usage: GAUGE ,description: "Max backend session duration since state change among (datname, state)" }
 
 

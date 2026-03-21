@@ -9,14 +9,14 @@ pg_slru_13:
   min_version: 130000
   tags: [ cluster ]
   metrics:
-    - name:         { usage: LABEL   ,description: Name of the SLRU }
-    - blks_zeroed:  { usage: COUNTER ,description: Number of blocks zeroed during initializations }
-    - blks_hit:     { usage: COUNTER ,description: Number of times disk blocks were found already in the SLRU, so that a read was not necessary }
-    - blks_read:    { usage: COUNTER ,description: Number of disk blocks read for this SLRU }
-    - blks_written: { usage: COUNTER ,description: Number of disk blocks written for this SLRU }
-    - blks_exists:  { usage: COUNTER ,description: Number of blocks checked for existence for this SLRU }
-    - flushes:      { usage: COUNTER ,description: Number of flushes of dirty data for this SLRU }
-    - truncates:    { usage: COUNTER ,description: Number of truncates for this SLRU }
-    - reset_time:   { usage: GAUGE   ,description: Time at which these statistics were last reset }
+    - name:         { usage: LABEL   ,description: "Name of the SLRU" }
+    - blks_zeroed:  { usage: COUNTER ,description: "Number of blocks zeroed during initializations" }
+    - blks_hit:     { usage: COUNTER ,description: "Number of times disk blocks were found already in the SLRU, so that a read was not necessary" }
+    - blks_read:    { usage: COUNTER ,description: "Number of disk blocks read for this SLRU" }
+    - blks_written: { usage: COUNTER ,description: "Number of disk blocks written for this SLRU" }
+    - blks_exists:  { usage: COUNTER ,description: "Number of blocks checked for existence for this SLRU" }
+    - flushes:      { usage: COUNTER ,description: "Number of flushes of dirty data for this SLRU" }
+    - truncates:    { usage: COUNTER ,description: "Number of truncates for this SLRU" }
+    - reset_time:   { usage: GAUGE   ,description: "Time at which these statistics were last reset" }
 
 

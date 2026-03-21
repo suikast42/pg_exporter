@@ -8,8 +8,8 @@ pg_pubrel:
   ttl: 10
   min_version: 100000
   metrics:
-    - datname:              { usage: LABEL  ,description: Name of the database which publication belonged }
-    - pubname:              { usage: LABEL  ,description: Name of the publication }
-    - count:                { usage: GAUGE  ,description: Count of relation in the publication }
+    - datname:              { usage: LABEL  ,description: "Name of the database which publication belonged" }
+    - pubname:              { usage: LABEL  ,description: "Name of the publication" }
+    - count:                { usage: GAUGE  ,description: "Count of relation in the publication" }
 
 
