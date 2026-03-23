@@ -11,9 +11,11 @@ pg_db_confl:
   tags: [ cluster, replica ]
   metrics:
     - datid:                { usage: DISCARD }
-    - datname:              { usage: LABEL   ,description: Name of this database }
-    - confl_tablespace:     { usage: COUNTER ,description: Number of queries in this database that have been canceled due to dropped tablespaces }
-    - confl_lock:           { usage: COUNTER ,description: Number of queries in this database that have been canceled due to lock timeouts }
-    - confl_snapshot:       { usage: COUNTER ,description: Number of queries in this database that have been canceled due to old snapshots }
-    - confl_bufferpin:      { usage: COUNTER ,description: Number of queries in this database that have been canceled due to pinned buffers }
-    - confl_deadlock:       { usage: COUNTER ,description: Number of queries in this database that have been canceled due to deadlocks }
+    - datname:              { usage: LABEL   ,description: "Name of this database" }
+    - confl_tablespace:     { usage: COUNTER ,description: "Number of queries in this database that have been canceled due to dropped tablespaces" }
+    - confl_lock:           { usage: COUNTER ,description: "Number of queries in this database that have been canceled due to lock timeouts" }
+    - confl_snapshot:       { usage: COUNTER ,description: "Number of queries in this database that have been canceled due to old snapshots" }
+    - confl_bufferpin:      { usage: COUNTER ,description: "Number of queries in this database that have been canceled due to pinned buffers" }
+    - confl_deadlock:       { usage: COUNTER ,description: "Number of queries in this database that have been canceled due to deadlocks" }
+
+

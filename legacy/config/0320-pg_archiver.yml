@@ -15,8 +15,10 @@ pg_archiver:
   min_version: 90400
   tags: [ cluster ]
   metrics:
-    - finish_count:        { usage: COUNTER ,description: Number of WAL files that have been successfully archived }
-    - failed_count:        { usage: COUNTER ,description: Number of failed attempts for archiving WAL files }
-    - finish_time:         { usage: GAUGE   ,description: Time of the last successful archive operation }
-    - failed_time:         { usage: GAUGE   ,description: Time of the last failed archival operation }
-    - reset_time:          { usage: GAUGE   ,description: Time at which archive statistics were last reset }
+    - finish_count:        { usage: COUNTER ,description: "Number of WAL files that have been successfully archived" }
+    - failed_count:        { usage: COUNTER ,description: "Number of failed attempts for archiving WAL files" }
+    - finish_time:         { usage: GAUGE   ,description: "Time of the last successful archive operation" }
+    - failed_time:         { usage: GAUGE   ,description: "Time of the last failed archival operation" }
+    - reset_time:          { usage: GAUGE   ,description: "Time at which archive statistics were last reset" }
+
+

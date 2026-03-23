@@ -9,8 +9,8 @@ pg_xact:
   min_version: 090400
   tags: [ cluster ]
   metrics:
-    - xmin: { usage: COUNTER ,description: Earliest txid that is still active }
-    - xmax: { usage: COUNTER ,description: First as-yet-unassigned txid. txid >= this are invisible. }
-    - xnum: { usage: GAUGE   ,description: Current active transaction count }
+    - xmin: { usage: COUNTER ,description: "Earliest txid that is still active" }
+    - xmax: { usage: COUNTER ,description: "First as-yet-unassigned txid. txid >= this are invisible." }
+    - xnum: { usage: GAUGE   ,description: "Current active transaction count" }
 
 

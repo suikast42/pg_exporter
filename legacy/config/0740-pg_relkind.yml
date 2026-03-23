@@ -12,6 +12,8 @@ pg_relkind:
   timeout: 1
   min_version: 90100
   metrics:
-    - datname: { usage: LABEL ,description: Database name }
-    - relkind: { usage: LABEL ,description: Relation kind (r,i,S,t,v,c,...) }
-    - count:   { usage: GAUGE ,description: Number of relations }
+    - datname: { usage: LABEL ,description: "Database name" }
+    - relkind: { usage: LABEL ,description: "Relation kind (r,i,S,t,v,c,...)" }
+    - count:   { usage: GAUGE ,description: "Number of relations" }
+
+

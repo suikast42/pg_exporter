@@ -11,8 +11,8 @@ pg_downstream:
   max_version: 90200
   tags: [ cluster ]
   metrics:
-    - state: { usage: LABEL ,description: Replication client state }
-    - count: { usage: GAUGE ,description: Count of replication clients by state }
+    - state: { usage: LABEL ,description: "Replication client state" }
+    - count: { usage: GAUGE ,description: "Count of replication clients by state" }
 
 pg_downstream_92:
   name: pg_downstream
@@ -23,5 +23,7 @@ pg_downstream_92:
   min_version: 90200
   tags: [ cluster ]
   metrics:
-    - state: { usage: LABEL ,description: Replication client state }
-    - count: { usage: GAUGE ,description: Count of replication clients by state }
+    - state: { usage: LABEL ,description: "Replication client state" }
+    - count: { usage: GAUGE ,description: "Count of replication clients by state" }
+
+

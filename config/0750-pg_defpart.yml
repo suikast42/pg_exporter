@@ -9,8 +9,8 @@ pg_defpart:
   timeout: 1
   min_version: 110000
   metrics:
-    - datname:             { usage: LABEL    ,description: Database name of this default partition }
-    - relname:             { usage: LABEL    ,description: Schema qualified default partition relation name }
-    - tuples:              { usage: GAUGE    ,description: Number of tuples in this default partition }
+    - datname:             { usage: LABEL    ,description: "Database name of this default partition" }
+    - relname:             { usage: LABEL    ,description: "Schema qualified default partition relation name" }
+    - tuples:              { usage: GAUGE    ,description: "Number of tuples in this default partition" }
 
 

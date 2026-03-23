@@ -13,5 +13,7 @@ pg_sync_standby:
   min_version: 90100
   tags: [ cluster ]
   metrics:
-    - names:   { usage: LABEL ,description: List of standby servers that can support synchronous replication }
-    - enabled: { usage: GAUGE ,description: Synchronous commit enabled, 1 if enabled, 0 if disabled }
+    - names:   { usage: LABEL ,description: "List of standby servers that can support synchronous replication" }
+    - enabled: { usage: GAUGE ,description: "Synchronous commit enabled, 1 if enabled, 0 if disabled" }
+
+

@@ -18,8 +18,10 @@ pg_recovery:
   min_version: 90600
   tags: [ cluster, replica ]
   metrics:
-    - min_timeline:      { usage: COUNTER ,description: Min recovery ending loc's timeline }
-    - min_lsn:           { usage: COUNTER ,description: Minimum recovery ending location }
-    - backup_start_lsn:  { usage: COUNTER ,description: Backup start location }
-    - backup_end_lsn:    { usage: COUNTER ,description: Backup end location }
-    - require_record:    { usage: GAUGE   ,description: End-of-backup record required }
+    - min_timeline:      { usage: COUNTER ,description: "Min recovery ending loc's timeline" }
+    - min_lsn:           { usage: COUNTER ,description: "Minimum recovery ending location" }
+    - backup_start_lsn:  { usage: COUNTER ,description: "Backup start location" }
+    - backup_end_lsn:    { usage: COUNTER ,description: "Backup end location" }
+    - require_record:    { usage: GAUGE   ,description: "End-of-backup record required" }
+
+

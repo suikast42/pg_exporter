@@ -12,9 +12,9 @@ pg_shmem:
   skip: true            # disable it by default
   tags: [cluster, "schema:monitor" ]
   metrics:
-    - name:            { usage: LABEL ,description: Name of the shared memory allocation }
-    - offset:          { usage: GAUGE ,description: The offset at which the allocation starts }
-    - size:            { usage: GAUGE ,description: Size of the allocation }
-    - allocated_size:  { usage: GAUGE ,description: Size of the allocation including padding }
+    - name:            { usage: LABEL ,description: "Name of the shared memory allocation" }
+    - offset:          { usage: GAUGE ,description: "The offset at which the allocation starts" }
+    - size:            { usage: GAUGE ,description: "Size of the allocation" }
+    - allocated_size:  { usage: GAUGE ,description: "Size of the allocation including padding" }
 
 

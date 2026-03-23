@@ -35,29 +35,29 @@ pg_repl_94:
   max_version: 100000
   tags: [ cluster ]
   metrics:
-    - appname:           { usage: LABEL   ,description: Name of the application that is connected to this WAL sender }
-    - usename:           { usage: LABEL   ,description: Name of the user logged into this WAL sender process }
-    - address:           { usage: LABEL   ,description: IP address of the client connected to this WAL sender, localhost for unix socket }
-    - pid:               { usage: LABEL   ,description: Process ID of the WAL sender process }
-    - client_port:       { usage: GAUGE   ,description: TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used }
-    - state:             { usage: GAUGE   ,description: Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping }
-    - sync_state:        { usage: GAUGE   ,description: Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum }
-    - sync_priority:     { usage: GAUGE   ,description: Priority of this standby server for being chosen as the synchronous standby }
-    - backend_xmin:      { usage: COUNTER ,description: This standby's xmin horizon reported by hot_standby_feedback. }
-    - lsn:               { usage: COUNTER ,description: Current log position on this server }
-    - sent_diff:         { usage: GAUGE   ,description: Last log position sent to this standby server diff with current lsn }
-    - write_diff:        { usage: GAUGE   ,description: Last log position written to disk by this standby server diff with current lsn }
-    - flush_diff:        { usage: GAUGE   ,description: Last log position flushed to disk by this standby server diff with current lsn }
-    - replay_diff:       { usage: GAUGE   ,description: Last log position replayed into the database on this standby server diff with current lsn }
-    - sent_lsn:          { usage: COUNTER ,description: Last write-ahead log location sent on this connection }
-    - write_lsn:         { usage: COUNTER ,description: Last write-ahead log location written to disk by this standby server }
-    - flush_lsn:         { usage: COUNTER ,description: Last write-ahead log location flushed to disk by this standby server }
-    - replay_lsn:        { usage: COUNTER ,description: Last write-ahead log location replayed into the database on this standby server }
-    - write_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x) }
-    - flush_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x) }
-    - replay_lag:        { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x) }
-    - time:              { usage: COUNTER ,description: Current timestamp in unix epoch }
-    - launch_time:       { usage: COUNTER ,description: Time when this process was started, i.e., when the client connected to this WAL sender }
+    - appname:           { usage: LABEL   ,description: "Name of the application that is connected to this WAL sender" }
+    - usename:           { usage: LABEL   ,description: "Name of the user logged into this WAL sender process" }
+    - address:           { usage: LABEL   ,description: "IP address of the client connected to this WAL sender, localhost for unix socket" }
+    - pid:               { usage: LABEL   ,description: "Process ID of the WAL sender process" }
+    - client_port:       { usage: GAUGE   ,description: "TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used" }
+    - state:             { usage: GAUGE   ,description: "Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping" }
+    - sync_state:        { usage: GAUGE   ,description: "Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum" }
+    - sync_priority:     { usage: GAUGE   ,description: "Priority of this standby server for being chosen as the synchronous standby" }
+    - backend_xmin:      { usage: COUNTER ,description: "This standby's xmin horizon reported by hot_standby_feedback." }
+    - lsn:               { usage: COUNTER ,description: "Current log position on this server" }
+    - sent_diff:         { usage: GAUGE   ,description: "Last log position sent to this standby server diff with current lsn" }
+    - write_diff:        { usage: GAUGE   ,description: "Last log position written to disk by this standby server diff with current lsn" }
+    - flush_diff:        { usage: GAUGE   ,description: "Last log position flushed to disk by this standby server diff with current lsn" }
+    - replay_diff:       { usage: GAUGE   ,description: "Last log position replayed into the database on this standby server diff with current lsn" }
+    - sent_lsn:          { usage: COUNTER ,description: "Last write-ahead log location sent on this connection" }
+    - write_lsn:         { usage: COUNTER ,description: "Last write-ahead log location written to disk by this standby server" }
+    - flush_lsn:         { usage: COUNTER ,description: "Last write-ahead log location flushed to disk by this standby server" }
+    - replay_lsn:        { usage: COUNTER ,description: "Last write-ahead log location replayed into the database on this standby server" }
+    - write_lag:         { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x)" }
+    - flush_lag:         { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x)" }
+    - replay_lag:        { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x)" }
+    - time:              { usage: COUNTER ,description: "Current timestamp in unix epoch" }
+    - launch_time:       { usage: COUNTER ,description: "Time when this process was started, i.e., when the client connected to this WAL sender" }
 
 pg_repl_92:
   name: pg_repl
@@ -93,29 +93,29 @@ pg_repl_92:
   max_version: 90400
   tags: [ cluster ]
   metrics:
-    - appname:           { usage: LABEL   ,description: Name of the application that is connected to this WAL sender }
-    - usename:           { usage: LABEL   ,description: Name of the user logged into this WAL sender process }
-    - address:           { usage: LABEL   ,description: IP address of the client connected to this WAL sender, localhost for unix socket }
-    - pid:               { usage: LABEL   ,description: Process ID of the WAL sender process }
-    - client_port:       { usage: GAUGE   ,description: TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used }
-    - state:             { usage: GAUGE   ,description: Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping }
-    - sync_state:        { usage: GAUGE   ,description: Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum }
-    - sync_priority:     { usage: GAUGE   ,description: Priority of this standby server for being chosen as the synchronous standby }
-    - backend_xmin:      { usage: COUNTER ,description: This standby's xmin horizon reported by hot_standby_feedback (N/A before 9.4) }
-    - lsn:               { usage: COUNTER ,description: Current log position on this server }
-    - sent_diff:         { usage: GAUGE   ,description: Last log position sent to this standby server diff with current lsn }
-    - write_diff:        { usage: GAUGE   ,description: Last log position written to disk by this standby server diff with current lsn }
-    - flush_diff:        { usage: GAUGE   ,description: Last log position flushed to disk by this standby server diff with current lsn }
-    - replay_diff:       { usage: GAUGE   ,description: Last log position replayed into the database on this standby server diff with current lsn }
-    - sent_lsn:          { usage: COUNTER ,description: Last write-ahead log location sent on this connection }
-    - write_lsn:         { usage: COUNTER ,description: Last write-ahead log location written to disk by this standby server }
-    - flush_lsn:         { usage: COUNTER ,description: Last write-ahead log location flushed to disk by this standby server }
-    - replay_lsn:        { usage: COUNTER ,description: Last write-ahead log location replayed into the database on this standby server }
-    - write_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x) }
-    - flush_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x) }
-    - replay_lag:        { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x) }
-    - time:              { usage: COUNTER ,description: Current timestamp in unix epoch }
-    - launch_time:       { usage: COUNTER ,description: Time when this process was started, i.e., when the client connected to this WAL sender }
+    - appname:           { usage: LABEL   ,description: "Name of the application that is connected to this WAL sender" }
+    - usename:           { usage: LABEL   ,description: "Name of the user logged into this WAL sender process" }
+    - address:           { usage: LABEL   ,description: "IP address of the client connected to this WAL sender, localhost for unix socket" }
+    - pid:               { usage: LABEL   ,description: "Process ID of the WAL sender process" }
+    - client_port:       { usage: GAUGE   ,description: "TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used" }
+    - state:             { usage: GAUGE   ,description: "Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping" }
+    - sync_state:        { usage: GAUGE   ,description: "Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum" }
+    - sync_priority:     { usage: GAUGE   ,description: "Priority of this standby server for being chosen as the synchronous standby" }
+    - backend_xmin:      { usage: COUNTER ,description: "This standby's xmin horizon reported by hot_standby_feedback (N/A before 9.4)" }
+    - lsn:               { usage: COUNTER ,description: "Current log position on this server" }
+    - sent_diff:         { usage: GAUGE   ,description: "Last log position sent to this standby server diff with current lsn" }
+    - write_diff:        { usage: GAUGE   ,description: "Last log position written to disk by this standby server diff with current lsn" }
+    - flush_diff:        { usage: GAUGE   ,description: "Last log position flushed to disk by this standby server diff with current lsn" }
+    - replay_diff:       { usage: GAUGE   ,description: "Last log position replayed into the database on this standby server diff with current lsn" }
+    - sent_lsn:          { usage: COUNTER ,description: "Last write-ahead log location sent on this connection" }
+    - write_lsn:         { usage: COUNTER ,description: "Last write-ahead log location written to disk by this standby server" }
+    - flush_lsn:         { usage: COUNTER ,description: "Last write-ahead log location flushed to disk by this standby server" }
+    - replay_lsn:        { usage: COUNTER ,description: "Last write-ahead log location replayed into the database on this standby server" }
+    - write_lag:         { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x)" }
+    - flush_lag:         { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x)" }
+    - replay_lag:        { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x)" }
+    - time:              { usage: COUNTER ,description: "Current timestamp in unix epoch" }
+    - launch_time:       { usage: COUNTER ,description: "Time when this process was started, i.e., when the client connected to this WAL sender" }
 
 pg_repl_91:
   name: pg_repl
@@ -149,26 +149,28 @@ pg_repl_91:
   max_version: 90200
   tags: [ cluster ]
   metrics:
-    - appname:           { usage: LABEL   ,description: Name of the application that is connected to this WAL sender }
-    - usename:           { usage: LABEL   ,description: Name of the user logged into this WAL sender process }
-    - address:           { usage: LABEL   ,description: IP address of the client connected to this WAL sender, localhost for unix socket }
-    - pid:               { usage: LABEL   ,description: Process ID of the WAL sender process }
-    - client_port:       { usage: GAUGE   ,description: TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used }
-    - state:             { usage: GAUGE   ,description: Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping }
-    - sync_state:        { usage: GAUGE   ,description: Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum }
-    - sync_priority:     { usage: GAUGE   ,description: Priority of this standby server for being chosen as the synchronous standby }
-    - backend_xmin:      { usage: COUNTER ,description: This standby's xmin horizon reported by hot_standby_feedback (N/A before 9.4) }
-    - lsn:               { usage: COUNTER ,description: Current log position on this server }
-    - sent_diff:         { usage: GAUGE   ,description: Last log position sent to this standby server diff with current lsn }
-    - write_diff:        { usage: GAUGE   ,description: Last log position written to disk by this standby server diff with current lsn }
-    - flush_diff:        { usage: GAUGE   ,description: Last log position flushed to disk by this standby server diff with current lsn }
-    - replay_diff:       { usage: GAUGE   ,description: Last log position replayed into the database on this standby server diff with current lsn }
-    - sent_lsn:          { usage: COUNTER ,description: Last write-ahead log location sent on this connection }
-    - write_lsn:         { usage: COUNTER ,description: Last write-ahead log location written to disk by this standby server }
-    - flush_lsn:         { usage: COUNTER ,description: Last write-ahead log location flushed to disk by this standby server }
-    - replay_lsn:        { usage: COUNTER ,description: Last write-ahead log location replayed into the database on this standby server }
-    - write_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x) }
-    - flush_lag:         { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x) }
-    - replay_lag:        { usage: GAUGE   ,description: Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x) }
-    - time:              { usage: COUNTER ,description: Current timestamp in unix epoch }
-    - launch_time:       { usage: COUNTER ,description: Time when this process was started, i.e., when the client connected to this WAL sender }
+    - appname:           { usage: LABEL   ,description: "Name of the application that is connected to this WAL sender" }
+    - usename:           { usage: LABEL   ,description: "Name of the user logged into this WAL sender process" }
+    - address:           { usage: LABEL   ,description: "IP address of the client connected to this WAL sender, localhost for unix socket" }
+    - pid:               { usage: LABEL   ,description: "Process ID of the WAL sender process" }
+    - client_port:       { usage: GAUGE   ,description: "TCP port number that the client is using for communication with this WAL sender, or -1 if a Unix socket is used" }
+    - state:             { usage: GAUGE   ,description: "Current WAL sender encoded state 0-4 for streaming|startup|catchup|backup|stopping" }
+    - sync_state:        { usage: GAUGE   ,description: "Encoded synchronous state of this standby server, 0-3 for async|potential|sync|quorum" }
+    - sync_priority:     { usage: GAUGE   ,description: "Priority of this standby server for being chosen as the synchronous standby" }
+    - backend_xmin:      { usage: COUNTER ,description: "This standby's xmin horizon reported by hot_standby_feedback (N/A before 9.4)" }
+    - lsn:               { usage: COUNTER ,description: "Current log position on this server" }
+    - sent_diff:         { usage: GAUGE   ,description: "Last log position sent to this standby server diff with current lsn" }
+    - write_diff:        { usage: GAUGE   ,description: "Last log position written to disk by this standby server diff with current lsn" }
+    - flush_diff:        { usage: GAUGE   ,description: "Last log position flushed to disk by this standby server diff with current lsn" }
+    - replay_diff:       { usage: GAUGE   ,description: "Last log position replayed into the database on this standby server diff with current lsn" }
+    - sent_lsn:          { usage: COUNTER ,description: "Last write-ahead log location sent on this connection" }
+    - write_lsn:         { usage: COUNTER ,description: "Last write-ahead log location written to disk by this standby server" }
+    - flush_lsn:         { usage: COUNTER ,description: "Last write-ahead log location flushed to disk by this standby server" }
+    - replay_lsn:        { usage: COUNTER ,description: "Last write-ahead log location replayed into the database on this standby server" }
+    - write_lag:         { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written it (N/A on 9.x)" }
+    - flush_lag:         { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written and flushed it (N/A on 9.x)" }
+    - replay_lag:        { usage: GAUGE   ,description: "Time elapsed between flushing recent WAL locally and receiving notification that this standby server has written, flushed and applied it (N/A on 9.x)" }
+    - time:              { usage: COUNTER ,description: "Current timestamp in unix epoch" }
+    - launch_time:       { usage: COUNTER ,description: "Time when this process was started, i.e., when the client connected to this WAL sender" }
+
+

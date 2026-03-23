@@ -10,8 +10,8 @@ pg_wait:
   min_version: 090600
   tags: [ cluster ]
   metrics:
-    - datname: { usage: LABEL ,description: Name of the database, _system for global process }
-    - event:   { usage: LABEL ,description: Wait event type }
-    - count:   { usage: GAUGE ,description: Count of WaitEvent on target database }
+    - datname: { usage: LABEL ,description: "Name of the database, _system for global process" }
+    - event:   { usage: LABEL ,description: "Wait event type" }
+    - count:   { usage: GAUGE ,description: "Count of WaitEvent on target database" }
 
 

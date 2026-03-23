@@ -20,11 +20,11 @@ pg_tsdb_hypertable:
   skip: true
   tags: [ "extension:timescaledb", "schema:timescaledb_information" ]
   metrics:
-    - datname:         { usage: LABEL ,description: database name }
-    - relname:         { usage: LABEL ,description: Hypertable relation name }
-    - dimensions:      { usage: GAUGE ,description: Number of partitioning dimensions }
-    - chunks:          { usage: GAUGE ,description: Total chunks of this hypertable }
-    - compressed:      { usage: GAUGE ,description: 1 if compression enabled }
-    - bytes:           { usage: GAUGE ,description: Total size of hypertable in bytes }
+    - datname:         { usage: LABEL ,description: "database name" }
+    - relname:         { usage: LABEL ,description: "Hypertable relation name" }
+    - dimensions:      { usage: GAUGE ,description: "Number of partitioning dimensions" }
+    - chunks:          { usage: GAUGE ,description: "Total chunks of this hypertable" }
+    - compressed:      { usage: GAUGE ,description: "1 if compression enabled" }
+    - bytes:           { usage: GAUGE ,description: "Total size of hypertable in bytes" }
 
 

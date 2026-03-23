@@ -14,7 +14,7 @@ pg_size:
   min_version: 100000
   tags: [ cluster ]
   metrics:
-    - datname:             { usage: LABEL   ,description: Database name, or special category wal, or log }
-    - bytes:               { usage: GAUGE   ,description: File size in bytes }
+    - datname:             { usage: LABEL   ,description: "Database name, or special category wal, or log" }
+    - bytes:               { usage: GAUGE   ,description: "File size in bytes" }
 
 

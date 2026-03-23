@@ -13,6 +13,6 @@ pg_timeline:
   min_version: 100000
   tags: [ cluster ]
   metrics:
-    - id: { usage: GAUGE ,description: Current timeline ID }
+    - id: { usage: GAUGE ,description: "Current timeline ID" }
 
 

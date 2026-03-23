@@ -8,9 +8,9 @@ pg_subrel:
   ttl: 10
   min_version: 100000
   metrics:
-    - datname:              { usage: LABEL  ,description: Name of the database which publication belonged }
-    - subname:              { usage: LABEL  ,description: Name of the subscription }
-    - state:                { usage: LABEL  ,description: State of table in subscription, i=initialize, d=data copy, s=sync, r=ready }
-    - count:                { usage: GAUGE  ,description: Count of relation in this subscription and corresponding state }
+    - datname:              { usage: LABEL  ,description: "Name of the database which publication belonged" }
+    - subname:              { usage: LABEL  ,description: "Name of the subscription" }
+    - state:                { usage: LABEL  ,description: "State of table in subscription, i=initialize, d=data copy, s=sync, r=ready" }
+    - count:                { usage: GAUGE  ,description: "Count of relation in this subscription and corresponding state" }
 
 

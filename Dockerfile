@@ -1,5 +1,10 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.26-alpine AS builder-env
+FROM golang:1.26.1-alpine AS builder-env
+
+ARG GOPROXY=https://proxy.golang.org,direct
+ARG GOSUMDB=sum.golang.org
+ENV GOPROXY=${GOPROXY}
+ENV GOSUMDB=${GOSUMDB}
 
 # Build a self-contained pg_exporter container with a clean environment and no
 # dependencies.
@@ -23,7 +28,6 @@ RUN \
   --mount=type=cache,target=/root/.cache/go-build \
   CGO_ENABLED=0 GOOS=linux go build -a -o /pg_exporter .
 
-#FROM alpine:3.21.2
 FROM scratch
 LABEL org.opencontainers.image.authors="Ruohang Feng <rh@vonng.com>, Craig Ringer <craig.ringer@enterprisedb.com>" \
       org.opencontainers.image.url="https://github.com/pgsty/pg_exporter" \

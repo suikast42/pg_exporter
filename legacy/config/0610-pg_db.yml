@@ -13,33 +13,33 @@ pg_db_92:
   min_version: 90200
   tags: [ cluster ]
   metrics:
-    - datname:             { usage: LABEL   ,description: Name of the database }
-    - datid:               { usage: GAUGE   ,description: OID of the database }
-    - age:                 { usage: GAUGE   ,description: Age of database calculated from datfrozenxid }
-    - is_template:         { usage: GAUGE   ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
-    - allow_conn:          { usage: GAUGE   ,description: If false(0) then no one can connect to this database. }
-    - conn_limit:          { usage: GAUGE   ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
-    - frozen_xid:          { usage: GAUGE   ,description: All transaction IDs before this one have been frozen }
-    - numbackends:         { usage: GAUGE   ,description: Number of backends currently connected to this database }
-    - xact_commit:         { usage: COUNTER ,description: Number of transactions in this database that have been committed }
-    - xact_rollback:       { usage: COUNTER ,description: Number of transactions in this database that have been rolled back }
-    - xact_total:          { usage: COUNTER ,description: Number of transactions in this database }
-    - blks_read:           { usage: COUNTER ,description: Number of disk blocks read in this database }
-    - blks_hit:            { usage: COUNTER ,description: Number of times disk blocks were found already in the buffer cache }
-    - blks_access:         { usage: COUNTER ,description: Number of times disk blocks that accessed read+hit }
-    - tup_returned:        { usage: COUNTER ,description: Number of rows returned by queries in this database }
-    - tup_fetched:         { usage: COUNTER ,description: Number of rows fetched by queries in this database }
-    - tup_inserted:        { usage: COUNTER ,description: Number of rows inserted by queries in this database }
-    - tup_updated:         { usage: COUNTER ,description: Number of rows updated by queries in this database }
-    - tup_deleted:         { usage: COUNTER ,description: Number of rows deleted by queries in this database }
-    - tup_modified:        { usage: COUNTER ,description: Number of rows modified by queries in this database }
-    - conflicts:           { usage: COUNTER ,description: Number of queries canceled due to conflicts with recovery in this database }
-    - temp_files:          { usage: COUNTER ,description: Number of temporary files created by queries in this database }
-    - temp_bytes:          { usage: COUNTER ,description: Total amount of data written to temporary files by queries in this database. }
-    - deadlocks:           { usage: COUNTER ,description: Number of deadlocks detected in this database }
-    - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds }
-    - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds }
-    - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset }
+    - datname:             { usage: LABEL   ,description: "Name of the database" }
+    - datid:               { usage: GAUGE   ,description: "OID of the database" }
+    - age:                 { usage: GAUGE   ,description: "Age of database calculated from datfrozenxid" }
+    - is_template:         { usage: GAUGE   ,description: "If true(1), then this database can be cloned by any user with CREATEDB privileges" }
+    - allow_conn:          { usage: GAUGE   ,description: "If false(0) then no one can connect to this database." }
+    - conn_limit:          { usage: GAUGE   ,description: "Sets maximum number of concurrent connections that can be made to this database. -1 means no limit." }
+    - frozen_xid:          { usage: GAUGE   ,description: "All transaction IDs before this one have been frozen" }
+    - numbackends:         { usage: GAUGE   ,description: "Number of backends currently connected to this database" }
+    - xact_commit:         { usage: COUNTER ,description: "Number of transactions in this database that have been committed" }
+    - xact_rollback:       { usage: COUNTER ,description: "Number of transactions in this database that have been rolled back" }
+    - xact_total:          { usage: COUNTER ,description: "Number of transactions in this database" }
+    - blks_read:           { usage: COUNTER ,description: "Number of disk blocks read in this database" }
+    - blks_hit:            { usage: COUNTER ,description: "Number of times disk blocks were found already in the buffer cache" }
+    - blks_access:         { usage: COUNTER ,description: "Number of times disk blocks that accessed read+hit" }
+    - tup_returned:        { usage: COUNTER ,description: "Number of rows returned by queries in this database" }
+    - tup_fetched:         { usage: COUNTER ,description: "Number of rows fetched by queries in this database" }
+    - tup_inserted:        { usage: COUNTER ,description: "Number of rows inserted by queries in this database" }
+    - tup_updated:         { usage: COUNTER ,description: "Number of rows updated by queries in this database" }
+    - tup_deleted:         { usage: COUNTER ,description: "Number of rows deleted by queries in this database" }
+    - tup_modified:        { usage: COUNTER ,description: "Number of rows modified by queries in this database" }
+    - conflicts:           { usage: COUNTER ,description: "Number of queries canceled due to conflicts with recovery in this database" }
+    - temp_files:          { usage: COUNTER ,description: "Number of temporary files created by queries in this database" }
+    - temp_bytes:          { usage: COUNTER ,description: "Total amount of data written to temporary files by queries in this database." }
+    - deadlocks:           { usage: COUNTER ,description: "Number of deadlocks detected in this database" }
+    - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: "Time spent reading data file blocks by backends in this database, in seconds" }
+    - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: "Time spent writing data file blocks by backends in this database, in seconds" }
+    - reset_time:          { usage: GAUGE   ,description: "Time at which database statistics were last reset" }
 
 pg_db_91:
   name: pg_db
@@ -55,31 +55,32 @@ pg_db_91:
   max_version: 90200
   tags: [ cluster ]
   metrics:
-    - datname:             { usage: LABEL   ,description: Name of the database }
-    - datid:               { usage: GAUGE   ,description: OID of the database }
-    - age:                 { usage: GAUGE   ,description: Age of database calculated from datfrozenxid }
-    - is_template:         { usage: GAUGE   ,description: If true(1), then this database can be cloned by any user with CREATEDB privileges }
-    - allow_conn:          { usage: GAUGE   ,description: If false(0) then no one can connect to this database. }
-    - conn_limit:          { usage: GAUGE   ,description: Sets maximum number of concurrent connections that can be made to this database. -1 means no limit. }
-    - frozen_xid:          { usage: GAUGE   ,description: All transaction IDs before this one have been frozen }
-    - numbackends:         { usage: GAUGE   ,description: Number of backends currently connected to this database }
-    - xact_commit:         { usage: COUNTER ,description: Number of transactions in this database that have been committed }
-    - xact_rollback:       { usage: COUNTER ,description: Number of transactions in this database that have been rolled back }
-    - xact_total:          { usage: COUNTER ,description: Number of transactions in this database }
-    - blks_read:           { usage: COUNTER ,description: Number of disk blocks read in this database }
-    - blks_hit:            { usage: COUNTER ,description: Number of times disk blocks were found already in the buffer cache }
-    - blks_access:         { usage: COUNTER ,description: Number of times disk blocks that accessed read+hit }
-    - tup_returned:        { usage: COUNTER ,description: Number of rows returned by queries in this database }
-    - tup_fetched:         { usage: COUNTER ,description: Number of rows fetched by queries in this database }
-    - tup_inserted:        { usage: COUNTER ,description: Number of rows inserted by queries in this database }
-    - tup_updated:         { usage: COUNTER ,description: Number of rows updated by queries in this database }
-    - tup_deleted:         { usage: COUNTER ,description: Number of rows deleted by queries in this database }
-    - tup_modified:        { usage: COUNTER ,description: Number of rows modified by queries in this database }
-    - conflicts:           { usage: COUNTER ,description: Number of queries canceled due to conflicts with recovery in this database }
-    - temp_files:          { usage: COUNTER ,description: Number of temporary files created by queries in this database (N/A on 9.1, always 0) }
-    - temp_bytes:          { usage: COUNTER ,description: Total amount of data written to temporary files by queries in this database (N/A on 9.1, always 0) }
-    - deadlocks:           { usage: COUNTER ,description: Number of deadlocks detected in this database (N/A on 9.1, always 0) }
-    - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: Time spent reading data file blocks by backends in this database, in seconds (N/A on 9.1, always 0) }
-    - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: Time spent writing data file blocks by backends in this database, in seconds (N/A on 9.1, always 0) }
-    - reset_time:          { usage: GAUGE   ,description: Time at which database statistics were last reset }
+    - datname:             { usage: LABEL   ,description: "Name of the database" }
+    - datid:               { usage: GAUGE   ,description: "OID of the database" }
+    - age:                 { usage: GAUGE   ,description: "Age of database calculated from datfrozenxid" }
+    - is_template:         { usage: GAUGE   ,description: "If true(1), then this database can be cloned by any user with CREATEDB privileges" }
+    - allow_conn:          { usage: GAUGE   ,description: "If false(0) then no one can connect to this database." }
+    - conn_limit:          { usage: GAUGE   ,description: "Sets maximum number of concurrent connections that can be made to this database. -1 means no limit." }
+    - frozen_xid:          { usage: GAUGE   ,description: "All transaction IDs before this one have been frozen" }
+    - numbackends:         { usage: GAUGE   ,description: "Number of backends currently connected to this database" }
+    - xact_commit:         { usage: COUNTER ,description: "Number of transactions in this database that have been committed" }
+    - xact_rollback:       { usage: COUNTER ,description: "Number of transactions in this database that have been rolled back" }
+    - xact_total:          { usage: COUNTER ,description: "Number of transactions in this database" }
+    - blks_read:           { usage: COUNTER ,description: "Number of disk blocks read in this database" }
+    - blks_hit:            { usage: COUNTER ,description: "Number of times disk blocks were found already in the buffer cache" }
+    - blks_access:         { usage: COUNTER ,description: "Number of times disk blocks that accessed read+hit" }
+    - tup_returned:        { usage: COUNTER ,description: "Number of rows returned by queries in this database" }
+    - tup_fetched:         { usage: COUNTER ,description: "Number of rows fetched by queries in this database" }
+    - tup_inserted:        { usage: COUNTER ,description: "Number of rows inserted by queries in this database" }
+    - tup_updated:         { usage: COUNTER ,description: "Number of rows updated by queries in this database" }
+    - tup_deleted:         { usage: COUNTER ,description: "Number of rows deleted by queries in this database" }
+    - tup_modified:        { usage: COUNTER ,description: "Number of rows modified by queries in this database" }
+    - conflicts:           { usage: COUNTER ,description: "Number of queries canceled due to conflicts with recovery in this database" }
+    - temp_files:          { usage: COUNTER ,description: "Number of temporary files created by queries in this database (N/A on 9.1, always 0)" }
+    - temp_bytes:          { usage: COUNTER ,description: "Total amount of data written to temporary files by queries in this database (N/A on 9.1, always 0)" }
+    - deadlocks:           { usage: COUNTER ,description: "Number of deadlocks detected in this database (N/A on 9.1, always 0)" }
+    - blk_read_time:       { usage: COUNTER ,scale: 1e-3 ,description: "Time spent reading data file blocks by backends in this database, in seconds (N/A on 9.1, always 0)" }
+    - blk_write_time:      { usage: COUNTER ,scale: 1e-3 ,description: "Time spent writing data file blocks by backends in this database, in seconds (N/A on 9.1, always 0)" }
+    - reset_time:          { usage: GAUGE   ,description: "Time at which database statistics were last reset" }
+
 

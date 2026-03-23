@@ -30,17 +30,19 @@ pg_recv_96:
   max_version: 130000
   tags: [ cluster, replica ]
   metrics:
-    - sender_host:         { usage: LABEL   ,description: Host of the PostgreSQL instance this WAL receiver is connected to }
-    - sender_port:         { usage: LABEL   ,description: Port number of the PostgreSQL instance this WAL receiver is connected to. }
-    - slot_name:           { usage: LABEL   ,description: Replication slot name used by this WAL receiver }
-    - pid:                 { usage: GAUGE   ,description: Process ID of the WAL receiver process }
-    - state:               { usage: GAUGE   ,description: Encoded activity status of the WAL receiver process 0-4 for streaming|startup|catchup|backup|stopping }
-    - init_lsn:            { usage: COUNTER ,description: First write-ahead log location used when WAL receiver is started }
-    - init_tli:            { usage: COUNTER ,description: First timeline number used when WAL receiver is started }
-    - flush_lsn:           { usage: COUNTER ,description: Last write-ahead log location already received and flushed to disk }
-    - flush_tli:           { usage: COUNTER ,description: Timeline number of last write-ahead log location received and flushed to disk }
-    - reported_lsn:        { usage: COUNTER ,description: Last write-ahead log location reported to origin WAL sender }
-    - msg_send_time:       { usage: GAUGE   ,description: Send time of last message received from origin WAL sender }
-    - msg_recv_time:       { usage: GAUGE   ,description: Receipt time of last message received from origin WAL sender }
-    - reported_time:       { usage: GAUGE   ,description: Time of last write-ahead log location reported to origin WAL sender }
-    - time:                { usage: GAUGE   ,description: Time of current snapshot }
+    - sender_host:         { usage: LABEL   ,description: "Host of the PostgreSQL instance this WAL receiver is connected to" }
+    - sender_port:         { usage: LABEL   ,description: "Port number of the PostgreSQL instance this WAL receiver is connected to." }
+    - slot_name:           { usage: LABEL   ,description: "Replication slot name used by this WAL receiver" }
+    - pid:                 { usage: GAUGE   ,description: "Process ID of the WAL receiver process" }
+    - state:               { usage: GAUGE   ,description: "Encoded activity status of the WAL receiver process 0-4 for streaming|startup|catchup|backup|stopping" }
+    - init_lsn:            { usage: COUNTER ,description: "First write-ahead log location used when WAL receiver is started" }
+    - init_tli:            { usage: COUNTER ,description: "First timeline number used when WAL receiver is started" }
+    - flush_lsn:           { usage: COUNTER ,description: "Last write-ahead log location already received and flushed to disk" }
+    - flush_tli:           { usage: COUNTER ,description: "Timeline number of last write-ahead log location received and flushed to disk" }
+    - reported_lsn:        { usage: COUNTER ,description: "Last write-ahead log location reported to origin WAL sender" }
+    - msg_send_time:       { usage: GAUGE   ,description: "Send time of last message received from origin WAL sender" }
+    - msg_recv_time:       { usage: GAUGE   ,description: "Receipt time of last message received from origin WAL sender" }
+    - reported_time:       { usage: GAUGE   ,description: "Time of last write-ahead log location reported to origin WAL sender" }
+    - time:                { usage: GAUGE   ,description: "Time of current snapshot" }
+
+
