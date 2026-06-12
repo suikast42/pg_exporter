@@ -1,9 +1,69 @@
 #==============================================================#
 # 0260 pg_sub
 #==============================================================#
+pg_sub_19:
+  name: pg_sub
+  desc: PostgreSQL subscription statistics (19+)
+  query: |-
+    SELECT
+      s2.subname, s2.subid AS id, s1.pid, s1.received_lsn, s1.reported_lsn,
+      s1.msg_send_time, s1.msg_recv_time, s1.reported_time,
+      (s1.pid IS NOT NULL)::int AS has_worker,
+      coalesce(s2.apply_error_count, 0) AS apply_error_count,
+      coalesce(s2.sync_table_error_count, 0) AS sync_table_error_count,
+      coalesce(s2.sync_seq_error_count, 0) AS sync_seq_error_count,
+      coalesce(s2.sync_table_error_count, 0) + coalesce(s2.sync_seq_error_count, 0) AS sync_error_count,
+      coalesce(s2.confl_insert_exists, 0) AS confl_insert_exists,
+      coalesce(s2.confl_update_origin_differs, 0) AS confl_update_origin_differs,
+      coalesce(s2.confl_update_exists, 0) AS confl_update_exists,
+      coalesce(s2.confl_update_deleted, 0) AS confl_update_deleted,
+      coalesce(s2.confl_update_missing, 0) AS confl_update_missing,
+      coalesce(s2.confl_delete_origin_differs, 0) AS confl_delete_origin_differs,
+      coalesce(s2.confl_delete_missing, 0) AS confl_delete_missing,
+      coalesce(s2.confl_multiple_unique_conflicts, 0) AS confl_multiple_unique_conflicts,
+      extract(EPOCH FROM s2.stats_reset) AS reset_time
+    FROM pg_stat_subscription_stats s2
+    LEFT OUTER JOIN
+      (SELECT
+        subname, subid, pid,
+        received_lsn - '0/0' AS received_lsn, latest_end_lsn - '0/0' AS reported_lsn,
+        extract(epoch from last_msg_send_time) AS msg_send_time,
+        extract(epoch from last_msg_receipt_time) AS msg_recv_time,
+        extract(epoch from latest_end_time) AS reported_time
+      FROM pg_stat_subscription
+      WHERE relid IS NULL AND leader_pid IS NULL AND coalesce(worker_type, 'apply') = 'apply') s1
+    USING(subid);
+
+  ttl: 10
+  min_version: 190000
+  tags: [ cluster ]
+  metrics:
+    - subname:                 { usage: LABEL   ,description: "Name of this subscription" }
+    - id:                      { usage: GAUGE   ,description: "OID of the subscription" }
+    - pid:                     { usage: GAUGE   ,description: "Process ID of the subscription leader apply worker" }
+    - has_worker:              { usage: GAUGE   ,description: "1 if a leader apply worker row exists in pg_stat_subscription, otherwise 0" }
+    - received_lsn:            { usage: COUNTER ,description: "Last write-ahead log location received" }
+    - reported_lsn:            { usage: COUNTER ,description: "Last write-ahead log location reported to origin WAL sender" }
+    - msg_send_time:           { usage: GAUGE   ,description: "Send time of last message received from origin WAL sender" }
+    - msg_recv_time:           { usage: GAUGE   ,description: "Receipt time of last message received from origin WAL sender" }
+    - reported_time:           { usage: GAUGE   ,description: "Time of last write-ahead log location reported to origin WAL sender" }
+    - apply_error_count:       { usage: COUNTER ,description: "Number of times an error occurred while applying changes" }
+    - sync_table_error_count:  { usage: COUNTER ,description: "Number of times an error occurred during the initial table synchronization" }
+    - sync_seq_error_count:    { usage: COUNTER ,description: "Number of times an error occurred during sequence synchronization" }
+    - sync_error_count:        { usage: COUNTER ,description: "Sum of sync_table_error_count and sync_seq_error_count. Drop-in replacement for the PG16-18 sync_error_count metric; on PG19+ it also includes sequence-sync errors" }
+    - confl_insert_exists:     { usage: COUNTER ,description: "Number of insert_exists conflicts while applying changes" }
+    - confl_update_origin_differs: { usage: COUNTER ,description: "Number of update_origin_differs conflicts while applying changes" }
+    - confl_update_exists:     { usage: COUNTER ,description: "Number of update_exists conflicts while applying changes" }
+    - confl_update_deleted:    { usage: COUNTER ,description: "Number of update_deleted conflicts while applying changes" }
+    - confl_update_missing:    { usage: COUNTER ,description: "Number of update_missing conflicts while applying changes" }
+    - confl_delete_origin_differs: { usage: COUNTER ,description: "Number of delete_origin_differs conflicts while applying changes" }
+    - confl_delete_missing:    { usage: COUNTER ,description: "Number of delete_missing conflicts while applying changes" }
+    - confl_multiple_unique_conflicts: { usage: COUNTER ,description: "Number of multiple_unique_conflicts conflicts while applying changes" }
+    - reset_time:              { usage: GAUGE   ,description: "Time at which these subscription statistics were last reset" }
+
 pg_sub_16:
   name: pg_sub
-  desc: PostgreSQL subscription statistics (16+)
+  desc: PostgreSQL subscription statistics (16-18)
   query: |-
     SELECT 
       s1.subname, subid AS id, pid, received_lsn, reported_lsn,
@@ -22,6 +82,7 @@ pg_sub_16:
 
   ttl: 10
   min_version: 160000
+  max_version: 190000
   tags: [ cluster ]
   metrics:
     - subname:             { usage: LABEL   ,description: "Name of this subscription" }
@@ -94,5 +155,3 @@ pg_sub_10:
     - msg_send_time:       { usage: GAUGE   ,description: "Send time of last message received from origin WAL sender" }
     - msg_recv_time:       { usage: GAUGE   ,description: "Receipt time of last message received from origin WAL sender" }
     - reported_time:       { usage: GAUGE   ,description: "Time of last write-ahead log location reported to origin WAL sender" }
-
-
