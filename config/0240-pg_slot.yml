@@ -12,7 +12,7 @@ pg_slot_17:
        CASE WHEN pg_is_in_recovery() THEN pg_last_wal_replay_lsn() ELSE pg_current_wal_lsn() END - restart_lsn AS retained_bytes,
        safe_wal_size, CASE wal_status WHEN 'reserved' THEN 0 WHEN 'extended' THEN 1 WHEN 'unreserved' THEN 2 WHEN 'lost' THEN 3 ELSE -1 END AS wal_status,
        spill_txns,spill_count,spill_bytes,stream_txns,stream_count,stream_bytes,total_txns,total_bytes,extract(EPOCH FROM stats_reset) AS reset_time,
-       extract(EPOCH FROM inactive_since) AS inactive_since, CASE invalidation_reason WHEN 'wal_removed' THEN 1 WHEN 'rows_removed' THEN 2 WHEN 'wal_level_insufficient' THEN 3 ELSE 0 END AS invalidation_reason 
+       extract(EPOCH FROM inactive_since) AS inactive_since, CASE invalidation_reason WHEN 'wal_removed' THEN 1 WHEN 'rows_removed' THEN 2 WHEN 'wal_level_insufficient' THEN 3 WHEN 'idle_timeout' THEN 4 ELSE 0 END AS invalidation_reason
     FROM pg_replication_slots s LEFT OUTER JOIN pg_stat_replication_slots ss ON s.slot_name = ss.slot_name;
 
   ttl: 10
@@ -47,7 +47,7 @@ pg_slot_17:
     - total_txns:          { usage: COUNTER  ,description: "Number of decoded xacts sent to the decoding output plugin for this slot" }
     - total_bytes:         { usage: COUNTER  ,description: "Number of decoded bytes sent to the decoding output plugin for this slot" }
     - reset_time:          { usage: GAUGE    ,description: "When statistics were last reset" }
-    - invalidation_reason: { usage: GAUGE    ,description: "ok=0, wal_removed=1, rows_removed=2, wal_level_insufficient=3" }
+    - invalidation_reason: { usage: GAUGE    ,description: "ok=0, wal_removed=1, rows_removed=2, wal_level_insufficient=3, idle_timeout=4" }
     - inactive_since:      { usage: GAUGE    ,description: "The time when the slot became inactive" }
 
 pg_slot_16:
