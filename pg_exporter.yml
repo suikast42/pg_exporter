@@ -1827,7 +1827,7 @@ pg_indexing:
 pg_clustering:
   name: pg_clustering
   desc: PostgreSQL cluster or vacuum full progress (v12+)
-  query: SELECT datname, pid, relid::RegClass AS relname, param4 AS tup_scan, CASE WHEN param6 > 0 THEN 1.0 * param7 / param6 ELSE 0 END AS progress FROM pg_stat_get_progress_info('cluster') s LEFT JOIN pg_database d ON s.datid = d.oid;
+  query: SELECT datname, pid, relid::RegClass AS relname, heap_tuples_scanned AS tup_scan, CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE 0 END AS progress FROM pg_stat_progress_cluster;
   ttl: 10
   min_version: 120000
   tags: [ cluster, primary ]
@@ -1856,6 +1856,188 @@ pg_backup:
     - sent_bytes:    { usage: GAUGE ,description: "Amount of data streamed" }
 
 
+#==============================================================#
+# 0550 pg_task
+#==============================================================#
+pg_task_19:
+  name: pg_task
+  desc: PostgreSQL progress task summary 19+
+  query: |-
+    WITH task(task) AS (
+      VALUES ('vacuuming'), ('indexing'), ('clustering'), ('backup'), ('analyzing'), ('repacking'), ('checksumming')
+    ), task_rows AS (
+      SELECT 'vacuuming' AS task, pid,
+        CASE phase
+          WHEN 'scanning heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE NULL END)
+          WHEN 'vacuuming indexes' THEN (CASE WHEN indexes_total > 0 THEN 1.0 * indexes_processed / indexes_total ELSE NULL END)
+          WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE NULL END)
+          WHEN 'cleaning up indexes' THEN (CASE WHEN indexes_total > 0 THEN 1.0 * indexes_processed / indexes_total ELSE NULL END)
+          ELSE NULL
+        END AS progress
+      FROM pg_stat_progress_vacuum
+      UNION ALL
+      SELECT 'indexing' AS task, pid,
+        COALESCE(
+          CASE WHEN blocks_total > 0 THEN 1.0 * blocks_done / blocks_total ELSE NULL END,
+          CASE WHEN tuples_total > 0 THEN 1.0 * tuples_done / tuples_total ELSE NULL END,
+          CASE WHEN partitions_total > 0 THEN 1.0 * partitions_done / partitions_total ELSE NULL END,
+          CASE WHEN lockers_total > 0 THEN 1.0 * lockers_done / lockers_total ELSE NULL END
+        ) AS progress
+      FROM pg_stat_progress_create_index
+      UNION ALL
+      SELECT 'clustering' AS task, pid,
+        CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE NULL END AS progress
+      FROM pg_stat_progress_cluster
+      UNION ALL
+      SELECT 'backup' AS task, pid,
+        CASE WHEN param2 > 0 THEN 1.0 * param3 / param2 ELSE NULL END AS progress
+      FROM pg_stat_get_progress_info('BASEBACKUP')
+      UNION ALL
+      SELECT 'analyzing' AS task, pid,
+        CASE phase
+          WHEN 'acquiring sample rows' THEN (CASE WHEN sample_blks_total > 0 THEN 1.0 * sample_blks_scanned / sample_blks_total ELSE NULL END)
+          WHEN 'acquiring inherited sample rows' THEN (CASE WHEN child_tables_total > 0 THEN 1.0 * child_tables_done / child_tables_total ELSE NULL END)
+          WHEN 'computing extended statistics' THEN (CASE WHEN ext_stats_total > 0 THEN 1.0 * ext_stats_computed / ext_stats_total ELSE NULL END)
+          ELSE NULL
+        END AS progress
+      FROM pg_stat_progress_analyze
+      UNION ALL
+      SELECT 'repacking' AS task, pid,
+        CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE NULL END AS progress
+      FROM pg_stat_progress_repack
+      UNION ALL
+      SELECT 'checksumming' AS task, pid,
+        CASE
+          WHEN datid = 0 AND databases_total > 0 THEN 1.0 * databases_done / databases_total
+          WHEN relations_total > 0 THEN (relations_done + CASE WHEN blocks_total > 0 THEN least(1.0 * blocks_done / blocks_total, 1.0) ELSE 0 END) / relations_total
+          WHEN blocks_total > 0 THEN 1.0 * blocks_done / blocks_total
+          ELSE NULL
+        END AS progress
+      FROM pg_stat_progress_data_checksums
+    ), summary AS (
+      SELECT task, count(*) AS count, min(a.query_start) AS start_time, avg(progress) AS progress
+      FROM task_rows LEFT JOIN pg_stat_activity a USING (pid) GROUP BY task
+    )
+    SELECT task.task, COALESCE(summary.count, 0) AS count,
+      extract(EPOCH FROM summary.start_time) AS start_time,
+      extract(EPOCH FROM now() - summary.start_time) AS duration,
+      summary.progress
+    FROM task LEFT JOIN summary USING (task);
+  ttl: 10
+  min_version: 190000
+  tags: [ cluster ]
+  metrics:
+    - task:       { usage: LABEL ,description: "progress task type" }
+    - count:      { usage: GAUGE ,description: "number of active rows in the progress view for this task" }
+    - start_time: { usage: GAUGE ,description: "Unix epoch seconds of the oldest active task query start time" }
+    - duration:   { usage: GAUGE ,description: "seconds since the oldest active task query start time" }
+    - progress:   { usage: GAUGE ,description: "average best-effort progress ratio (0-1) for active rows in this task" }
+pg_task_13:
+  name: pg_task
+  desc: PostgreSQL progress task summary 13-18
+  query: |-
+    WITH task(task) AS (
+      VALUES ('vacuuming'), ('indexing'), ('clustering'), ('backup'), ('analyzing')
+    ), task_rows AS (
+      SELECT 'vacuuming' AS task, pid,
+        CASE phase
+          WHEN 'scanning heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE NULL END)
+          WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE NULL END)
+          ELSE NULL
+        END AS progress
+      FROM pg_stat_progress_vacuum
+      UNION ALL
+      SELECT 'indexing' AS task, pid,
+        COALESCE(
+          CASE WHEN blocks_total > 0 THEN 1.0 * blocks_done / blocks_total ELSE NULL END,
+          CASE WHEN tuples_total > 0 THEN 1.0 * tuples_done / tuples_total ELSE NULL END,
+          CASE WHEN partitions_total > 0 THEN 1.0 * partitions_done / partitions_total ELSE NULL END,
+          CASE WHEN lockers_total > 0 THEN 1.0 * lockers_done / lockers_total ELSE NULL END
+        ) AS progress
+      FROM pg_stat_progress_create_index
+      UNION ALL
+      SELECT 'clustering' AS task, pid,
+        CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE NULL END AS progress
+      FROM pg_stat_progress_cluster
+      UNION ALL
+      SELECT 'backup' AS task, pid,
+        CASE WHEN param2 > 0 THEN 1.0 * param3 / param2 ELSE NULL END AS progress
+      FROM pg_stat_get_progress_info('BASEBACKUP')
+      UNION ALL
+      SELECT 'analyzing' AS task, pid,
+        CASE phase
+          WHEN 'acquiring sample rows' THEN (CASE WHEN sample_blks_total > 0 THEN 1.0 * sample_blks_scanned / sample_blks_total ELSE NULL END)
+          WHEN 'acquiring inherited sample rows' THEN (CASE WHEN child_tables_total > 0 THEN 1.0 * child_tables_done / child_tables_total ELSE NULL END)
+          WHEN 'computing extended statistics' THEN (CASE WHEN ext_stats_total > 0 THEN 1.0 * ext_stats_computed / ext_stats_total ELSE NULL END)
+          ELSE NULL
+        END AS progress
+      FROM pg_stat_progress_analyze
+    ), summary AS (
+      SELECT task, count(*) AS count, min(a.query_start) AS start_time, avg(progress) AS progress
+      FROM task_rows LEFT JOIN pg_stat_activity a USING (pid) GROUP BY task
+    )
+    SELECT task.task, COALESCE(summary.count, 0) AS count,
+      extract(EPOCH FROM summary.start_time) AS start_time,
+      extract(EPOCH FROM now() - summary.start_time) AS duration,
+      summary.progress
+    FROM task LEFT JOIN summary USING (task);
+  ttl: 10
+  min_version: 130000
+  max_version: 190000
+  tags: [ cluster ]
+  metrics:
+    - task:       { usage: LABEL ,description: "progress task type" }
+    - count:      { usage: GAUGE ,description: "number of active rows in the progress view for this task" }
+    - start_time: { usage: GAUGE ,description: "Unix epoch seconds of the oldest active task query start time" }
+    - duration:   { usage: GAUGE ,description: "seconds since the oldest active task query start time" }
+    - progress:   { usage: GAUGE ,description: "average best-effort progress ratio (0-1) for active rows in this task" }
+
+pg_task_12:
+  name: pg_task
+  desc: PostgreSQL progress task summary 12
+  query: |-
+    WITH task(task) AS (
+      VALUES ('vacuuming'), ('indexing'), ('clustering')
+    ), task_rows AS (
+      SELECT 'vacuuming' AS task, pid,
+        CASE phase
+          WHEN 'scanning heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE NULL END)
+          WHEN 'vacuuming heap' THEN (CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_vacuumed / heap_blks_total ELSE NULL END)
+          ELSE NULL
+        END AS progress
+      FROM pg_stat_progress_vacuum
+      UNION ALL
+      SELECT 'indexing' AS task, pid,
+        COALESCE(
+          CASE WHEN blocks_total > 0 THEN 1.0 * blocks_done / blocks_total ELSE NULL END,
+          CASE WHEN tuples_total > 0 THEN 1.0 * tuples_done / tuples_total ELSE NULL END,
+          CASE WHEN partitions_total > 0 THEN 1.0 * partitions_done / partitions_total ELSE NULL END,
+          CASE WHEN lockers_total > 0 THEN 1.0 * lockers_done / lockers_total ELSE NULL END
+        ) AS progress
+      FROM pg_stat_progress_create_index
+      UNION ALL
+      SELECT 'clustering' AS task, pid,
+        CASE WHEN heap_blks_total > 0 THEN 1.0 * heap_blks_scanned / heap_blks_total ELSE NULL END AS progress
+      FROM pg_stat_progress_cluster
+    ), summary AS (
+      SELECT task, count(*) AS count, min(a.query_start) AS start_time, avg(progress) AS progress
+      FROM task_rows LEFT JOIN pg_stat_activity a USING (pid) GROUP BY task
+    )
+    SELECT task.task, COALESCE(summary.count, 0) AS count,
+      extract(EPOCH FROM summary.start_time) AS start_time,
+      extract(EPOCH FROM now() - summary.start_time) AS duration,
+      summary.progress
+    FROM task LEFT JOIN summary USING (task);
+  ttl: 10
+  min_version: 120000
+  max_version: 130000
+  tags: [ cluster ]
+  metrics:
+    - task:       { usage: LABEL ,description: "progress task type" }
+    - count:      { usage: GAUGE ,description: "number of active rows in the progress view for this task" }
+    - start_time: { usage: GAUGE ,description: "Unix epoch seconds of the oldest active task query start time" }
+    - duration:   { usage: GAUGE ,description: "seconds since the oldest active task query start time" }
+    - progress:   { usage: GAUGE ,description: "average best-effort progress ratio (0-1) for active rows in this task" }
 #==============================================================#
 # 0610 pg_db
 #==============================================================#
@@ -2120,6 +2302,45 @@ pg_subrel:
     - subname:              { usage: LABEL  ,description: "Name of the subscription" }
     - state:                { usage: LABEL  ,description: "State of table in subscription, i=initialize, d=data copy, s=sync, r=ready" }
     - count:                { usage: GAUGE  ,description: "Count of relation in this subscription and corresponding state" }
+
+
+#==============================================================#
+# 0660 pg_vacuum_score
+#==============================================================#
+pg_vacuum_score:
+  name: pg_vacuum_score
+  desc: PostgreSQL current database autovacuum score summary from pg_stat_autovacuum_scores (19+)
+  query: |-
+    SELECT CURRENT_CATALOG AS datname,
+      COALESCE(max(score), 0) AS max_score,
+      COALESCE(max(xid_score), 0) AS max_xid_score,
+      COALESCE(max(mxid_score), 0) AS max_mxid_score,
+      COALESCE(max(vacuum_score), 0) AS max_vacuum_score,
+      COALESCE(max(vacuum_insert_score), 0) AS max_vacuum_insert_score,
+      COALESCE(max(analyze_score), 0) AS max_analyze_score,
+      count(*) AS table_count,
+      count(*) FILTER (WHERE do_vacuum OR do_analyze) AS candidate_count,
+      count(*) FILTER (WHERE do_vacuum) AS vacuum_candidate_count,
+      count(*) FILTER (WHERE do_analyze) AS analyze_candidate_count,
+      count(*) FILTER (WHERE for_wraparound) AS wraparound_candidate_count
+    FROM pg_stat_autovacuum_scores;
+  ttl: 10
+  timeout: 1
+  min_version: 190000
+  tags: [ primary ]
+  metrics:
+    - datname:                    { usage: LABEL ,description: "Name of the current database" }
+    - max_score:                  { usage: GAUGE ,description: "Maximum autovacuum priority score across tables in the current database" }
+    - max_xid_score:              { usage: GAUGE ,description: "Maximum transaction ID age component score across tables in the current database" }
+    - max_mxid_score:             { usage: GAUGE ,description: "Maximum multixact ID age component score across tables in the current database" }
+    - max_vacuum_score:           { usage: GAUGE ,description: "Maximum vacuum component score across tables in the current database" }
+    - max_vacuum_insert_score:    { usage: GAUGE ,description: "Maximum vacuum insert component score across tables in the current database" }
+    - max_analyze_score:          { usage: GAUGE ,description: "Maximum analyze component score across tables in the current database" }
+    - table_count:                { usage: GAUGE ,description: "Number of tables represented in pg_stat_autovacuum_scores for the current database, including TOAST tables" }
+    - candidate_count:            { usage: GAUGE ,description: "Number of tables that autovacuum would vacuum or analyze at query time" }
+    - vacuum_candidate_count:     { usage: GAUGE ,description: "Number of tables that autovacuum would vacuum at query time" }
+    - analyze_candidate_count:    { usage: GAUGE ,description: "Number of tables that autovacuum would analyze at query time" }
+    - wraparound_candidate_count: { usage: GAUGE ,description: "Number of tables that autovacuum would vacuum for wraparound prevention at query time" }
 
 
 #==============================================================#

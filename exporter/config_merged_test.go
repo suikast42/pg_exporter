@@ -1,6 +1,7 @@
 package exporter
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -48,6 +49,37 @@ func parseConfigDirLikeMerge(t *testing.T, dir string) map[string]*Query {
 	return queries
 }
 
+func readConfigDirBytesLikeMerge(t *testing.T, dir string) []byte {
+	t.Helper()
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("ReadDir(%s) failed: %v", dir, err)
+	}
+
+	names := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		if filepath.Ext(entry.Name()) == ".yml" {
+			names = append(names, entry.Name())
+		}
+	}
+	slices.Sort(names)
+
+	var out []byte
+	for _, name := range names {
+		path := filepath.Join(dir, name)
+		content, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("ReadFile(%s) failed: %v", path, err)
+		}
+		out = append(out, content...)
+	}
+	return out
+}
+
 func TestMergedConfigsMatchSplitDirectories(t *testing.T) {
 	_, thisFile, _, ok := runtime.Caller(0)
 	if !ok {
@@ -79,6 +111,9 @@ func TestMergedConfigsMatchSplitDirectories(t *testing.T) {
 			mergedContent, err := os.ReadFile(tc.merged)
 			if err != nil {
 				t.Fatalf("ReadFile(%s) failed: %v", tc.merged, err)
+			}
+			if wantBytes := readConfigDirBytesLikeMerge(t, tc.dir); !bytes.Equal(mergedContent, wantBytes) {
+				t.Fatalf("%s is not byte-for-byte generated from %s; run make conf", tc.merged, tc.dir)
 			}
 			mergedQueries, err := ParseConfig(mergedContent)
 			if err != nil {
