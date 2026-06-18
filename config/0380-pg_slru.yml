@@ -1,5 +1,5 @@
 #==============================================================#
-# 0370 pg_slru
+# 0380 pg_slru
 #==============================================================#
 pg_slru_13:
   name: pg_slru
@@ -18,5 +18,4 @@ pg_slru_13:
     - flushes:      { usage: COUNTER ,description: "Number of flushes of dirty data for this SLRU" }
     - truncates:    { usage: COUNTER ,description: "Number of truncates for this SLRU" }
     - reset_time:   { usage: GAUGE   ,description: "Time at which these statistics were last reset" }
-
 

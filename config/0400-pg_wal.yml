@@ -1,5 +1,5 @@
 #==============================================================#
-# 0390 pg_wal
+# 0400 pg_wal
 #==============================================================#
 pg_wal_19:
   name: pg_wal
@@ -49,4 +49,3 @@ pg_wal_14:
     - write_time:   { usage: COUNTER ,scale: 1e-3 ,description: "Total amount of time spent writing WAL buffers to disk via XLogWrite request in seconds" }
     - sync_time:    { usage: COUNTER ,scale: 1e-3 ,description: "Total amount of time spent syncing WAL files to disk via issue_xlog_fsync request, in seconds" }
     - reset_time:   { usage: GAUGE                ,description: "When statistics were last reset" }
-

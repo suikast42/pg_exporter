@@ -1,0 +1,27 @@
+#==============================================================#
+# 0370 pg_recovery_state
+#==============================================================#
+pg_recovery_state:
+  name: pg_recovery_state
+  desc: PostgreSQL recovery state metrics from pg_stat_recovery (19+)
+  query: |-
+    SELECT promote_triggered,
+      last_replayed_read_lsn - '0/0' AS last_replayed_read_lsn, last_replayed_end_lsn - '0/0'  AS last_replayed_end_lsn,
+      last_replayed_tli, replay_end_lsn - '0/0' AS replay_end_lsn, replay_end_tli,
+      extract(EPOCH FROM recovery_last_xact_time) AS recovery_last_xact_time,
+      extract(EPOCH FROM current_chunk_start_time) AS current_chunk_start_time,
+      CASE pause_state WHEN 'not paused' THEN 0 WHEN 'pause requested' THEN 1 WHEN 'paused' THEN 2 ELSE NULL END AS pause_state
+    FROM pg_stat_recovery;
+  ttl: 10
+  min_version: 190000
+  tags: [ cluster, replica ]
+  metrics:
+    - promote_triggered:        { usage: GAUGE   ,description: "True if a promotion has been triggered" }
+    - last_replayed_read_lsn:   { usage: COUNTER ,description: "Start WAL location of the last successfully replayed WAL record" }
+    - last_replayed_end_lsn:    { usage: COUNTER ,description: "End WAL location of the last successfully replayed WAL record" }
+    - last_replayed_tli:        { usage: GAUGE   ,description: "Timeline of the last successfully replayed WAL record" }
+    - replay_end_lsn:           { usage: COUNTER ,description: "End-plus-one WAL location of the record currently being replayed" }
+    - replay_end_tli:           { usage: GAUGE   ,description: "Timeline of the WAL record currently being replayed" }
+    - recovery_last_xact_time:  { usage: GAUGE   ,description: "Unix epoch time of the last transaction commit or abort replayed during recovery" }
+    - current_chunk_start_time: { usage: GAUGE   ,description: "Unix epoch time when startup observed replay caught up with the latest received WAL chunk" }
+    - pause_state:              { usage: GAUGE   ,description: "Recovery pause state encoded as 0 not paused, 1 pause requested, 2 paused" }
