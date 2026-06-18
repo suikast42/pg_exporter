@@ -2020,7 +2020,7 @@ pg_db_10:
 pg_db_confl_16:
   name: pg_db_confl
   desc: PostgreSQL database conflicts metrics for PG16+
-  query: SELECT * FROM pg_stat_database_conflicts;
+  query: SELECT datid, datname, confl_tablespace, confl_lock, confl_snapshot, confl_bufferpin, confl_deadlock, confl_active_logicalslot FROM pg_stat_database_conflicts;
   ttl: 10
   min_version: 160000
   tags: [ cluster, replica ]
@@ -2037,7 +2037,7 @@ pg_db_confl_16:
 pg_db_confl_15:
   name: pg_db_confl
   desc: PostgreSQL database conflicts metrics for pg 9.1 - 15
-  query: SELECT * FROM pg_stat_database_conflicts;
+  query: SELECT datid, datname, confl_tablespace, confl_lock, confl_snapshot, confl_bufferpin, confl_deadlock FROM pg_stat_database_conflicts;
   ttl: 10
   min_version: 90100
   max_version: 160000
