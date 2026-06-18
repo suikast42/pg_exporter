@@ -1,5 +1,5 @@
 #==============================================================#
-# 0460 pg_query
+# 0470 pg_query
 #==============================================================#
 pg_query_17:
   name: pg_query
@@ -76,5 +76,4 @@ pg_query_10:
     - sblk_read:    { usage: COUNTER ,description: "Total number of shared blocks read by the statement" }
     - sblk_dirtied: { usage: COUNTER ,description: "Total number of shared blocks dirtied by the statement" }
     - sblk_written: { usage: COUNTER ,description: "Total number of shared blocks written by the statement" }
-
 

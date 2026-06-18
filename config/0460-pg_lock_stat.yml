@@ -1,0 +1,16 @@
+#==============================================================#
+# 0460 pg_lock_stat
+#==============================================================#
+pg_lock_stat:
+  name: pg_lock_stat
+  desc: PostgreSQL cluster-wide lock statistics by lock type (19+)
+  query: |-
+    SELECT locktype, waits, wait_time, fastpath_exceeded FROM pg_stat_lock;
+  ttl: 10
+  min_version: 190000
+  tags: [ cluster ]
+  metrics:
+    - locktype:          { usage: LABEL   ,description: "Type of the lockable object" }
+    - waits:             { usage: COUNTER ,description: "Number of times a lock of this type was acquired after waiting longer than deadlock_timeout because of a conflicting lock" }
+    - wait_time:         { usage: COUNTER ,scale: 1e-3 ,description: "Total time spent waiting for locks of this type in seconds, only counting waits longer than deadlock_timeout (scaled from PG milliseconds)" }
+    - fastpath_exceeded: { usage: COUNTER ,description: "Number of times a lock of this type could not be acquired via fast path because the slot limit was exceeded" }

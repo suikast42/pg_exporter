@@ -624,7 +624,7 @@ pg_slot_17:
        CASE WHEN pg_is_in_recovery() THEN pg_last_wal_replay_lsn() ELSE pg_current_wal_lsn() END - restart_lsn AS retained_bytes,
        safe_wal_size, CASE wal_status WHEN 'reserved' THEN 0 WHEN 'extended' THEN 1 WHEN 'unreserved' THEN 2 WHEN 'lost' THEN 3 ELSE -1 END AS wal_status,
        spill_txns,spill_count,spill_bytes,stream_txns,stream_count,stream_bytes,total_txns,total_bytes,extract(EPOCH FROM stats_reset) AS reset_time,
-       extract(EPOCH FROM inactive_since) AS inactive_since, CASE invalidation_reason WHEN 'wal_removed' THEN 1 WHEN 'rows_removed' THEN 2 WHEN 'wal_level_insufficient' THEN 3 ELSE 0 END AS invalidation_reason 
+       extract(EPOCH FROM inactive_since) AS inactive_since, CASE invalidation_reason WHEN 'wal_removed' THEN 1 WHEN 'rows_removed' THEN 2 WHEN 'wal_level_insufficient' THEN 3 WHEN 'idle_timeout' THEN 4 ELSE 0 END AS invalidation_reason
     FROM pg_replication_slots s LEFT OUTER JOIN pg_stat_replication_slots ss ON s.slot_name = ss.slot_name;
 
   ttl: 10
@@ -659,7 +659,7 @@ pg_slot_17:
     - total_txns:          { usage: COUNTER  ,description: "Number of decoded xacts sent to the decoding output plugin for this slot" }
     - total_bytes:         { usage: COUNTER  ,description: "Number of decoded bytes sent to the decoding output plugin for this slot" }
     - reset_time:          { usage: GAUGE    ,description: "When statistics were last reset" }
-    - invalidation_reason: { usage: GAUGE    ,description: "ok=0, wal_removed=1, rows_removed=2, wal_level_insufficient=3" }
+    - invalidation_reason: { usage: GAUGE    ,description: "ok=0, wal_removed=1, rows_removed=2, wal_level_insufficient=3, idle_timeout=4" }
     - inactive_since:      { usage: GAUGE    ,description: "The time when the slot became inactive" }
 
 pg_slot_16:
@@ -820,7 +820,7 @@ pg_recv_13:
   query: |-
     SELECT 
       coalesce(sender_host, (regexp_match(conninfo, '.*host=(\S+).*'))[1]) AS sender_host, coalesce(sender_port::TEXT, (regexp_match(conninfo, '.*port=(\S+).*'))[1]) AS sender_port, coalesce(slot_name, 'NULL') AS slot_name,
-      pid, CASE status WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 ELSE -1 END AS state,
+      pid, CASE status WHEN 'streaming' THEN 0 WHEN 'startup' THEN 1 WHEN 'catchup' THEN 2 WHEN 'backup' THEN 3 WHEN 'stopping' THEN 4 WHEN 'connecting' THEN 5 ELSE -1 END AS state,
       receive_start_lsn - '0/0' AS init_lsn,receive_start_tli AS init_tli,
       flushed_lsn - '0/0' AS flush_lsn,written_lsn - '0/0' AS write_lsn, received_tli AS flush_tli, latest_end_lsn - '0/0' AS reported_lsn,
       last_msg_send_time AS msg_send_time,last_msg_receipt_time AS msg_recv_time,latest_end_time AS reported_time,now() AS time FROM pg_stat_wal_receiver;
@@ -833,7 +833,7 @@ pg_recv_13:
     - sender_port:         { usage: LABEL   ,description: "Port number of the PostgreSQL instance this WAL receiver is connected to." }
     - slot_name:           { usage: LABEL   ,description: "Replication slot name used by this WAL receiver" }
     - pid:                 { usage: GAUGE   ,description: "Process ID of the WAL receiver process" }
-    - state:               { usage: GAUGE   ,description: "Encoded activity status of the WAL receiver process 0-4 for streaming|startup|catchup|backup|stopping" }
+    - state:               { usage: GAUGE   ,description: "Encoded activity status of the WAL receiver process 0-5 for streaming|startup|catchup|backup|stopping|connecting" }
     - init_lsn:            { usage: COUNTER ,description: "First write-ahead log location used when WAL receiver is started" }
     - init_tli:            { usage: COUNTER ,description: "First timeline number used when WAL receiver is started" }
     - flush_lsn:           { usage: COUNTER ,description: "Last write-ahead log location already received and flushed to disk" }
@@ -1423,7 +1423,34 @@ pg_recovery_prefetch:
 
 
 #==============================================================#
-# 0370 pg_slru
+# 0370 pg_recovery_state
+#==============================================================#
+pg_recovery_state:
+  name: pg_recovery_state
+  desc: PostgreSQL recovery state metrics from pg_stat_recovery (19+)
+  query: |-
+    SELECT promote_triggered,
+      last_replayed_read_lsn - '0/0' AS last_replayed_read_lsn, last_replayed_end_lsn - '0/0'  AS last_replayed_end_lsn,
+      last_replayed_tli, replay_end_lsn - '0/0' AS replay_end_lsn, replay_end_tli,
+      extract(EPOCH FROM recovery_last_xact_time) AS recovery_last_xact_time,
+      extract(EPOCH FROM current_chunk_start_time) AS current_chunk_start_time,
+      CASE pause_state WHEN 'not paused' THEN 0 WHEN 'pause requested' THEN 1 WHEN 'paused' THEN 2 ELSE NULL END AS pause_state
+    FROM pg_stat_recovery;
+  ttl: 10
+  min_version: 190000
+  tags: [ cluster, replica ]
+  metrics:
+    - promote_triggered:        { usage: GAUGE   ,description: "True if a promotion has been triggered" }
+    - last_replayed_read_lsn:   { usage: COUNTER ,description: "Start WAL location of the last successfully replayed WAL record" }
+    - last_replayed_end_lsn:    { usage: COUNTER ,description: "End WAL location of the last successfully replayed WAL record" }
+    - last_replayed_tli:        { usage: GAUGE   ,description: "Timeline of the last successfully replayed WAL record" }
+    - replay_end_lsn:           { usage: COUNTER ,description: "End-plus-one WAL location of the record currently being replayed" }
+    - replay_end_tli:           { usage: GAUGE   ,description: "Timeline of the WAL record currently being replayed" }
+    - recovery_last_xact_time:  { usage: GAUGE   ,description: "Unix epoch time of the last transaction commit or abort replayed during recovery" }
+    - current_chunk_start_time: { usage: GAUGE   ,description: "Unix epoch time when startup observed replay caught up with the latest received WAL chunk" }
+    - pause_state:              { usage: GAUGE   ,description: "Recovery pause state encoded as 0 not paused, 1 pause requested, 2 paused" }
+#==============================================================#
+# 0380 pg_slru
 #==============================================================#
 pg_slru_13:
   name: pg_slru
@@ -1443,9 +1470,8 @@ pg_slru_13:
     - truncates:    { usage: COUNTER ,description: "Number of truncates for this SLRU" }
     - reset_time:   { usage: GAUGE   ,description: "Time at which these statistics were last reset" }
 
-
 #==============================================================#
-# 0380 pg_shmem
+# 0390 pg_shmem
 #==============================================================#
 # pg_shmem require su privilege to work. Disable it or create auxiliary function with su before use:
 # CREATE OR REPLACE FUNCTION monitor.pg_shmem() RETURNS SETOF pg_shmem_allocations AS $$ SELECT * FROM pg_shmem_allocations;$$ LANGUAGE SQL SECURITY DEFINER;
@@ -1463,9 +1489,8 @@ pg_shmem:
     - size:            { usage: GAUGE ,description: "Size of the allocation" }
     - allocated_size:  { usage: GAUGE ,description: "Size of the allocation including padding" }
 
-
 #==============================================================#
-# 0390 pg_wal
+# 0400 pg_wal
 #==============================================================#
 pg_wal_19:
   name: pg_wal
@@ -1515,7 +1540,6 @@ pg_wal_14:
     - write_time:   { usage: COUNTER ,scale: 1e-3 ,description: "Total amount of time spent writing WAL buffers to disk via XLogWrite request in seconds" }
     - sync_time:    { usage: COUNTER ,scale: 1e-3 ,description: "Total amount of time spent syncing WAL files to disk via issue_xlog_fsync request, in seconds" }
     - reset_time:   { usage: GAUGE                ,description: "When statistics were last reset" }
-
 #==============================================================#
 # 0410 pg_activity
 #==============================================================#
@@ -1607,7 +1631,23 @@ pg_lock:
 
 
 #==============================================================#
-# 0460 pg_query
+# 0460 pg_lock_stat
+#==============================================================#
+pg_lock_stat:
+  name: pg_lock_stat
+  desc: PostgreSQL cluster-wide lock statistics by lock type (19+)
+  query: |-
+    SELECT locktype, waits, wait_time, fastpath_exceeded FROM pg_stat_lock;
+  ttl: 10
+  min_version: 190000
+  tags: [ cluster ]
+  metrics:
+    - locktype:          { usage: LABEL   ,description: "Type of the lockable object" }
+    - waits:             { usage: COUNTER ,description: "Number of times a lock of this type was acquired after waiting longer than deadlock_timeout because of a conflicting lock" }
+    - wait_time:         { usage: COUNTER ,scale: 1e-3 ,description: "Total time spent waiting for locks of this type in seconds, only counting waits longer than deadlock_timeout (scaled from PG milliseconds)" }
+    - fastpath_exceeded: { usage: COUNTER ,description: "Number of times a lock of this type could not be acquired via fast path because the slot limit was exceeded" }
+#==============================================================#
+# 0470 pg_query
 #==============================================================#
 pg_query_17:
   name: pg_query
@@ -1684,7 +1724,6 @@ pg_query_10:
     - sblk_read:    { usage: COUNTER ,description: "Total number of shared blocks read by the statement" }
     - sblk_dirtied: { usage: COUNTER ,description: "Total number of shared blocks dirtied by the statement" }
     - sblk_written: { usage: COUNTER ,description: "Total number of shared blocks written by the statement" }
-
 
 #==============================================================#
 # 0510 pg_vacuuming
