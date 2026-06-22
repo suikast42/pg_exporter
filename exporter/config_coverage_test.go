@@ -221,7 +221,8 @@ func TestConfigPG19BranchSelection(t *testing.T) {
 		{name: "pg_recovery_state", branch: "pg_recovery_state"},
 		{name: "pg_lock_stat", branch: "pg_lock_stat"},
 		{name: "pg_vacuum_score", branch: "pg_vacuum_score"},
-		{name: "pg_task", branch: "pg_task_19"},
+		{name: "pg_progress", branch: "pg_progress_19"},
+		{name: "pg_progress_summary", branch: "pg_progress_summary_19"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			appl := applicableAt(queries, tc.name, 190000)
@@ -399,65 +400,106 @@ func TestConfigPG19CompatibilityEssentials(t *testing.T) {
 	if !strings.Contains(pgVacuumScore.SQL, "count(*) FILTER (WHERE for_wraparound)") {
 		t.Fatal("pg_vacuum_score should expose wraparound candidate count")
 	}
-	pgTask := queries["pg_task_19"]
-	if pgTask == nil {
-		t.Fatal("pg_task should be configured for PG19 progress task summaries")
+	pgProgress := queries["pg_progress_19"]
+	if pgProgress == nil {
+		t.Fatal("pg_progress should be configured for PG19 progress rows")
 	}
-	if !pgTask.HasTag("cluster") {
-		t.Fatal("pg_task should be cluster scoped")
+	if !pgProgress.HasTag("cluster") {
+		t.Fatal("pg_progress should be cluster scoped")
 	}
-	requireLabelNames(t, pgTask, "task")
-	requireColumn(t, pgTask, "count", GAUGE)
-	requireColumn(t, pgTask, "start_time", GAUGE)
-	requireColumn(t, pgTask, "duration", GAUGE)
-	requireColumn(t, pgTask, "progress", GAUGE)
-	requireTTL(t, pgTask, 10)
-	requireNoColumns(t, pgTask, "pid", "datname", "relname", "phase", "command")
-	for _, task := range []string{
-		"vacuuming",
-		"indexing",
-		"clustering",
-		"backup",
-		"analyzing",
-		"repacking",
-		"checksumming",
+	requireLabelNames(t, pgProgress, "type", "datname", "pid")
+	for _, col := range []string{"start_time", "duration", "progress", "relid", "aux_relid", "current_locker_pid"} {
+		requireColumn(t, pgProgress, col, GAUGE)
+	}
+	requireTTL(t, pgProgress, 10)
+	requireNoColumns(t, pgProgress, "relname", "phase", "command")
+	if !strings.Contains(pgProgress.SQL, "FROM pg_stat_progress_repack") ||
+		strings.Contains(pgProgress.SQL, "FROM pg_stat_progress_cluster") {
+		t.Fatal("pg_progress_19 should use pg_stat_progress_repack and avoid the PG19 cluster wrapper")
+	}
+	for _, progressType := range []string{
+		"vacuum",
+		"create_index",
+		"cluster",
+		"vacuum_full",
+		"repack",
+		"analyze",
+		"basebackup",
+		"copy",
+		"data_checksums",
 	} {
-		if !strings.Contains(pgTask.SQL, "'"+task+"'") {
-			t.Fatalf("pg_task_19 should include %s task rows", task)
+		if !strings.Contains(pgProgress.SQL, "'"+progressType+"'") {
+			t.Fatalf("pg_progress_19 should include %s rows", progressType)
 		}
 	}
 	for _, needle := range []string{
+		"COALESCE(r.datname, '') AS datname",
 		"LEFT JOIN pg_stat_activity",
-		"count(*) AS count",
-		"min(a.query_start)",
-		"GROUP BY task",
+		"COALESCE(a.query_start, a.backend_start)",
+		"datid = 0 AND databases_total > 0",
+		"NULLIF(repack_index_relid::bigint, 0)",
 	} {
-		if !strings.Contains(pgTask.SQL, needle) {
-			t.Fatalf("pg_task_19 SQL should contain %q", needle)
+		if !strings.Contains(pgProgress.SQL, needle) {
+			t.Fatalf("pg_progress_19 SQL should contain %q", needle)
+		}
+	}
+
+	pgProgressSummary := queries["pg_progress_summary_19"]
+	if pgProgressSummary == nil {
+		t.Fatal("pg_progress_summary should be configured for PG19 progress summaries")
+	}
+	if !pgProgressSummary.HasTag("cluster") {
+		t.Fatal("pg_progress_summary should be cluster scoped")
+	}
+	requireLabelNames(t, pgProgressSummary, "type")
+	for _, col := range []string{"count", "progress_known_count", "oldest_start_time", "max_duration", "avg_progress"} {
+		requireColumn(t, pgProgressSummary, col, GAUGE)
+	}
+	requireTTL(t, pgProgressSummary, 10)
+	requireNoColumns(t, pgProgressSummary, "pid", "datname", "relname", "phase", "command")
+	for _, needle := range []string{
+		"count(*) AS count",
+		"count(progress) AS progress_known_count",
+		"min(start_ts) AS oldest_start_ts",
+		"max(extract(EPOCH FROM now() - start_ts)) AS max_duration",
+		"avg(progress) AS avg_progress",
+	} {
+		if !strings.Contains(pgProgressSummary.SQL, needle) {
+			t.Fatalf("pg_progress_summary_19 SQL should contain %q", needle)
 		}
 	}
 
 	for _, tc := range []struct {
 		version int
-		branch  string
+		row     string
+		summary string
 	}{
-		{version: 120000, branch: "pg_task_12"},
-		{version: 130000, branch: "pg_task_13"},
-		{version: 180000, branch: "pg_task_13"},
-		{version: 190000, branch: "pg_task_19"},
+		{version: 120000, row: "pg_progress_12", summary: "pg_progress_summary_12"},
+		{version: 130000, row: "pg_progress_13", summary: "pg_progress_summary_13"},
+		{version: 140000, row: "pg_progress_14", summary: "pg_progress_summary_14"},
+		{version: 170000, row: "pg_progress_17", summary: "pg_progress_summary_17"},
+		{version: 190000, row: "pg_progress_19", summary: "pg_progress_summary_19"},
 	} {
-		appl := applicableAt(queries, "pg_task", tc.version)
+		appl := applicableAt(queries, "pg_progress", tc.version)
 		if len(appl) != 1 {
-			t.Fatalf("server_version_num=%d should select exactly one pg_task branch, got %d", tc.version, len(appl))
+			t.Fatalf("server_version_num=%d should select exactly one pg_progress branch, got %d", tc.version, len(appl))
 		}
-		if appl[0].Branch != tc.branch {
-			t.Fatalf("server_version_num=%d selected %s, want %s", tc.version, appl[0].Branch, tc.branch)
+		if appl[0].Branch != tc.row {
+			t.Fatalf("server_version_num=%d selected %s, want %s", tc.version, appl[0].Branch, tc.row)
+		}
+
+		appl = applicableAt(queries, "pg_progress_summary", tc.version)
+		if len(appl) != 1 {
+			t.Fatalf("server_version_num=%d should select exactly one pg_progress_summary branch, got %d", tc.version, len(appl))
+		}
+		if appl[0].Branch != tc.summary {
+			t.Fatalf("server_version_num=%d selected %s, want %s", tc.version, appl[0].Branch, tc.summary)
 		}
 	}
 
 	for _, branch := range []string{"pg_checksumming", "pg_analyzing_19", "pg_repacking"} {
 		if queries[branch] != nil {
-			t.Fatalf("%s should be folded into pg_task instead of remaining a default standalone progress collector", branch)
+			t.Fatalf("%s should be folded into pg_progress instead of remaining a default standalone progress collector", branch)
 		}
 	}
 }

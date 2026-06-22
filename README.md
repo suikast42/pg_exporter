@@ -6,7 +6,7 @@
 
 [![Webite: https://pigsty.io/docs/pg_exporter](https://img.shields.io/badge/website-pigsty.io/docs/pg_exporter-slategray?style=flat&logo=cilium&logoColor=white)](https://pigsty.io/docs/pg_exporter)
 [![DockerHub: pgsty/pg_exporter](https://img.shields.io/badge/docker-pgsty/pg_exporter-slategray?style=flat&logo=docker&logoColor=white)](https://hub.docker.com/r/pgsty/pg_exporter)
-[![Version: 1.2.2](https://img.shields.io/badge/version-1.2.2-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.2.2)
+[![Version: 1.3.0](https://img.shields.io/badge/version-1.3.0-slategray?style=flat&logo=cilium&logoColor=white)](https://github.com/pgsty/pg_exporter/releases/tag/v1.3.0)
 [![License: Apache-2.0](https://img.shields.io/github/license/pgsty/pg_exporter?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/pgsty/pg_exporter/blob/main/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/pgsty/pg_exporter?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#pgsty/pg_exporter&Date)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pgsty/pg_exporter)](https://goreportcard.com/report/github.com/pgsty/pg_exporter)
@@ -270,7 +270,7 @@ Current `pg_exporter` is shipped with the following metrics collector definition
 - [0520-pg_indexing.yml](config/0520-pg_indexing.yml)
 - [0530-pg_clustering.yml](config/0530-pg_clustering.yml)
 - [0540-pg_backup.yml](config/0540-pg_backup.yml)
-- [0550-pg_task.yml](config/0550-pg_task.yml)
+- [0550-pg_task.yml](tmp/0550-pg_progress.yml)
 - [0610-pg_db.yml](config/0610-pg_db.yml)
 - [0620-pg_db_confl.yml](config/0620-pg_db_confl.yml)
 - [0640-pg_pubrel.yml](config/0640-pg_pubrel.yml)
