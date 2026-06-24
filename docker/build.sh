@@ -24,7 +24,7 @@ echo "Building Docker image for pg_exporter ${VERSION} - LOCAL BUILD (Go source)
 # Create Dockerfile for local Go build
 cat > "${SCRIPT_DIR}/Dockerfile.local" << 'EOF'
 # syntax=docker/dockerfile:1
-FROM golang:1.26.2-alpine AS builder-env
+FROM golang:1.26.4-alpine AS builder-env
 
 ARG GOPROXY=https://proxy.golang.org,direct
 ARG GOSUMDB=sum.golang.org

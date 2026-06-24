@@ -1,0 +1,39 @@
+#==============================================================#
+# 0660 pg_vacuum_score
+#==============================================================#
+pg_vacuum_score:
+  name: pg_vacuum_score
+  desc: PostgreSQL current database autovacuum score summary from pg_stat_autovacuum_scores (19+)
+  query: |-
+    SELECT CURRENT_CATALOG AS datname,
+      COALESCE(max(score), 0) AS max_score,
+      COALESCE(max(xid_score), 0) AS max_xid_score,
+      COALESCE(max(mxid_score), 0) AS max_mxid_score,
+      COALESCE(max(vacuum_score), 0) AS max_vacuum_score,
+      COALESCE(max(vacuum_insert_score), 0) AS max_vacuum_insert_score,
+      COALESCE(max(analyze_score), 0) AS max_analyze_score,
+      count(*) AS table_count,
+      count(*) FILTER (WHERE do_vacuum OR do_analyze) AS candidate_count,
+      count(*) FILTER (WHERE do_vacuum) AS vacuum_candidate_count,
+      count(*) FILTER (WHERE do_analyze) AS analyze_candidate_count,
+      count(*) FILTER (WHERE for_wraparound) AS wraparound_candidate_count
+    FROM pg_stat_autovacuum_scores;
+  ttl: 10
+  timeout: 1
+  min_version: 190000
+  tags: [ primary ]
+  metrics:
+    - datname:                    { usage: LABEL ,description: "Name of the current database" }
+    - max_score:                  { usage: GAUGE ,description: "Maximum autovacuum priority score across tables in the current database" }
+    - max_xid_score:              { usage: GAUGE ,description: "Maximum transaction ID age component score across tables in the current database" }
+    - max_mxid_score:             { usage: GAUGE ,description: "Maximum multixact ID age component score across tables in the current database" }
+    - max_vacuum_score:           { usage: GAUGE ,description: "Maximum vacuum component score across tables in the current database" }
+    - max_vacuum_insert_score:    { usage: GAUGE ,description: "Maximum vacuum insert component score across tables in the current database" }
+    - max_analyze_score:          { usage: GAUGE ,description: "Maximum analyze component score across tables in the current database" }
+    - table_count:                { usage: GAUGE ,description: "Number of tables represented in pg_stat_autovacuum_scores for the current database, including TOAST tables" }
+    - candidate_count:            { usage: GAUGE ,description: "Number of tables that autovacuum would vacuum or analyze at query time" }
+    - vacuum_candidate_count:     { usage: GAUGE ,description: "Number of tables that autovacuum would vacuum at query time" }
+    - analyze_candidate_count:    { usage: GAUGE ,description: "Number of tables that autovacuum would analyze at query time" }
+    - wraparound_candidate_count: { usage: GAUGE ,description: "Number of tables that autovacuum would vacuum for wraparound prevention at query time" }
+
+
