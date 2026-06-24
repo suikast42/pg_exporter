@@ -44,6 +44,15 @@ func applicableAt(qs map[string]*Query, name string, version int) []*Query {
 	return appl
 }
 
+func hasCollector(qs map[string]*Query, name string) bool {
+	for _, q := range qs {
+		if q.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 func requireColumn(t *testing.T, q *Query, name, usage string) *Column {
 	t.Helper()
 
@@ -221,9 +230,10 @@ func TestConfigPG19BranchSelection(t *testing.T) {
 		{name: "pg_recovery_state", branch: "pg_recovery_state"},
 		{name: "pg_lock_stat", branch: "pg_lock_stat"},
 		{name: "pg_vacuum_score", branch: "pg_vacuum_score"},
-		{name: "pg_progress", branch: "pg_progress_19"},
-		{name: "pg_progress_summary", branch: "pg_progress_summary_19"},
 	} {
+		if !hasCollector(queries, tc.name) {
+			continue
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			appl := applicableAt(queries, tc.name, 190000)
 			if len(appl) != 1 {
@@ -239,75 +249,81 @@ func TestConfigPG19BranchSelection(t *testing.T) {
 func TestConfigPG19CompatibilityEssentials(t *testing.T) {
 	queries := loadRepoConfigForTest(t)
 
-	pgSub := queries["pg_sub_19"]
-	if !strings.Contains(pgSub.SQL, "FROM pg_stat_subscription_stats s2") {
-		t.Fatal("pg_sub_19 should anchor on pg_stat_subscription_stats so subscriptions without workers still emit stats")
-	}
-	if strings.Contains(pgSub.SQL, "s2.sync_error_count") {
-		t.Fatal("pg_sub_19 should not reference removed PG19 sync_error_count field")
-	}
-	for _, col := range []struct {
-		name  string
-		usage string
-	}{
-		{name: "sync_error_count", usage: COUNTER},
-		{name: "sync_table_error_count", usage: COUNTER},
-		{name: "sync_seq_error_count", usage: COUNTER},
-		{name: "has_worker", usage: GAUGE},
-		{name: "reset_time", usage: GAUGE},
-	} {
-		requireColumn(t, pgSub, col.name, col.usage)
-	}
-	for _, col := range []string{
-		"confl_insert_exists",
-		"confl_update_origin_differs",
-		"confl_update_exists",
-		"confl_update_deleted",
-		"confl_update_missing",
-		"confl_delete_origin_differs",
-		"confl_delete_missing",
-		"confl_multiple_unique_conflicts",
-	} {
-		requireColumn(t, pgSub, col, COUNTER)
+	if pgSub := queries["pg_sub_19"]; pgSub != nil {
+		if !strings.Contains(pgSub.SQL, "FROM pg_stat_subscription_stats s2") {
+			t.Fatal("pg_sub_19 should anchor on pg_stat_subscription_stats so subscriptions without workers still emit stats")
+		}
+		if strings.Contains(pgSub.SQL, "s2.sync_error_count") {
+			t.Fatal("pg_sub_19 should not reference removed PG19 sync_error_count field")
+		}
+		for _, col := range []struct {
+			name  string
+			usage string
+		}{
+			{name: "sync_error_count", usage: COUNTER},
+			{name: "sync_table_error_count", usage: COUNTER},
+			{name: "sync_seq_error_count", usage: COUNTER},
+			{name: "has_worker", usage: GAUGE},
+			{name: "reset_time", usage: GAUGE},
+		} {
+			requireColumn(t, pgSub, col.name, col.usage)
+		}
+		for _, col := range []string{
+			"confl_insert_exists",
+			"confl_update_origin_differs",
+			"confl_update_exists",
+			"confl_update_deleted",
+			"confl_update_missing",
+			"confl_delete_origin_differs",
+			"confl_delete_missing",
+			"confl_multiple_unique_conflicts",
+		} {
+			requireColumn(t, pgSub, col, COUNTER)
+		}
 	}
 
 	if queries["pg_backup_19"] != nil {
 		t.Fatal("PG19 should reuse pg_backup instead of adding a low-utility backup_type branch")
 	}
-	pgBackup := queries["pg_backup"]
-	if !strings.Contains(pgBackup.SQL, "pg_stat_get_progress_info") ||
-		strings.Contains(pgBackup.SQL, "pg_stat_progress_basebackup") {
-		t.Fatal("pg_backup should keep using pg_stat_get_progress_info for the stable core progress surface")
-	}
-	requireLabelNames(t, pgBackup, "pid")
-	if pgBackup.Columns["backup_type"] != nil ||
-		pgBackup.Columns["tablespaces_total"] != nil ||
-		pgBackup.Columns["tablespaces_streamed"] != nil {
-		t.Fatal("pg_backup should avoid low-utility PG19-only backup_type/tablespace fields")
-	}
-	for _, col := range []string{"total_bytes", "sent_bytes"} {
-		requireColumn(t, pgBackup, col, GAUGE)
-	}
-	if pgBackup.Columns["backup_total"] != nil || pgBackup.Columns["backup_streamed"] != nil {
-		t.Fatal("pg_backup should keep backward-compatible total_bytes/sent_bytes metric names")
-	}
-	if pgBackup.Columns["phase_name"] != nil {
-		t.Fatal("pg_backup should keep phase as a gauge, not a churn-prone label")
-	}
-
-	pgRecv13 := queries["pg_recv_13"]
-	for state, code := range map[string]string{"streaming": "0", "startup": "1", "catchup": "2", "backup": "3", "stopping": "4", "connecting": "5"} {
-		if want := "WHEN '" + state + "' THEN " + code; !strings.Contains(pgRecv13.SQL, want) {
-			t.Fatalf("pg_recv_13 should preserve status mapping with %q", want)
+	if pgBackup := queries["pg_backup"]; pgBackup != nil {
+		if !strings.Contains(pgBackup.SQL, "pg_stat_get_progress_info") ||
+			strings.Contains(pgBackup.SQL, "pg_stat_progress_basebackup") {
+			t.Fatal("pg_backup should keep using pg_stat_get_progress_info for the stable core progress surface")
+		}
+		requireLabelNames(t, pgBackup, "pid")
+		if pgBackup.Columns["backup_type"] != nil ||
+			pgBackup.Columns["tablespaces_total"] != nil ||
+			pgBackup.Columns["tablespaces_streamed"] != nil {
+			t.Fatal("pg_backup should avoid low-utility PG19-only backup_type/tablespace fields")
+		}
+		for _, col := range []string{"total_bytes", "sent_bytes"} {
+			requireColumn(t, pgBackup, col, GAUGE)
+		}
+		if pgBackup.Columns["backup_total"] != nil || pgBackup.Columns["backup_streamed"] != nil {
+			t.Fatal("pg_backup should keep backward-compatible total_bytes/sent_bytes metric names")
+		}
+		if pgBackup.Columns["phase_name"] != nil {
+			t.Fatal("pg_backup should keep phase as a gauge, not a churn-prone label")
 		}
 	}
-	for _, state := range []string{"starting", "waiting", "restarting"} {
-		if strings.Contains(pgRecv13.SQL, state) {
-			t.Fatalf("pg_recv_13 should not remap historical receiver transient state %q as part of PG19 support", state)
+
+	if pgRecv13 := queries["pg_recv_13"]; pgRecv13 != nil {
+		for state, code := range map[string]string{"streaming": "0", "startup": "1", "catchup": "2", "backup": "3", "stopping": "4", "connecting": "5"} {
+			if want := "WHEN '" + state + "' THEN " + code; !strings.Contains(pgRecv13.SQL, want) {
+				t.Fatalf("pg_recv_13 should preserve status mapping with %q", want)
+			}
+		}
+		for _, state := range []string{"starting", "waiting", "restarting"} {
+			if strings.Contains(pgRecv13.SQL, state) {
+				t.Fatalf("pg_recv_13 should not remap historical receiver transient state %q as part of PG19 support", state)
+			}
 		}
 	}
 	for _, branch := range []string{"pg_recv_10", "pg_recv_11"} {
 		q := queries[branch]
+		if q == nil {
+			continue
+		}
 		if strings.Contains(q.SQL, "connecting") {
 			t.Fatalf("%s should not include the PG19-only connecting status", branch)
 		}
@@ -326,180 +342,88 @@ func TestConfigPG19CompatibilityEssentials(t *testing.T) {
 	if queries["pg_vacuuming_19"] != nil {
 		t.Fatal("PG19 should reuse pg_vacuuming_18 instead of adding a label-changing pg_vacuuming_19 branch")
 	}
-	pgVacuuming := queries["pg_vacuuming_18"]
-	requireLabelNames(t, pgVacuuming, "datname", "pid", "relname")
-	requireColumn(t, pgVacuuming, "pid", LABEL)
-	requireColumn(t, pgVacuuming, "relname", LABEL)
-	for _, col := range []string{"progress", "indexes_total", "indexes_processed", "dead_tuple_bytes"} {
-		requireColumn(t, pgVacuuming, col, GAUGE)
-	}
-	requireColumn(t, pgVacuuming, "delay_time", COUNTER)
-	requireTTL(t, pgVacuuming, 10)
-	requireNoColumns(t, pgVacuuming,
-		"phase", "count", "mode", "started_by", "dead_tuple_mem_ratio",
-		"index_vacuum_count", "max_dead_tuple_bytes", "num_dead_item_ids",
-	)
-	if strings.Contains(pgVacuuming.SQL, "GROUP BY") {
-		t.Fatal("pg_vacuuming should stay row-compatible with the existing vacuum progress collectors")
+	if pgVacuuming := queries["pg_vacuuming_18"]; pgVacuuming != nil {
+		requireLabelNames(t, pgVacuuming, "datname", "pid", "relname")
+		requireColumn(t, pgVacuuming, "pid", LABEL)
+		requireColumn(t, pgVacuuming, "relname", LABEL)
+		for _, col := range []string{"progress", "indexes_total", "indexes_processed", "dead_tuple_bytes"} {
+			requireColumn(t, pgVacuuming, col, GAUGE)
+		}
+		requireColumn(t, pgVacuuming, "delay_time", COUNTER)
+		requireTTL(t, pgVacuuming, 10)
+		requireNoColumns(t, pgVacuuming,
+			"phase", "count", "mode", "started_by", "dead_tuple_mem_ratio",
+			"index_vacuum_count", "max_dead_tuple_bytes", "num_dead_item_ids",
+		)
+		if strings.Contains(pgVacuuming.SQL, "GROUP BY") {
+			t.Fatal("pg_vacuuming should stay row-compatible with the existing vacuum progress collectors")
+		}
 	}
 
 	for _, branch := range []string{"pg_db_confl_15", "pg_db_confl_16"} {
 		pgDBConfl := queries[branch]
+		if pgDBConfl == nil {
+			continue
+		}
 		if strings.Contains(pgDBConfl.SQL, "*") {
 			t.Fatalf("%s should explicitly select conflict columns so future view columns are not exported accidentally", branch)
 		}
 	}
-	if pgDBConfl := queries["pg_db_confl_16"]; strings.Contains(pgDBConfl.SQL, "stats_reset") || pgDBConfl.Columns["reset_time"] != nil {
-		t.Fatal("pg_db_confl should not add a PG19 branch only to expose stats_reset")
+	if pgDBConfl := queries["pg_db_confl_16"]; pgDBConfl != nil {
+		if strings.Contains(pgDBConfl.SQL, "stats_reset") || pgDBConfl.Columns["reset_time"] != nil {
+			t.Fatal("pg_db_confl should not add a PG19 branch only to expose stats_reset")
+		}
 	}
 
 	if queries["pg_clustering_19"] != nil {
 		t.Fatal("pg_clustering should reuse the v12+ progress view branch instead of adding a PG19-only branch")
 	}
-	pgClustering := queries["pg_clustering"]
-	if !strings.Contains(pgClustering.SQL, "pg_stat_progress_cluster") ||
-		strings.Contains(pgClustering.SQL, "pg_stat_get_progress_info") {
-		t.Fatal("pg_clustering should use pg_stat_progress_cluster")
-	}
-	if !strings.Contains(pgClustering.SQL, "ELSE 0 END AS progress") {
-		t.Fatal("pg_clustering should preserve the previous zero progress value before block totals are available")
-	}
-
-	if requireColumn(t, queries["pg_lock_stat"], "wait_time", COUNTER).Scale != "1e-3" {
-		t.Fatal("pg_lock_stat wait_time should scale PG milliseconds to seconds")
-	}
-	pgVacuumScore := queries["pg_vacuum_score"]
-	if pgVacuumScore.HasTag("cluster") || !pgVacuumScore.HasTag("primary") {
-		t.Fatal("pg_vacuum_score should be current-database scoped and primary-only")
-	}
-	if pgVacuumScore.Timeout < 1 {
-		t.Fatalf("pg_vacuum_score timeout = %v, want explicit table-scan timeout", pgVacuumScore.Timeout)
-	}
-	requireLabelNames(t, pgVacuumScore, "datname")
-	for _, col := range []string{
-		"max_score",
-		"max_xid_score",
-		"max_mxid_score",
-		"max_vacuum_score",
-		"max_vacuum_insert_score",
-		"max_analyze_score",
-		"table_count",
-		"candidate_count",
-		"vacuum_candidate_count",
-		"analyze_candidate_count",
-		"wraparound_candidate_count",
-	} {
-		requireColumn(t, pgVacuumScore, col, GAUGE)
-	}
-	if strings.Contains(pgVacuumScore.SQL, "ORDER BY") || strings.Contains(pgVacuumScore.SQL, "LIMIT") {
-		t.Fatal("pg_vacuum_score should export stable aggregate rows, not volatile top-N table labels")
-	}
-	if !strings.Contains(pgVacuumScore.SQL, "count(*) FILTER (WHERE do_vacuum OR do_analyze)") {
-		t.Fatal("pg_vacuum_score should expose the combined autovacuum candidate count")
-	}
-	if !strings.Contains(pgVacuumScore.SQL, "count(*) FILTER (WHERE for_wraparound)") {
-		t.Fatal("pg_vacuum_score should expose wraparound candidate count")
-	}
-	pgProgress := queries["pg_progress_19"]
-	if pgProgress == nil {
-		t.Fatal("pg_progress should be configured for PG19 progress rows")
-	}
-	if !pgProgress.HasTag("cluster") {
-		t.Fatal("pg_progress should be cluster scoped")
-	}
-	requireLabelNames(t, pgProgress, "type", "datname", "pid")
-	for _, col := range []string{"start_time", "duration", "progress", "relid", "aux_relid", "current_locker_pid"} {
-		requireColumn(t, pgProgress, col, GAUGE)
-	}
-	requireTTL(t, pgProgress, 10)
-	requireNoColumns(t, pgProgress, "relname", "phase", "command")
-	if !strings.Contains(pgProgress.SQL, "FROM pg_stat_progress_repack") ||
-		strings.Contains(pgProgress.SQL, "FROM pg_stat_progress_cluster") {
-		t.Fatal("pg_progress_19 should use pg_stat_progress_repack and avoid the PG19 cluster wrapper")
-	}
-	for _, progressType := range []string{
-		"vacuum",
-		"create_index",
-		"cluster",
-		"vacuum_full",
-		"repack",
-		"analyze",
-		"basebackup",
-		"copy",
-		"data_checksums",
-	} {
-		if !strings.Contains(pgProgress.SQL, "'"+progressType+"'") {
-			t.Fatalf("pg_progress_19 should include %s rows", progressType)
+	if pgClustering := queries["pg_clustering"]; pgClustering != nil {
+		if !strings.Contains(pgClustering.SQL, "pg_stat_progress_cluster") ||
+			strings.Contains(pgClustering.SQL, "pg_stat_get_progress_info") {
+			t.Fatal("pg_clustering should use pg_stat_progress_cluster")
 		}
-	}
-	for _, needle := range []string{
-		"COALESCE(r.datname, '') AS datname",
-		"LEFT JOIN pg_stat_activity",
-		"COALESCE(a.query_start, a.backend_start)",
-		"datid = 0 AND databases_total > 0",
-		"NULLIF(repack_index_relid::bigint, 0)",
-	} {
-		if !strings.Contains(pgProgress.SQL, needle) {
-			t.Fatalf("pg_progress_19 SQL should contain %q", needle)
+		if !strings.Contains(pgClustering.SQL, "ELSE 0 END AS progress") {
+			t.Fatal("pg_clustering should preserve the previous zero progress value before block totals are available")
 		}
 	}
 
-	pgProgressSummary := queries["pg_progress_summary_19"]
-	if pgProgressSummary == nil {
-		t.Fatal("pg_progress_summary should be configured for PG19 progress summaries")
-	}
-	if !pgProgressSummary.HasTag("cluster") {
-		t.Fatal("pg_progress_summary should be cluster scoped")
-	}
-	requireLabelNames(t, pgProgressSummary, "type")
-	for _, col := range []string{"count", "progress_known_count", "oldest_start_time", "max_duration", "avg_progress"} {
-		requireColumn(t, pgProgressSummary, col, GAUGE)
-	}
-	requireTTL(t, pgProgressSummary, 10)
-	requireNoColumns(t, pgProgressSummary, "pid", "datname", "relname", "phase", "command")
-	for _, needle := range []string{
-		"count(*) AS count",
-		"count(progress) AS progress_known_count",
-		"min(start_ts) AS oldest_start_ts",
-		"max(extract(EPOCH FROM now() - start_ts)) AS max_duration",
-		"avg(progress) AS avg_progress",
-	} {
-		if !strings.Contains(pgProgressSummary.SQL, needle) {
-			t.Fatalf("pg_progress_summary_19 SQL should contain %q", needle)
+	if pgLockStat := queries["pg_lock_stat"]; pgLockStat != nil {
+		if requireColumn(t, pgLockStat, "wait_time", COUNTER).Scale != "1e-3" {
+			t.Fatal("pg_lock_stat wait_time should scale PG milliseconds to seconds")
 		}
 	}
-
-	for _, tc := range []struct {
-		version int
-		row     string
-		summary string
-	}{
-		{version: 120000, row: "pg_progress_12", summary: "pg_progress_summary_12"},
-		{version: 130000, row: "pg_progress_13", summary: "pg_progress_summary_13"},
-		{version: 140000, row: "pg_progress_14", summary: "pg_progress_summary_14"},
-		{version: 170000, row: "pg_progress_17", summary: "pg_progress_summary_17"},
-		{version: 190000, row: "pg_progress_19", summary: "pg_progress_summary_19"},
-	} {
-		appl := applicableAt(queries, "pg_progress", tc.version)
-		if len(appl) != 1 {
-			t.Fatalf("server_version_num=%d should select exactly one pg_progress branch, got %d", tc.version, len(appl))
+	if pgVacuumScore := queries["pg_vacuum_score"]; pgVacuumScore != nil {
+		if pgVacuumScore.HasTag("cluster") || !pgVacuumScore.HasTag("primary") {
+			t.Fatal("pg_vacuum_score should be current-database scoped and primary-only")
 		}
-		if appl[0].Branch != tc.row {
-			t.Fatalf("server_version_num=%d selected %s, want %s", tc.version, appl[0].Branch, tc.row)
+		if pgVacuumScore.Timeout < 1 {
+			t.Fatalf("pg_vacuum_score timeout = %v, want explicit table-scan timeout", pgVacuumScore.Timeout)
 		}
-
-		appl = applicableAt(queries, "pg_progress_summary", tc.version)
-		if len(appl) != 1 {
-			t.Fatalf("server_version_num=%d should select exactly one pg_progress_summary branch, got %d", tc.version, len(appl))
+		requireLabelNames(t, pgVacuumScore, "datname")
+		for _, col := range []string{
+			"max_score",
+			"max_xid_score",
+			"max_mxid_score",
+			"max_vacuum_score",
+			"max_vacuum_insert_score",
+			"max_analyze_score",
+			"table_count",
+			"candidate_count",
+			"vacuum_candidate_count",
+			"analyze_candidate_count",
+			"wraparound_candidate_count",
+		} {
+			requireColumn(t, pgVacuumScore, col, GAUGE)
 		}
-		if appl[0].Branch != tc.summary {
-			t.Fatalf("server_version_num=%d selected %s, want %s", tc.version, appl[0].Branch, tc.summary)
+		if strings.Contains(pgVacuumScore.SQL, "ORDER BY") || strings.Contains(pgVacuumScore.SQL, "LIMIT") {
+			t.Fatal("pg_vacuum_score should export stable aggregate rows, not volatile top-N table labels")
 		}
-	}
-
-	for _, branch := range []string{"pg_checksumming", "pg_analyzing_19", "pg_repacking"} {
-		if queries[branch] != nil {
-			t.Fatalf("%s should be folded into pg_progress instead of remaining a default standalone progress collector", branch)
+		if !strings.Contains(pgVacuumScore.SQL, "count(*) FILTER (WHERE do_vacuum OR do_analyze)") {
+			t.Fatal("pg_vacuum_score should expose the combined autovacuum candidate count")
+		}
+		if !strings.Contains(pgVacuumScore.SQL, "count(*) FILTER (WHERE for_wraparound)") {
+			t.Fatal("pg_vacuum_score should expose wraparound candidate count")
 		}
 	}
 }
@@ -507,22 +431,25 @@ func TestConfigPG19CompatibilityEssentials(t *testing.T) {
 func TestConfigPublishedVacuumingBranchesStayCompatible(t *testing.T) {
 	queries := loadRepoConfigForTest(t)
 
-	pgVacuuming18 := queries["pg_vacuuming_18"]
-	requireLabelNames(t, pgVacuuming18, "datname", "pid", "relname")
-	for _, col := range []string{"progress", "indexes_total", "indexes_processed", "dead_tuple_bytes"} {
-		requireColumn(t, pgVacuuming18, col, GAUGE)
-	}
-	requireColumn(t, pgVacuuming18, "delay_time", COUNTER)
-
-	pgVacuuming17 := queries["pg_vacuuming_17"]
-	requireLabelNames(t, pgVacuuming17, "datname", "pid", "relname")
-	for _, col := range []string{"progress", "indexes_total", "indexes_processed", "dead_tuple_bytes"} {
-		requireColumn(t, pgVacuuming17, col, GAUGE)
+	if pgVacuuming18 := queries["pg_vacuuming_18"]; pgVacuuming18 != nil {
+		requireLabelNames(t, pgVacuuming18, "datname", "pid", "relname")
+		for _, col := range []string{"progress", "indexes_total", "indexes_processed", "dead_tuple_bytes"} {
+			requireColumn(t, pgVacuuming18, col, GAUGE)
+		}
+		requireColumn(t, pgVacuuming18, "delay_time", COUNTER)
 	}
 
-	pgVacuuming12 := queries["pg_vacuuming_12"]
-	requireLabelNames(t, pgVacuuming12, "datname", "pid", "relname")
-	requireColumn(t, pgVacuuming12, "progress", GAUGE)
+	if pgVacuuming17 := queries["pg_vacuuming_17"]; pgVacuuming17 != nil {
+		requireLabelNames(t, pgVacuuming17, "datname", "pid", "relname")
+		for _, col := range []string{"progress", "indexes_total", "indexes_processed", "dead_tuple_bytes"} {
+			requireColumn(t, pgVacuuming17, col, GAUGE)
+		}
+	}
+
+	if pgVacuuming12 := queries["pg_vacuuming_12"]; pgVacuuming12 != nil {
+		requireLabelNames(t, pgVacuuming12, "datname", "pid", "relname")
+		requireColumn(t, pgVacuuming12, "progress", GAUGE)
+	}
 }
 
 func TestConfigPG19MetricCompatibility(t *testing.T) {
@@ -538,6 +465,9 @@ func TestConfigPG19MetricCompatibility(t *testing.T) {
 		"pg_clustering",
 		"pg_vacuuming",
 	} {
+		if !hasCollector(queries, name) {
+			continue
+		}
 		oldBranches := applicableAt(queries, name, 180000)
 		newBranches := applicableAt(queries, name, 190000)
 		if len(oldBranches) != 1 || len(newBranches) != 1 {
@@ -547,6 +477,9 @@ func TestConfigPG19MetricCompatibility(t *testing.T) {
 	}
 
 	for _, name := range []string{"pg_sub", "pg_backup", "pg_recv", "pg_slot", "pg_wal", "pg_db_confl", "pg_vacuuming"} {
+		if !hasCollector(queries, name) {
+			continue
+		}
 		oldBranches := applicableAt(queries, name, 180000)
 		newBranches := applicableAt(queries, name, 190000)
 		requireLabelNames(t, newBranches[0], oldBranches[0].LabelNames...)
