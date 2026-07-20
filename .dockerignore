@@ -1,0 +1,12 @@
+*
+.idea
+.envrc
+.run
+**/*.iml
+!Dockerfile
+!go.mod
+!go.sum
+!main.go
+!exporter/
+!exporter/**
+!pg_exporter.yml

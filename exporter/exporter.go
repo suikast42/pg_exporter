@@ -3,6 +3,7 @@ package exporter
 import (
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"net/http"
 	"sync"
@@ -533,6 +534,10 @@ func (e *Exporter) collectInternalMetrics(ch chan<- prometheus.Metric) {
 
 // NewExporter construct a PG Exporter instance for given dsn
 func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
+	return newExporterWithServerFactory(dsn, NewServer, opts...)
+}
+
+func newExporterWithServerFactory(dsn string, serverFactory func(string, ...ServerOpt) *Server, opts ...ExporterOpt) (e *Exporter, err error) {
 	e = &Exporter{dsn: dsn}
 	e.servers = make(map[string]*Server)
 	for _, opt := range opts {
@@ -566,7 +571,7 @@ func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
 	logDebugf("exporter init with %d queries", len(e.queries))
 
 	// note here the server is still not connected. it will trigger connecting when being scraped
-	e.server = NewServer(
+	e.server = serverFactory(
 		dsn,
 		WithQueries(e.queries),
 		WithConstLabel(e.constLabels),
@@ -586,6 +591,11 @@ func NewExporter(dsn string, opts ...ExporterOpt) (e *Exporter, err error) {
 	// The actual scrape path will reconnect and re-plan when the target comes back.
 	if err = e.server.Check(); err != nil {
 		if e.failFast {
+			if e.server.DB != nil {
+				if closeErr := e.server.Close(); closeErr != nil {
+					logErrorf("fail closing primary server after connectivity check failure: %s", closeErr.Error())
+				}
+			}
 			return nil, fmt.Errorf("fail connecting to primary server: %w", err)
 		}
 		logErrorf("fail connecting to primary server: %s (startup will continue)", err.Error())
@@ -910,7 +920,7 @@ func VersionFunc(w http.ResponseWriter, r *http.Request) {
 // TitleFunc responding a description message
 func TitleFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-	_, _ = w.Write([]byte(`<html><head><title>PG Exporter</title></head><body><h1>PG Exporter</h1><p><a href='` + *metricPath + `'>Metrics</a></p></body></html>`))
+	_, _ = w.Write([]byte(`<html><head><title>PG Exporter</title></head><body><h1>PG Exporter</h1><p><a href='` + html.EscapeString(*metricPath) + `'>Metrics</a></p></body></html>`))
 }
 
 // ReloadFunc handles reload request

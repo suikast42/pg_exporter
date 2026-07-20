@@ -3,15 +3,98 @@ package exporter
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
+	pathpkg "path"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/exporter-toolkit/web"
 )
+
+// validateTelemetryPath checks that path can be registered alongside all of
+// pg_exporter's fixed endpoints. registerHTTPRoutes is deliberately reused so
+// validation cannot drift from the routes used by the real server.
+func validateTelemetryPath(path string) (err error) {
+	if path == "" {
+		return fmt.Errorf("web.telemetry-path must not be empty")
+	}
+	if path[0] != '/' {
+		return fmt.Errorf("web.telemetry-path %q must start with '/'", path)
+	}
+	uri, parseErr := url.ParseRequestURI(path)
+	if parseErr != nil || strings.ContainsAny(path, "?#") || uri.RawQuery != "" || uri.Fragment != "" {
+		return fmt.Errorf("web.telemetry-path %q must be a valid URL path without query or fragment", path)
+	}
+	if strings.ContainsAny(path, "{}") {
+		return fmt.Errorf("web.telemetry-path %q must be a literal URL path without ServeMux wildcards", path)
+	}
+	// ServeMux path-cleans incoming requests, so a non-canonical pattern like
+	// "//metrics" or "/a/../metrics" registers fine but can never be matched
+	if cleaned := pathpkg.Clean(path); path != cleaned && path != cleaned+"/" {
+		return fmt.Errorf("web.telemetry-path %q must be a canonical URL path (did you mean %q?)", path, cleaned)
+	}
+
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf("invalid or conflicting web.telemetry-path %q: %v", path, recovered)
+		}
+	}()
+	registerHTTPRoutes(http.NewServeMux(), &Exporter{}, path, http.NotFoundHandler())
+	return nil
+}
+
+func registerHTTPRoutes(mux *http.ServeMux, e *Exporter, telemetryPath string, telemetryHandler http.Handler) {
+	mux.HandleFunc("/", TitleFunc)
+	mux.HandleFunc("/version", VersionFunc)
+	mux.HandleFunc("/reload", ReloadFunc)
+	mux.HandleFunc("/stat", e.StatFunc)
+	mux.HandleFunc("/explain", e.ExplainFunc)
+
+	for _, path := range []string{"/up", "/read", "/health", "/liveness", "/readiness"} {
+		mux.HandleFunc(path, e.UpCheckFunc)
+	}
+	for _, path := range []string{"/primary", "/leader", "/master", "/read-write", "/rw"} {
+		mux.HandleFunc(path, e.PrimaryCheckFunc)
+	}
+	for _, path := range []string{"/replica", "/standby", "/slave", "/read-only", "/ro"} {
+		mux.HandleFunc(path, e.ReplicaCheckFunc)
+	}
+
+	mux.Handle(telemetryPath, telemetryHandler)
+}
+
+// clearLibPQEnvironment removes ambient PostgreSQL settings that pg_exporter
+// must not pass to lib/pq. In particular, lib/pq supports PGSERVICE and
+// PGSERVICEFILE, but service-file values can override the explicit connection
+// URL selected by pg_exporter. Ignoring them keeps the advertised URL and the
+// actual connection target deterministic.
+func clearLibPQEnvironment() {
+	variables := []struct {
+		name   string
+		reason string
+	}{
+		{"PGSYSCONFDIR", "kept isolated for compatibility with older lib/pq"},
+		{"PGLOCALEDIR", "kept isolated for compatibility with older lib/pq"},
+		{"PGREALM", "rejected by lib/pq"},
+		{"PGSERVICEFILE", "may override the explicit pg_exporter URL"},
+		{"PGSERVICE", "may override the explicit pg_exporter URL"},
+	}
+
+	for _, variable := range variables {
+		if _, exists := os.LookupEnv(variable.name); !exists {
+			continue
+		}
+		logWarnf("clearing environment variable %s (%s)", variable.name, variable.reason)
+		if err := os.Unsetenv(variable.name); err != nil {
+			logWarnf("failed to clear environment variable %s: %v", variable.name, err)
+		}
+	}
+}
 
 // DryRun will explain all query fetched from configs
 func DryRun() {
@@ -90,24 +173,7 @@ func Reload() error {
 func Run() {
 	ParseArgs()
 
-	// Clean up unsupported libpq environment variables that would cause panic
-	// lib/pq driver does not support these PostgreSQL environment variables
-	// and will panic if they are set. We clear them to ensure stable operation.
-	// See: https://github.com/lib/pq/blob/master/conn.go#L2019
-	unsupportedEnvs := []string{
-		"PGSYSCONFDIR",  // PostgreSQL system configuration directory
-		"PGSERVICEFILE", // PostgreSQL connection service file
-		"PGSERVICE",     // PostgreSQL service name
-		"PGLOCALEDIR",   // PostgreSQL locale directory
-		"PGREALM",       // Kerberos realm
-	}
-
-	for _, env := range unsupportedEnvs {
-		if val := os.Getenv(env); val != "" {
-			logWarnf("clearing unsupported environment variable %s=%s (lib/pq limitation)", env, val)
-			os.Unsetenv(env)
-		}
-	}
+	clearLibPQEnvironment()
 
 	// explain config only
 	if *dryRun {
@@ -124,6 +190,10 @@ func Run() {
 		os.Exit(1)
 	}
 	listenAddr := (*webConfig.WebListenAddresses)[0]
+	if err := validateTelemetryPath(*metricPath); err != nil {
+		logErrorf("%v", err)
+		os.Exit(1)
+	}
 
 	// Create exporter. It will connect on scrape and keep health probes running in background.
 	var err error
@@ -170,38 +240,13 @@ func Run() {
 	}()
 
 	/* ================ REST API ================ */
-	// basic
-	http.HandleFunc("/", TitleFunc)
-	http.HandleFunc("/version", VersionFunc)
-	// reload
-	http.HandleFunc("/reload", ReloadFunc)
-	// explain & stat
-	http.HandleFunc("/stat", PgExporter.StatFunc)
-	http.HandleFunc("/explain", PgExporter.ExplainFunc)
-	// alive
-	http.HandleFunc("/up", PgExporter.UpCheckFunc)
-	http.HandleFunc("/read", PgExporter.UpCheckFunc)
-	http.HandleFunc("/health", PgExporter.UpCheckFunc)
-	http.HandleFunc("/liveness", PgExporter.UpCheckFunc)
-	http.HandleFunc("/readiness", PgExporter.UpCheckFunc)
-	// primary
-	http.HandleFunc("/primary", PgExporter.PrimaryCheckFunc)
-	http.HandleFunc("/leader", PgExporter.PrimaryCheckFunc)
-	http.HandleFunc("/master", PgExporter.PrimaryCheckFunc)
-	http.HandleFunc("/read-write", PgExporter.PrimaryCheckFunc)
-	http.HandleFunc("/rw", PgExporter.PrimaryCheckFunc)
-	// replica
-	http.HandleFunc("/replica", PgExporter.ReplicaCheckFunc)
-	http.HandleFunc("/standby", PgExporter.ReplicaCheckFunc)
-	http.HandleFunc("/slave", PgExporter.ReplicaCheckFunc)
-	http.HandleFunc("/read-only", PgExporter.ReplicaCheckFunc)
-	http.HandleFunc("/ro", PgExporter.ReplicaCheckFunc)
-
-	http.Handle(*metricPath, promhttp.Handler())
+	mux := http.NewServeMux()
+	registerHTTPRoutes(mux, PgExporter, *metricPath, promhttp.Handler())
 
 	logInfof("pg_exporter for %s start, listen on %s%s", ShadowPGURL(*pgURL), listenAddr, *metricPath)
 
 	srv := &http.Server{
+		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      30 * time.Second,
