@@ -10,3 +10,5 @@
 !exporter/
 !exporter/**
 !pg_exporter.yml
+!config/
+!config/**
