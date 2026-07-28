@@ -1,4 +1,4 @@
-name: "pg_exporter"
+name: "pg-exporter"
 arch: "amd64"
 platform: "linux"
 version: "v1.4.0"
