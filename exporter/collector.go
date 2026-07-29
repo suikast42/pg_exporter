@@ -297,6 +297,14 @@ func (q *Collector) execute() {
 	if len(columnNames) != len(q.Columns) { // warn if column count not match
 		logWarnf("query [%s] column count not match, result %d ≠ config %d", q.Name, len(columnNames), len(q.Columns))
 	}
+	// A missing label invalidates the identity of every resulting series, so fail
+	// this collector instead of substituting an empty label value.
+	for _, labelName := range q.LabelNames {
+		if _, found := columnIndexes[labelName]; !found {
+			q.err = fmt.Errorf("query [%s] missing label column %s.%s in result", q.Name, q.Name, labelName)
+			return
+		}
+	}
 	// A missing scalar column preserves the historic warn-and-skip behavior. A
 	// missing histogram column is an error because silently emitting no groups is
 	// indistinguishable from a valid empty population.
@@ -320,16 +328,10 @@ func (q *Collector) execute() {
 			return
 		}
 
-		// get labels, sequence matters, empty string for null or bad labels
+		// get labels, sequence matters, empty string for null labels
 		labels := make([]string, len(q.LabelNames))
 		for i, labelName := range q.LabelNames {
-			if dataIndex, found := columnIndexes[labelName]; found {
-				labels[i] = castString(colData[dataIndex])
-			} else {
-				//if label column is not found in result, we just warn and send a empty string
-				logWarnf("missing label %s.%s", q.Name, labelName)
-				labels[i] = ""
-			}
+			labels[i] = castString(colData[columnIndexes[labelName]])
 		}
 
 		// get metrics, warn if column not exist
