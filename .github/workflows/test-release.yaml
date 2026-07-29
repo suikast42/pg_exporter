@@ -67,6 +67,12 @@ jobs:
               exit 1
             }
           done
+          docker run --rm -v "$PWD/dist:/dist:ro" rockylinux:9 bash -euo pipefail -c '
+            for rpm in /dist/*.rpm; do
+              rpm -qp --provides "$rpm" | grep -qx pg_exporter
+              rpm -qp --obsoletes "$rpm" | grep -qx pg_exporter
+            done
+          '
           echo ""
           echo "Checksums:"
           cat dist/checksums.txt || true

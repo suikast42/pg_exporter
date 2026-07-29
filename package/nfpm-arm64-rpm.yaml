@@ -15,6 +15,11 @@ vendor: "PGSTY"
 homepage: "https://pigsty.io/docs/pg_exporter"
 license: "Apache-2.0 License"
 
+provides:
+  - pg_exporter
+replaces:
+  - pg_exporter
+
 rpm:
   compression: gzip
   prefixes:
