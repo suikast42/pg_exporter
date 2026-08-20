@@ -32,6 +32,15 @@ jobs:
       - name: Verify generated configs
         run: make conf conf9 && git diff --exit-code pg_exporter.yml legacy/pg_exporter.yml
 
+      - name: Verify standalone RPM package metadata
+        run: |
+          for config in package/nfpm-amd64-rpm.yaml package/nfpm-arm64-rpm.yaml; do
+            grep -qx 'name: "pg-exporter"' "$config"
+            grep -qx 'provides:' "$config"
+            grep -qx 'replaces:' "$config"
+            test "$(grep -c '^  - pg_exporter$' "$config")" -eq 2
+          done
+
       - name: Run tests
         run: go test -race -count=1 ./...
 

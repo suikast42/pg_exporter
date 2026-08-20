@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - '.goreleaser.yml'
+      - 'package/nfpm-*-rpm.yaml'
       - '.github/workflows/release.yaml'
       - '.github/workflows/test-release.yaml'
 
@@ -52,10 +53,26 @@ jobs:
           version: latest
           args: release --snapshot --clean --skip=publish,docker
 
-      - name: List artifacts
+      - name: Verify artifacts
         run: |
           echo "Generated artifacts:"
           ls -lh dist/*.tar.gz || true
+          ls -lh dist/*.rpm
+          shopt -s nullglob
+          rpms=(dist/*.rpm)
+          test "${#rpms[@]}" -gt 0
+          for rpm in "${rpms[@]}"; do
+            [[ "$(basename "$rpm")" == pg-exporter-*.rpm ]] || {
+              echo "::error file=.goreleaser.yml::unexpected RPM artifact name: $(basename "$rpm")"
+              exit 1
+            }
+          done
+          docker run --rm -v "$PWD/dist:/dist:ro" rockylinux:9 bash -euo pipefail -c '
+            for rpm in /dist/*.rpm; do
+              rpm -qp --provides "$rpm" | grep -qx pg_exporter
+              rpm -qp --obsoletes "$rpm" | grep -qx pg_exporter
+            done
+          '
           echo ""
           echo "Checksums:"
           cat dist/checksums.txt || true

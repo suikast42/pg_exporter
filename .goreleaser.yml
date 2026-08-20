@@ -39,9 +39,9 @@ builds:
     ldflags:
       - -s -w
       - -extldflags "-static"
-      # goreleaser strips the v prefix from {{.Version}}; add it back so release
-      # binaries report the same v-prefixed version as make build / go build
-      - -X 'pg_exporter/exporter.Version=v{{.Version}}'
+      # Release versions are unprefixed, while the snapshot version below is
+      # derived from a v-prefixed tag; normalize both to exactly one leading v.
+      - -X 'pg_exporter/exporter.Version=v{{ trimprefix .Version "v" }}'
       - -X 'pg_exporter/exporter.Branch={{.Branch}}'
       - -X 'pg_exporter/exporter.Revision={{.ShortCommit}}'
       - -X 'pg_exporter/exporter.BuildDate={{.Date}}'
@@ -66,7 +66,7 @@ archives:
 
 nfpms:
   - id: pg_exporter_rpm
-    package_name: pg_exporter
+    package_name: pg-exporter
     file_name_template: >-
       {{ .PackageName }}-{{ .Version }}-{{ .Release }}.
       {{- if eq .Arch "amd64" }}x86_64
@@ -87,6 +87,10 @@ nfpms:
     release: "1"
     section: database
     priority: optional
+    provides:
+      - pg_exporter
+    replaces:
+      - pg_exporter
     contents:
       - src: pg_exporter.yml
         dst: /etc/pg_exporter.yml
