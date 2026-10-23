@@ -30,7 +30,10 @@ func validateTelemetryPath(path string) (err error) {
 	if parseErr != nil || strings.ContainsAny(path, "?#") || uri.RawQuery != "" || uri.Fragment != "" {
 		return fmt.Errorf("web.telemetry-path %q must be a valid URL path without query or fragment", path)
 	}
-	if strings.ContainsAny(path, "{}") {
+	// uri.Path resolves percent-escapes, so "/%75p" and "/%7Bx%7D" are checked
+	// as "/up" and "/{x}" below
+	decoded := uri.Path
+	if strings.ContainsAny(decoded, "{}") {
 		return fmt.Errorf("web.telemetry-path %q must be a literal URL path without ServeMux wildcards", path)
 	}
 	// ServeMux path-cleans incoming requests, so a non-canonical pattern like
@@ -44,7 +47,19 @@ func validateTelemetryPath(path string) (err error) {
 			err = fmt.Errorf("invalid or conflicting web.telemetry-path %q: %v", path, recovered)
 		}
 	}()
-	registerHTTPRoutes(http.NewServeMux(), &Exporter{}, path, http.NotFoundHandler())
+	// Register the decoded path: the go1.21 ServeMux (still selected by
+	// GODEBUG=httpmuxgo121=1 and GOPATH-mode builds without a go.mod, e.g.
+	// Debian dh-golang) never unescapes patterns and only panics on exact
+	// duplicates, so "/%75p" would slip past a check on the raw path
+	registerHTTPRoutes(http.NewServeMux(), &Exporter{}, decoded, http.NotFoundHandler())
+	// Verify handler identity: older muxes may select the index for escaped
+	// paths, and a redirect handler can report the metrics pattern itself.
+	mux := http.NewServeMux()
+	probe := http.HandlerFunc(http.NotFound)
+	registerHTTPRoutes(mux, &Exporter{}, path, &probe)
+	if handler, _ := mux.Handler(&http.Request{Method: http.MethodGet, URL: uri}); handler != &probe {
+		return fmt.Errorf("web.telemetry-path %q cannot reach the metrics handler; use a literal unescaped path", path)
+	}
 	return nil
 }
 
